@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>포켓몬 TCG - 얼티밋 마스터 컬렉션</title>
+  <title>포켓몬 TCG - 계정 및 로컬스토리지 시스템</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&display=swap');
 
@@ -24,7 +24,7 @@
       overflow-x: hidden;
     }
 
-    /* 로그인 Overlay */
+    /* 로그인 화면 overlay */
     .auth-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(5, 6, 8, 0.95); z-index: 200;
@@ -53,7 +53,7 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.8); z-index: 10;
     }
 
-    .title-logo { font-size: 18px; font-weight: 900; color: var(--accent-yellow); text-shadow: 0 0 10px rgba(241,196,15,0.4); }
+    .title-logo { font-size: 18px; font-weight: 900; color: var(--accent-yellow); }
     .user-info-bar { display: flex; align-items: center; gap: 15px; }
     .gold-box {
       background: #000; border: 2px solid var(--accent-yellow);
@@ -136,7 +136,6 @@
       border-radius: 50%; border: 6px solid #111;
     }
 
-    /* --- 🎴 등급별 스타일 및 프레임 특화 --- */
     .card-front {
       transform: rotateY(180deg); background: #f8f9fa; color: #000;
       display: flex; flex-direction: column; padding: 8px; font-size: 11px; position: relative;
@@ -151,74 +150,22 @@
 
     .card-header { display: flex; justify-content: space-between; font-weight: 900; z-index: 2; }
     .card-img-box {
-      width: 100%; height: 125px; background: #000; border: 2px solid #485460;
+      width: 100%; height: 120px; background: #000; border: 2px solid #485460;
       border-radius: 6px; margin: 4px 0; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2;
     }
     .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
     .card-body { background: rgba(255,255,255,0.92); padding: 6px; border-radius: 6px; font-size: 10px; margin-top: auto; z-index: 2; }
 
-    /* 1. AR (Art Rare) 효과 */
-    .rarity-AR .card-img-box { border-color: #00cec9; }
-    .rarity-AR .holo-layer {
-      position: absolute; top:0; left:0; width:100%; height:100%;
-      background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%);
-      pointer-events: none; z-index: 3; mix-blend-mode: overlay;
-    }
+    /* 풀일러스트 변형 (SAR/MUR) */
+    .rarity-SAR .card-front, .rarity-MUR .card-front { padding: 0; }
+    .rarity-SAR .card-img-box, .rarity-MUR .card-img-box { position: absolute; top:0; left:0; width:100%; height:100%; margin:0; border:none; }
+    .rarity-SAR .card-header, .rarity-MUR .card-header { position: absolute; top: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.65); padding: 4px 8px; border-radius: 6px; color:#fff; }
+    .rarity-SAR .card-body, .rarity-MUR .card-body { position: absolute; bottom: 10px; left: 10px; right: 10px; background: rgba(0,0,0,0.75); color:#fff; }
 
-    /* 2. SR (Super Rare) 효과 */
-    .rarity-SR { border: 3px solid #f1c40f !important; }
-    .rarity-SR .card-img-box { border: 2px solid #f39c12; }
-    .rarity-SR .holo-layer {
-      position: absolute; top:0; left:0; width:100%; height:100%;
-      background: linear-gradient(115deg, transparent 20%, rgba(255,241,118,0.6) 45%, rgba(120,220,255,0.6) 55%, transparent 80%);
-      background-size: 200% 200%; animation: shiftHolo 2.5s infinite linear;
-      mix-blend-mode: color-dodge; pointer-events: none; z-index: 3;
-    }
-
-    /* 3. SAR (Special Art Rare) 풀일러스트 전용 프레임 */
-    .rarity-SAR .card-front { padding: 0; background: #000; }
-    .rarity-SAR .card-img-box { position: absolute; top:0; left:0; width:100%; height:100%; margin:0; border:none; }
-    .rarity-SAR .card-header {
-      position: absolute; top: 8px; left: 8px; right: 8px;
-      background: rgba(0, 0, 0, 0.75); padding: 4px 8px; border-radius: 6px; color: #fff;
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-    .rarity-SAR .card-body {
-      position: absolute; bottom: 8px; left: 8px; right: 8px;
-      background: rgba(0, 0, 0, 0.85); color: #fff; border: 1px solid rgba(255,255,255,0.3);
-    }
     .rarity-SAR { border: 3px solid #ff7675 !important; box-shadow: 0 0 20px rgba(255, 118, 117, 0.9); }
-    .rarity-SAR .holo-layer {
-      position: absolute; top:0; left:0; width:100%; height:100%;
-      background: radial-gradient(circle, rgba(255,0,128,0.4) 0%, rgba(0,255,255,0.4) 50%, rgba(255,255,0,0.4) 100%);
-      background-size: 180% 180%; animation: sarGlow 3s infinite alternate ease-in-out;
-      mix-blend-mode: color-dodge; pointer-events: none; z-index: 3;
-    }
-
-    /* 4. MUR (Master Ultra Rare - 0.5% 극초희귀) 궁극의 풀일러스트 */
-    .rarity-MUR .card-front { padding: 0; background: #000; }
-    .rarity-MUR .card-img-box { position: absolute; top:0; left:0; width:100%; height:100%; margin:0; border:none; }
-    .rarity-MUR .card-header {
-      position: absolute; top: 8px; left: 8px; right: 8px;
-      background: linear-gradient(90deg, rgba(241,196,15,0.9), rgba(0,0,0,0.8)); padding: 4px 8px; border-radius: 6px; color: #fff;
-      border: 1px solid #f1c40f;
-    }
-    .rarity-MUR .card-body {
-      position: absolute; bottom: 8px; left: 8px; right: 8px;
-      background: rgba(10, 10, 15, 0.9); color: #fff; border: 1px solid #f1c40f;
-    }
     .rarity-MUR { border: 4px solid #f1c40f !important; box-shadow: 0 0 35px rgba(241, 196, 15, 1); }
-    .rarity-MUR .holo-layer {
-      position: absolute; top:-50%; left:-50%; width:200%; height:200%;
-      background: conic-gradient(from 0deg, #f1c40f, #e67e22, #e74c3c, #9b59b6, #3498db, #f1c40f);
-      animation: rotateMur 3.5s linear infinite; opacity: 0.5; mix-blend-mode: color-dodge; pointer-events: none; z-index: 3;
-    }
 
-    @keyframes shiftHolo { 0% { background-position: 0% 0%; } 100% { background-position: 200% 200%; } }
-    @keyframes sarGlow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
-    @keyframes rotateMur { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    /* 슬리브 & 탑로더 */
+    /* 슬리브 / 탑로더 */
     .card-sleeve {
       position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px;
       border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 12px;
@@ -244,12 +191,12 @@
 </head>
 <body>
 
-  <!-- 1. 로그인 화면 -->
+  <!-- 1. 로그인 / 회원가입 화면 -->
   <div class="auth-overlay" id="authOverlay">
     <div class="auth-card">
       <h2>⚡ TCG 수집가 로그인</h2>
-      <p style="font-size:12px; color:#aaa; margin-bottom:15px;">아이디를 입력하세요.<br>(신규 아이디는 자동으로 등록됩니다)</p>
-      <input type="text" id="usernameInput" class="auth-input" placeholder="아이디">
+      <p style="font-size:12px; color:#aaa; margin-bottom:15px;">아이디를 입력하고 로그인하세요.<br>(처음 입력하는 아이디는 새로 생성됩니다!)</p>
+      <input type="text" id="usernameInput" class="auth-input" placeholder="아이디 (예: master123)">
       <input type="password" id="passwordInput" class="auth-input" placeholder="비밀번호">
       <button class="auth-btn" onclick="handleAuth()">시작하기 / 로그인</button>
     </div>
@@ -257,7 +204,7 @@
 
   <!-- 2. 게임 메인 헤더 -->
   <header>
-    <div class="title-logo">⚡ POKÉMON TCG ULTIMATE</div>
+    <div class="title-logo">⚡ POKÉMON TCG LOCAL STORAGE</div>
     <div class="user-info-bar">
       <span style="font-size:14px; font-weight:bold; color:#74b9ff;">👤 <span id="currentUserName">게스트</span> 님</span>
       <div class="gold-box">💰 <span id="userGold">10,000</span> G</div>
@@ -266,10 +213,10 @@
     </div>
   </header>
 
-  <!-- 3. 메인 스테이지 -->
+  <!-- 3. 스테이지 -->
   <div class="main-stage">
     <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:10px;">
-      <span style="font-size:13px; color:#aaa;">✨ 등급별 고유 일러스트와 <b>스페셜 아트 풀일러스트(SAR/MUR)</b>를 수집해보세요!</span>
+      <span style="font-size:13px; color:#aaa;">💾 데이터는 로컬스토리지에 **실시간 자동 저장**됩니다.</span>
       <button class="nav-btn" style="background:#2980b9; border-color:#3498db;" onclick="flipAllCards()">🔄 전체 카드 뒤집기</button>
     </div>
 
@@ -298,7 +245,7 @@
   <div class="modal" id="shopModal">
     <div class="modal-content">
       <button class="close-btn" onclick="closeModal('shopModal')">X</button>
-      <h2 style="margin:0;">🛒 카드팩 상점 (MUR 0.5% 극초희귀 적용)</h2>
+      <h2 style="margin:0;">🛒 카드팩 상점</h2>
       <div class="pack-grid">
         <div class="pack-card">
           <h4 style="color:#ff7675; margin:0 0 5px 0;">🔴 전설의 드래곤</h4>
@@ -319,40 +266,36 @@
   <script>
     const sellPriceTable = { "C": 100, "U": 300, "AR": 1500, "SR": 5000, "SAR": 20000, "MUR": 100000 };
 
-    // 등급별로 특화된 스페셜 아트워크 포켓몬 데이터베이스
     const cardPool = {
       dragon: [
-        { id: "d1", name: "아르세우스 MUR", type: "dragon", hp: 330, skill: "창조의빛", rarity: "MUR", img: "https://images.pokemontcg.io/swsh9/123_hires.png" },
-        { id: "d2", name: "레쿠쟈 SAR", type: "dragon", hp: 280, skill: "화룡점정", rarity: "SAR", img: "https://images.pokemontcg.io/swsh7/218_hires.png" },
-        { id: "d3", name: "기라티나 SAR", type: "dragon", hp: 280, skill: "섀도다이브", rarity: "SAR", img: "https://images.pokemontcg.io/swsh11/186_hires.png" },
-        { id: "d4", name: "한카리아스 SR", type: "dragon", hp: 220, skill: "드래곤클로", rarity: "SR", img: "https://images.pokemontcg.io/swsh9/112_hires.png" },
-        { id: "d5", name: "망나뇽 AR", type: "dragon", hp: 160, skill: "용의파동", rarity: "AR", img: "https://images.pokemontcg.io/swsh7/191_hires.png" },
-        { id: "d6", name: "파이리", type: "fire", hp: 70, skill: "불꽃세례", rarity: "C", img: "https://images.pokemontcg.io/pyp/1_hires.png" },
-        { id: "d7", name: "리자드", type: "fire", hp: 90, skill: "화염밀치기", rarity: "U", img: "https://images.pokemontcg.io/swsh35/19_hires.png" }
+        { id: "d1", name: "아르세우스 MUR", type: "dragon", hp: 330, skill: "창조의빛", rarity: "MUR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/493.png" },
+        { id: "d2", name: "레쿠쟈 SAR", type: "dragon", hp: 280, skill: "화룡점정", rarity: "SAR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/384.png" },
+        { id: "d3", name: "한카리아스 SR", type: "dragon", hp: 220, skill: "드래곤클로", rarity: "SR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/445.png" },
+        { id: "d4", name: "망나뇽 AR", type: "dragon", hp: 160, skill: "용의파동", rarity: "AR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/149.png" },
+        { id: "d5", name: "파이리", type: "fire", hp: 70, skill: "불꽃세례", rarity: "C", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/004.png" }
       ],
       psychic: [
-        { id: "p1", name: "뮤츠 MUR", type: "psychic", hp: 320, skill: "사이코브레이크", rarity: "MUR", img: "https://images.pokemontcg.io/sm115/31_hires.png" },
-        { id: "p2", name: "닌피아 SAR", type: "psychic", hp: 220, skill: "드레인키스", rarity: "SAR", img: "https://images.pokemontcg.io/swsh7/212_hires.png" },
-        { id: "p3", name: "게꼬닌자 SAR", type: "water", hp: 230, skill: "물수리검", rarity: "SAR", img: "https://images.pokemontcg.io/swsh10tg/TG06_hires.png" },
-        { id: "p4", name: "뮤 ex", type: "psychic", hp: 180, skill: "게놈리코드", rarity: "SR", img: "https://images.pokemontcg.io/swsh8/114_hires.png" },
-        { id: "p5", name: "팬텀 AR", type: "psychic", hp: 140, skill: "섀도볼", rarity: "AR", img: "https://images.pokemontcg.io/swsh11tg/TG05_hires.png" },
-        { id: "p6", name: "고스", type: "psychic", hp: 50, skill: "핥기", rarity: "C", img: "https://images.pokemontcg.io/swsh10/63_hires.png" }
+        { id: "p1", name: "뮤츠 MUR", type: "psychic", hp: 320, skill: "사이코브레이크", rarity: "MUR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/150.png" },
+        { id: "p2", name: "닌피아 SAR", type: "psychic", hp: 220, skill: "드레인키스", rarity: "SAR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/700.png" },
+        { id: "p3", name: "뮤 ex", type: "psychic", hp: 180, skill: "게놈리코드", rarity: "SR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/151.png" },
+        { id: "p4", name: "팬텀 AR", type: "psychic", hp: 140, skill: "섀도볼", rarity: "AR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/094.png" },
+        { id: "p5", name: "고스", type: "psychic", hp: 50, skill: "핥기", rarity: "C", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/092.png" }
       ],
       classic: [
-        { id: "c1", name: "피카츄 ex SAR", type: "electric", hp: 210, skill: "볼트태클", rarity: "SAR", img: "https://images.pokemontcg.io/swsh11tg/TG05_hires.png" },
-        { id: "c2", name: "루기아 SR", type: "psychic", hp: 220, skill: "에어로블라스트", rarity: "SR", img: "https://images.pokemontcg.io/swsh12/138_hires.png" },
-        { id: "c3", name: "잠만보 AR", type: "electric", hp: 160, skill: "누르기", rarity: "AR", img: "https://images.pokemontcg.io/swsh10tg/TG04_hires.png" },
-        { id: "c4", name: "피카츄", type: "electric", hp: 60, skill: "10만볼트", rarity: "C", img: "https://images.pokemontcg.io/swsh4/44_hires.png" },
-        { id: "c5", name: "이상해씨", type: "grass", hp: 60, skill: "덩굴채찍", rarity: "C", img: "https://images.pokemontcg.io/swsh35/1_hires.png" },
-        { id: "c6", name: "꼬부기", type: "water", hp: 60, skill: "물대포", rarity: "C", img: "https://images.pokemontcg.io/swsh35/14_hires.png" }
+        { id: "c1", name: "피카츄 ex SAR", type: "electric", hp: 210, skill: "볼트태클", rarity: "SAR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/025.png" },
+        { id: "c2", name: "루기아 SR", type: "psychic", hp: 220, skill: "에어로블라스트", rarity: "SR", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/249.png" },
+        { id: "c3", name: "피카츄", type: "electric", hp: 60, skill: "10만볼트", rarity: "C", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/025.png" },
+        { id: "c4", name: "이상해씨", type: "grass", hp: 60, skill: "덩굴채찍", rarity: "C", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/001.png" },
+        { id: "c5", name: "꼬부기", type: "water", hp: 60, skill: "물대포", rarity: "C", img: "https://assets.pokemon.com/assets/cms2/img/pokedex/full/007.png" }
       ]
     };
 
     let currentUser = null;
     let userGold = 10000;
-    let activeCards = [];
+    let activeCards = []; // 테이블 위 실시간 카드 데이터
     let highestZIndex = 100;
 
+    // --- 로그인 / 인증 로직 ---
     function handleAuth() {
       const user = document.getElementById('usernameInput').value.trim();
       if(!user) { alert("아이디를 입력해 주세요!"); return; }
@@ -371,18 +314,27 @@
       document.getElementById('usernameInput').value = '';
       document.getElementById('passwordInput').value = '';
       
+      // 테이블 청소
       document.querySelectorAll('.draggable-card, .unopened-pack').forEach(el => el.remove());
       activeCards = [];
     }
 
+    // --- LocalStorage 로드 / 저장 ---
     function saveUserData() {
       if(!currentUser) return;
-      const dataToSave = { gold: userGold, cards: activeCards };
+
+      const dataToSave = {
+        gold: userGold,
+        cards: activeCards
+      };
+
       localStorage.setItem(`pokemon_tcg_user_${currentUser}`, JSON.stringify(dataToSave));
     }
 
     function loadUserData() {
       const saved = localStorage.getItem(`pokemon_tcg_user_${currentUser}`);
+      
+      // 테이블 청소
       document.querySelectorAll('.draggable-card, .unopened-pack').forEach(el => el.remove());
       activeCards = [];
 
@@ -390,8 +342,11 @@
         const parsed = JSON.parse(saved);
         userGold = parsed.gold;
         activeCards = parsed.cards || [];
+        
+        // 카드들 다시 그리기
         activeCards.forEach(cData => renderCard(cData));
       } else {
+        // 신규 유저
         userGold = 10000;
         activeCards = [];
         spawnUnopenedPack('dragon');
@@ -434,12 +389,12 @@
 
     function getRandomRarity() {
       const rand = Math.random() * 100;
-      if (rand < 0.5) return "MUR";      // 0.5% 극초희귀
-      if (rand < 2.5) return "SAR";      // 2%
-      if (rand < 10) return "SR";        // 7.5%
-      if (rand < 25) return "AR";        // 15%
-      if (rand < 55) return "U";         // 30%
-      return "C";                        // 45%
+      if (rand < 0.5) return "MUR";
+      if (rand < 2.5) return "SAR";
+      if (rand < 10) return "SR";
+      if (rand < 25) return "AR";
+      if (rand < 55) return "U";
+      return "C";
     }
 
     function spawnStackedCards(packType) {
@@ -486,17 +441,16 @@
             <div class="pokeball"></div>
           </div>
           <div class="card-face card-front card-type-${cData.type}">
-            <div class="holo-layer"></div>
             <div class="card-header">
               <span>${cData.name}</span>
               <span style="color:#e74c3c;">${cData.hp} HP</span>
             </div>
             <div class="card-img-box">
-              <img src="${cData.img}" alt="Pokemon" crossorigin="anonymous">
+              <img src="${cData.img}" alt="Pokemon">
             </div>
             <div class="card-body">
               <b>기술: ${cData.skill}</b>
-              <div style="margin-top:2px; font-weight:bold; color:#d63031;">[${cData.rarity}] (${sellPriceTable[cData.rarity]}G)</div>
+              <div style="margin-top:2px; font-weight:bold; color:#d63031;">[${cData.rarity}] (판매가: ${sellPriceTable[cData.rarity]}G)</div>
             </div>
           </div>
         </div>
