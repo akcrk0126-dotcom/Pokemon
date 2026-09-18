@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>포켓몬 TCG - 얼티밋 마스터 컬렉션</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&family=Montserrat:wght@800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&display=swap');
 
     :root {
       --bg-dark: #08090c;
@@ -35,7 +35,7 @@
       border-radius: 16px; padding: 30px; width: 360px; text-align: center;
       box-shadow: 0 0 30px rgba(241, 196, 15, 0.3);
     }
-    .auth-card h2 { margin-top: 0; color: var(--accent-yellow); font-family: 'Montserrat', sans-serif; }
+    .auth-card h2 { margin-top: 0; color: var(--accent-yellow); }
     .auth-input {
       width: 100%; padding: 10px 14px; margin: 8px 0; border-radius: 8px;
       border: 1px solid #3b4258; background: #0a0c12; color: #fff; font-size: 14px;
@@ -53,7 +53,7 @@
       box-shadow: 0 4px 20px rgba(0,0,0,0.8); z-index: 10;
     }
 
-    .title-logo { font-size: 20px; font-weight: 900; color: var(--accent-yellow); font-family: 'Montserrat', sans-serif; text-shadow: 0 0 10px rgba(241,196,15,0.4); }
+    .title-logo { font-size: 18px; font-weight: 900; color: var(--accent-yellow); text-shadow: 0 0 10px rgba(241,196,15,0.4); }
     .user-info-bar { display: flex; align-items: center; gap: 15px; }
     .gold-box {
       background: #000; border: 2px solid var(--accent-yellow);
@@ -104,67 +104,13 @@
     }
     .trash-zone.drag-over { background: rgba(231, 76, 60, 0.4); transform: scale(1.05); }
 
-    /* ========================================================= */
-    /* 📦 리얼 포켓몬 부스터 팩 디자인 (REAL POKEMON BOOSTER PACK) */
-    /* ========================================================= */
     .unopened-pack {
-      width: 175px; height: 285px; position: absolute;
-      border-radius: 6px; cursor: pointer; z-index: 50; text-align: center;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 15px rgba(255,255,255,0.2);
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-      display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.3);
-    }
-    .unopened-pack:hover {
-      transform: scale(1.08) translateY(-5px);
-      box-shadow: 0 20px 45px rgba(0,0,0,0.9), 0 0 25px rgba(241, 196, 15, 0.6);
+      width: 170px; height: 260px; position: absolute;
+      background: linear-gradient(135deg, #2c3e50, #000); border: 3px solid #f1c40f; border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.8); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; cursor: pointer; z-index: 50; text-align: center; padding: 10px;
     }
 
-    /* 상/하단 톱니바퀴 마감 씰 */
-    .pack-crimp-top, .pack-crimp-bottom {
-      height: 18px; width: 100%;
-      background: repeating-linear-gradient(90deg, #555 0px, #aaa 3px, #222 6px);
-      border-bottom: 1px solid rgba(0,0,0,0.5); border-top: 1px solid rgba(255,255,255,0.4);
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); z-index: 3;
-    }
-    .pack-crimp-bottom { border-top: 1px solid rgba(0,0,0,0.5); border-bottom: none; }
-
-    /* 팩 메탈릭 바디 및 아트 */
-    .pack-body {
-      flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-      padding: 8px 6px; overflow: hidden;
-    }
-
-    /* 포일 광채 홀로그램 레이어 */
-    .pack-body::before {
-      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-      background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
-      animation: packShine 3s infinite linear; pointer-events: none; z-index: 2;
-    }
-    @keyframes packShine { 0% { transform: translateY(-30%) rotate(0deg); } 100% { transform: translateY(30%) rotate(0deg); } }
-
-    /* 테마별 팩 배경 스타일 */
-    .pack-dragon { background: linear-gradient(165deg, #0f2027, #203a43, #2c5364); }
-    .pack-psychic { background: linear-gradient(165deg, #2b1055, #7597de); }
-    .pack-classic { background: linear-gradient(165deg, #b91d73, #f953c6); }
-
-    .pack-header-logo {
-      font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 900; color: #f1c40f;
-      letter-spacing: 1px; text-shadow: 0 2px 4px #000; z-index: 2; margin-top: 2px;
-      background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 10px; border: 1px solid rgba(241,196,15,0.5);
-    }
-    
-    .pack-art-img {
-      width: 125px; height: 125px; border-radius: 50%; object-fit: cover;
-      border: 3px solid #f1c40f; box-shadow: 0 0 15px rgba(0,0,0,0.8); z-index: 1; margin: 4px 0;
-    }
-
-    .pack-footer-text {
-      font-size: 10px; font-weight: bold; color: #fff; text-shadow: 0 1px 3px #000; z-index: 2;
-      background: rgba(0,0,0,0.7); width: 100%; padding: 4px 0; border-radius: 4px;
-    }
-
-    /* 카드 기본 스타일 */
     .draggable-card {
       width: var(--card-w); height: var(--card-h); position: absolute; perspective: 1000px; cursor: grab; touch-action: none;
     }
@@ -190,7 +136,7 @@
       border-radius: 50%; border: 6px solid #111;
     }
 
-    /* --- 카드 등급별 프레임 --- */
+    /* --- 🎴 등급별 스타일 및 프레임 특화 --- */
     .card-front {
       transform: rotateY(180deg); background: #f8f9fa; color: #000;
       display: flex; flex-direction: column; padding: 8px; font-size: 11px; position: relative;
@@ -211,30 +157,80 @@
     .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
     .card-body { background: rgba(255,255,255,0.92); padding: 6px; border-radius: 6px; font-size: 10px; margin-top: auto; z-index: 2; }
 
-    /* 홀로그램 효과 */
-    .rarity-AR .holo-layer { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%); mix-blend-mode: overlay; pointer-events: none; z-index: 3; }
+    /* 1. AR (Art Rare) 효과 */
+    .rarity-AR .card-img-box { border-color: #00cec9; }
+    .rarity-AR .holo-layer {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%);
+      pointer-events: none; z-index: 3; mix-blend-mode: overlay;
+    }
+
+    /* 2. SR (Super Rare) 효과 */
     .rarity-SR { border: 3px solid #f1c40f !important; }
-    .rarity-SR .holo-layer { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(115deg, transparent 20%, rgba(255,241,118,0.6) 45%, rgba(120,220,255,0.6) 55%, transparent 80%); background-size: 200% 200%; animation: shiftHolo 2.5s infinite linear; mix-blend-mode: color-dodge; pointer-events: none; z-index: 3; }
+    .rarity-SR .card-img-box { border: 2px solid #f39c12; }
+    .rarity-SR .holo-layer {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: linear-gradient(115deg, transparent 20%, rgba(255,241,118,0.6) 45%, rgba(120,220,255,0.6) 55%, transparent 80%);
+      background-size: 200% 200%; animation: shiftHolo 2.5s infinite linear;
+      mix-blend-mode: color-dodge; pointer-events: none; z-index: 3;
+    }
 
-    /* SAR & MUR 풀일러스트 */
-    .rarity-SAR .card-front, .rarity-MUR .card-front { padding: 0; background: #000; }
-    .rarity-SAR .card-img-box, .rarity-MUR .card-img-box { position: absolute; top:0; left:0; width:100%; height:100%; margin:0; border:none; }
-    .rarity-SAR .card-header, .rarity-MUR .card-header { position: absolute; top: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 6px; color: #fff; border: 1px solid rgba(255,255,255,0.3); }
-    .rarity-SAR .card-body, .rarity-MUR .card-body { position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.85); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
-    
+    /* 3. SAR (Special Art Rare) 풀일러스트 전용 프레임 */
+    .rarity-SAR .card-front { padding: 0; background: #000; }
+    .rarity-SAR .card-img-box { position: absolute; top:0; left:0; width:100%; height:100%; margin:0; border:none; }
+    .rarity-SAR .card-header {
+      position: absolute; top: 8px; left: 8px; right: 8px;
+      background: rgba(0, 0, 0, 0.75); padding: 4px 8px; border-radius: 6px; color: #fff;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .rarity-SAR .card-body {
+      position: absolute; bottom: 8px; left: 8px; right: 8px;
+      background: rgba(0, 0, 0, 0.85); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+    }
     .rarity-SAR { border: 3px solid #ff7675 !important; box-shadow: 0 0 20px rgba(255, 118, 117, 0.9); }
-    .rarity-SAR .holo-layer { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, rgba(255,0,128,0.4) 0%, rgba(0,255,255,0.4) 50%, rgba(255,255,0,0.4) 100%); background-size: 180% 180%; animation: sarGlow 3s infinite alternate ease-in-out; mix-blend-mode: color-dodge; pointer-events: none; z-index: 3; }
+    .rarity-SAR .holo-layer {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: radial-gradient(circle, rgba(255,0,128,0.4) 0%, rgba(0,255,255,0.4) 50%, rgba(255,255,0,0.4) 100%);
+      background-size: 180% 180%; animation: sarGlow 3s infinite alternate ease-in-out;
+      mix-blend-mode: color-dodge; pointer-events: none; z-index: 3;
+    }
 
+    /* 4. MUR (Master Ultra Rare - 0.5% 극초희귀) 궁극의 풀일러스트 */
+    .rarity-MUR .card-front { padding: 0; background: #000; }
+    .rarity-MUR .card-img-box { position: absolute; top:0; left:0; width:100%; height:100%; margin:0; border:none; }
+    .rarity-MUR .card-header {
+      position: absolute; top: 8px; left: 8px; right: 8px;
+      background: linear-gradient(90deg, rgba(241,196,15,0.9), rgba(0,0,0,0.8)); padding: 4px 8px; border-radius: 6px; color: #fff;
+      border: 1px solid #f1c40f;
+    }
+    .rarity-MUR .card-body {
+      position: absolute; bottom: 8px; left: 8px; right: 8px;
+      background: rgba(10, 10, 15, 0.9); color: #fff; border: 1px solid #f1c40f;
+    }
     .rarity-MUR { border: 4px solid #f1c40f !important; box-shadow: 0 0 35px rgba(241, 196, 15, 1); }
-    .rarity-MUR .holo-layer { position: absolute; top:-50%; left:-50%; width:200%; height:200%; background: conic-gradient(from 0deg, #f1c40f, #e67e22, #e74c3c, #9b59b6, #3498db, #f1c40f); animation: rotateMur 3.5s linear infinite; opacity: 0.5; mix-blend-mode: color-dodge; pointer-events: none; z-index: 3; }
+    .rarity-MUR .holo-layer {
+      position: absolute; top:-50%; left:-50%; width:200%; height:200%;
+      background: conic-gradient(from 0deg, #f1c40f, #e67e22, #e74c3c, #9b59b6, #3498db, #f1c40f);
+      animation: rotateMur 3.5s linear infinite; opacity: 0.5; mix-blend-mode: color-dodge; pointer-events: none; z-index: 3;
+    }
 
     @keyframes shiftHolo { 0% { background-position: 0% 0%; } 100% { background-position: 200% 200%; } }
     @keyframes sarGlow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
     @keyframes rotateMur { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     /* 슬리브 & 탑로더 */
-    .card-sleeve { position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px; border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%); pointer-events: none; display: none; z-index: 4; }
-    .card-toploader { position: absolute; top: -7px; left: -7px; right: -7px; bottom: -7px; border: 5px solid rgba(120, 210, 255, 0.9); border-radius: 14px; background: linear-gradient(135deg, rgba(135,206,235,0.3) 0%, rgba(255,255,255,0.1) 100%); pointer-events: none; display: none; z-index: 4; }
+    .card-sleeve {
+      position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px;
+      border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%);
+      pointer-events: none; display: none; z-index: 4;
+    }
+    .card-toploader {
+      position: absolute; top: -7px; left: -7px; right: -7px; bottom: -7px;
+      border: 5px solid rgba(120, 210, 255, 0.9); border-radius: 14px;
+      background: linear-gradient(135deg, rgba(135,206,235,0.3) 0%, rgba(255,255,255,0.1) 100%);
+      pointer-events: none; display: none; z-index: 4;
+    }
     .has-sleeve .card-sleeve { display: block; }
     .has-toploader .card-toploader { display: block; }
 
@@ -252,14 +248,14 @@
   <div class="auth-overlay" id="authOverlay">
     <div class="auth-card">
       <h2>⚡ TCG 수집가 로그인</h2>
-      <p style="font-size:12px; color:#aaa; margin-bottom:15px;">아이디를 입력하세요.<br>(신규 아이디는 자동으로 생성됩니다)</p>
+      <p style="font-size:12px; color:#aaa; margin-bottom:15px;">아이디를 입력하세요.<br>(신규 아이디는 자동으로 등록됩니다)</p>
       <input type="text" id="usernameInput" class="auth-input" placeholder="아이디">
       <input type="password" id="passwordInput" class="auth-input" placeholder="비밀번호">
       <button class="auth-btn" onclick="handleAuth()">시작하기 / 로그인</button>
     </div>
   </div>
 
-  <!-- 2. 헤더 -->
+  <!-- 2. 게임 메인 헤더 -->
   <header>
     <div class="title-logo">⚡ POKÉMON TCG ULTIMATE</div>
     <div class="user-info-bar">
@@ -273,7 +269,7 @@
   <!-- 3. 메인 스테이지 -->
   <div class="main-stage">
     <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:10px;">
-      <span style="font-size:13px; color:#aaa;">✨ 진짜 부스터 팩을 뜯고 <b>SAR & MUR 스페셜 아트 카드</b>를 수집하세요!</span>
+      <span style="font-size:13px; color:#aaa;">✨ 등급별 고유 일러스트와 <b>스페셜 아트 풀일러스트(SAR/MUR)</b>를 수집해보세요!</span>
       <button class="nav-btn" style="background:#2980b9; border-color:#3498db;" onclick="flipAllCards()">🔄 전체 카드 뒤집기</button>
     </div>
 
@@ -302,7 +298,7 @@
   <div class="modal" id="shopModal">
     <div class="modal-content">
       <button class="close-btn" onclick="closeModal('shopModal')">X</button>
-      <h2 style="margin:0; font-family:'Montserrat', sans-serif;">🛒 BOOSTER PACK SHOP</h2>
+      <h2 style="margin:0;">🛒 카드팩 상점 (MUR 0.5% 극초희귀 적용)</h2>
       <div class="pack-grid">
         <div class="pack-card">
           <h4 style="color:#ff7675; margin:0 0 5px 0;">🔴 전설의 드래곤</h4>
@@ -323,12 +319,7 @@
   <script>
     const sellPriceTable = { "C": 100, "U": 300, "AR": 1500, "SR": 5000, "SAR": 20000, "MUR": 100000 };
 
-    const packMeta = {
-      dragon: { title: "전설의 드래곤", class: "pack-dragon", img: "https://images.pokemontcg.io/swsh7/218_hires.png" },
-      psychic: { title: "환상의 환영", class: "pack-psychic", img: "https://images.pokemontcg.io/sm115/31_hires.png" },
-      classic: { title: "스타터 클래식", class: "pack-classic", img: "https://images.pokemontcg.io/swsh11tg/TG05_hires.png" }
-    };
-
+    // 등급별로 특화된 스페셜 아트워크 포켓몬 데이터베이스
     const cardPool = {
       dragon: [
         { id: "d1", name: "아르세우스 MUR", type: "dragon", hp: 330, skill: "창조의빛", rarity: "MUR", img: "https://images.pokemontcg.io/swsh9/123_hires.png" },
@@ -342,7 +333,7 @@
       psychic: [
         { id: "p1", name: "뮤츠 MUR", type: "psychic", hp: 320, skill: "사이코브레이크", rarity: "MUR", img: "https://images.pokemontcg.io/sm115/31_hires.png" },
         { id: "p2", name: "닌피아 SAR", type: "psychic", hp: 220, skill: "드레인키스", rarity: "SAR", img: "https://images.pokemontcg.io/swsh7/212_hires.png" },
-        { id: "p3", name: "개굴닌자 SAR", type: "water", hp: 230, skill: "물수리검", rarity: "SAR", img: "https://images.pokemontcg.io/swsh10tg/TG06_hires.png" },
+        { id: "p3", name: "게꼬닌자 SAR", type: "water", hp: 230, skill: "물수리검", rarity: "SAR", img: "https://images.pokemontcg.io/swsh10tg/TG06_hires.png" },
         { id: "p4", name: "뮤 ex", type: "psychic", hp: 180, skill: "게놈리코드", rarity: "SR", img: "https://images.pokemontcg.io/swsh8/114_hires.png" },
         { id: "p5", name: "팬텀 AR", type: "psychic", hp: 140, skill: "섀도볼", rarity: "AR", img: "https://images.pokemontcg.io/swsh11tg/TG05_hires.png" },
         { id: "p6", name: "고스", type: "psychic", hp: 50, skill: "핥기", rarity: "C", img: "https://images.pokemontcg.io/swsh10/63_hires.png" }
@@ -421,34 +412,21 @@
       saveUserData();
     }
 
-    /* 📦 리얼 포켓몬 팩 생성 구문 */
     function spawnUnopenedPack(packType) {
       const table = document.getElementById('cardTable');
-      const meta = packMeta[packType] || packMeta.dragon;
-      
       const pack = document.createElement('div');
-      pack.className = `unopened-pack ${meta.class}`;
+      pack.className = 'unopened-pack';
       pack.style.left = `${250 + Math.random() * 50}px`;
       pack.style.top = `${200 + Math.random() * 50}px`;
       
       pack.innerHTML = `
-        <div class="pack-crimp-top"></div>
-        <div class="pack-body">
-          <div class="pack-header-logo">POKÉMON TCG</div>
-          <img src="${meta.img}" class="pack-art-img" alt="Pack Art">
-          <div style="font-weight:900; font-size:13px; text-shadow:0 2px 4px #000;">${meta.title}</div>
-          <div class="pack-footer-text">5 CARDS INCLUDED</div>
-        </div>
-        <div class="pack-crimp-bottom"></div>
+        <h3 style="margin:0; color:#f1c40f;">📦 BOOSTER PACK</h3>
+        <p style="font-size:11px; margin-top:5px; color:#fff;">[클릭하여 개봉]</p>
       `;
 
       pack.onclick = () => {
-        pack.style.transform = "scale(0.01) rotate(20deg)";
-        pack.style.opacity = "0";
-        setTimeout(() => {
-          pack.remove();
-          spawnStackedCards(packType);
-        }, 200);
+        pack.remove();
+        spawnStackedCards(packType);
       };
 
       table.appendChild(pack);
