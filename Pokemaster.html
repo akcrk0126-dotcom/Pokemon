@@ -50,7 +50,10 @@
             margin-bottom: 15px; flex-wrap: wrap; gap: 10px;
         }
         .user-info { font-size: 0.9rem; color: #aaa; }
-        .gold-display { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+        .gold-display { font-size: 1.2rem; font-weight: bold; color: var(--accent); display: flex; gap: 15px; align-items: center;}
+        .pack-badge { font-size: 1rem; color: #4bcffa; background: #1a2744; padding: 4px 10px; border-radius: 20px; border: 1px solid #4bcffa; }
+        .lang-select { background: #0b0d19; color: #fff; border: 1px solid var(--accent); padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+        
         .nav-btns button {
             padding: 8px 14px; margin-left: 3px; border-radius: 8px; border: none;
             background: #232740; color: white; font-weight: bold; cursor: pointer;
@@ -62,33 +65,42 @@
 
         .shop-panel {
             background: var(--panel); width: 100%; padding: 25px; border-radius: 15px; text-align: center;
+            display: flex; flex-direction: column; align-items: center;
         }
         .series-select {
             width: 100%; max-width: 500px; padding: 12px; background: #0b0d19;
             color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; margin: 15px 0; font-weight: bold;
+        }
+        .shop-buy-box {
+            display: flex; align-items: center; gap: 10px; margin-top: 15px; background: #0b0d19; padding: 15px 25px; border-radius: 12px; border: 1px solid #333;
+        }
+        .shop-buy-box input {
+            width: 70px; padding: 8px; text-align: center; background: #16192b; color: #fff; border: 1px solid var(--accent); border-radius: 6px; font-weight: bold; font-size: 1rem;
         }
 
         /* 개봉 영역 및 테이블 */
         .open-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
         .table-controls { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
         .desk-area {
-            width: 100%; height: 450px; background: var(--desk); border: 2px dashed #38426b;
+            width: 100%; height: 420px; background: var(--desk); border: 2px dashed #38426b;
             border-radius: 15px; position: relative; overflow: hidden;
         }
 
-        /* 팩 뜯는 존 */
+        /* 팩 뜯는 존 및 공식 일러스트 팩 디자인 */
         .pack-open-stage {
             width: 100%; background: var(--panel); border-radius: 15px; padding: 20px;
-            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 260px;
+            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 280px;
         }
         .pack-wrapper {
-            width: 160px; height: 230px; background: linear-gradient(135deg, #ff4757, #ff6b81);
+            width: 170px; height: 240px; background: #111;
             border: 3px solid var(--accent); border-radius: 12px; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; cursor: pointer;
+            justify-content: space-between; align-items: center; cursor: pointer; padding: 10px;
             box-shadow: 0 10px 25px rgba(255,203,5,0.3); transition: transform 0.2s, box-shadow 0.2s;
+            position: relative; overflow: hidden;
         }
         .pack-wrapper:hover { transform: scale(1.05); box-shadow: 0 15px 30px rgba(255,203,5,0.5); }
-        .pack-title { font-weight: bold; color: #fff; font-size: 1.1rem; text-shadow: 0 2px 4px #000; }
+        .pack-art { width: 100%; height: 140px; object-fit: contain; margin-top: 10px; }
+        .pack-title { font-weight: bold; color: var(--accent); font-size: 0.95rem; text-shadow: 0 2px 4px #000; text-align: center; }
 
         /* 카드 3D 뒤집기 스타일 */
         .cards-pack-grid {
@@ -143,6 +155,7 @@
             border-radius: 6px; font-weight: bold; cursor: pointer; color: black;
         }
         .btn-action:disabled { background: #555; cursor: not-allowed; }
+        .action-controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
     </style>
 </head>
 <body>
@@ -159,26 +172,47 @@
     <div class="header-bar">
         <div>
             <span class="user-info">유저: <b id="displayUserId" style="color:#fff;">-</b></span>
-            <div class="gold-display">💰 <span id="goldCount">10000</span> Gold</div>
+            <div class="gold-display">
+                <span>💰 <span id="goldCount">10000</span> Gold</span>
+                <span class="pack-badge">📦 보유 팩: <b id="packInventoryCount">0</b>개</span>
+            </div>
         </div>
 
-        <div class="nav-btns">
-            <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 상점</button>
-            <button id="btnNavOpen" onclick="switchView('open')">🎴 개봉 테이블</button>
-            <button id="btnNavBinder" onclick="switchView('binder')">📘 바인더 (<span id="binderCount">0</span>)</button>
-            <button onclick="logout()" style="background:#e74c3c; color:white;">로그아웃</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+            <select id="langSelect" class="lang-select" onchange="changeLanguage(this.value)">
+                <option value="ko">🇰🇷 한국어 (KO)</option>
+                <option value="en">🇺🇸 English (EN)</option>
+            </select>
+
+            <div class="nav-btns">
+                <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 상점</button>
+                <button id="btnNavOpen" onclick="switchView('open')">🎴 개봉 테이블</button>
+                <button id="btnNavBinder" onclick="switchView('binder')">📘 바인더 (<span id="binderCount">0</span>)</button>
+                <button onclick="logout()" style="background:#e74c3c; color:white;">로그아웃</button>
+            </div>
         </div>
     </div>
 
     <!-- 상점 뷰 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>📦 포켓몬 카드 세트 선택</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 팩을 선택하여 구매하세요!</p>
-            <select id="seriesSelect" class="series-select">
+            <h2 id="ui-shop-title">📦 포켓몬 카드 세트 선택</h2>
+            <p id="ui-shop-desc" style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 팩을 선택하고 개수를 지정하여 구매하세요!</p>
+            
+            <select id="seriesSelect" class="series-select" onchange="updatePackPreview()">
                 <option value="">세트 로딩 중...</option>
-            </select><br>
-            <button class="btn-action" onclick="buyPack()">선택한 팩 구매 (1,000G)</button>
+            </select>
+
+            <!-- 공식 팩 이미지 미리보기 -->
+            <div id="shopPackPreview" style="margin: 10px 0;">
+                <img id="previewPackImg" src="https://images.pokemontcg.io/sv3pt5/logo.png" style="height: 180px; object-fit: contain;">
+            </div>
+
+            <div class="shop-buy-box">
+                <label id="ui-buy-label" for="buyPackCount">구매 수량: </label>
+                <input type="number" id="buyPackCount" value="1" min="1" max="99">
+                <button class="btn-action" onclick="buyPacks()">팩 구매하기 (<span id="totalCost">1,000</span>G)</button>
+            </div>
         </div>
     </div>
 
@@ -207,16 +241,21 @@
             <!-- 카드팩 개봉 스테이지 -->
             <div class="pack-open-stage">
                 <div id="packZone">
-                    <p style="color:#aaa;">상점에서 팩을 구매하면 여기에 카드팩이 생성됩니다!</p>
+                    <p style="color:#aaa;" id="ui-empty-pack-msg">상점에서 팩을 구매하면 여기에 카드팩이 생성됩니다!</p>
                 </div>
                 <div class="cards-pack-grid" id="packCardsGrid"></div>
+                
+                <div class="action-controls" id="nextActionZone" style="display:none;">
+                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white; font-size:1.05rem;">⚡ 바로 다음 팩 까기</button>
+                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 팩 선택 화면으로 복귀</button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- 바인더 뷰 -->
     <div id="viewBinder" class="view-section">
-        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 내 수집 바인더</h2>
+        <h2 style="margin-bottom: 15px; color: var(--accent);" id="ui-binder-title">📘 내 수집 바인더</h2>
         <div class="binder-grid" id="binderGrid"></div>
     </div>
 
@@ -224,37 +263,63 @@
         let apiSets = [];
         let currentUser = null;
         let gold = 10000;
+        let packInventory = 0;
+        let selectedSetId = 'sv3pt5';
         let binder = [];
         let currentPackCards = [];
         let tableCards = [];
+        let currentLang = 'ko';
 
-        // 밸런스 조정용 갓팩/기본 폴백 데이터
+        // 공식 세트별 정보 (공식 팩 일러스트 및 이미지 지원)
+        const packArtMap = {
+            'sv3pt5': { name: '포켓몬 카드 151', logo: 'https://images.pokemontcg.io/sv3pt5/logo.png', koName: '포켓몬 카드 151', enName: '151 Booster Pack' },
+            'sv4pt5': { name: '팔데아의 운명', logo: 'https://images.pokemontcg.io/sv4pt5/logo.png', koName: '팔데아의 운명', enName: 'Paldean Fates' },
+            'swsh12pt5': { name: 'Crown Zenith', logo: 'https://images.pokemontcg.io/swsh12pt5/logo.png', koName: 'VSTAR 유니버스', enName: 'Crown Zenith' }
+        };
+
+        // 언어별 다국어 카드 폴백 데이터 (API 접근 제한 시 사용)
         const fallbackCards = {
-            common: [
-                { id: 'c1', name: '파이리', image: 'https://images.pokemontcg.io/sv3pt5/4_hires.png', rarity: 'Common' },
-                { id: 'c2', name: '꼬부기', image: 'https://images.pokemontcg.io/sv3pt5/7_hires.png', rarity: 'Common' },
-                { id: 'c3', name: '이상해씨', image: 'https://images.pokemontcg.io/sv3pt5/1_hires.png', rarity: 'Common' },
-                { id: 'c4', name: '피카츄', image: 'https://images.pokemontcg.io/sv3pt5/25_hires.png', rarity: 'Common' }
-            ],
-            rare: [
-                { id: 'r1', name: '피카츄 AR', image: 'https://images.pokemontcg.io/sv3pt5/173_hires.png', rarity: 'AR' },
-                { id: 'r2', name: '뮤츠 AR', image: 'https://images.pokemontcg.io/sv3pt5/183_hires.png', rarity: 'AR' }
-            ],
-            ultra: [
-                { id: 'u1', name: '리자몽 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/199_hires.png', rarity: 'SAR' },
-                { id: 'u2', name: '거북왕 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/202_hires.png', rarity: 'SAR' },
-                { id: 'u3', name: '이상해꽃 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/200_hires.png', rarity: 'SAR' }
-            ]
+            ko: {
+                common: [
+                    { id: 'c1', name: '파이리', image: 'https://images.pokemontcg.io/sv3pt5/4_hires.png' },
+                    { id: 'c2', name: '꼬부기', image: 'https://images.pokemontcg.io/sv3pt5/7_hires.png' },
+                    { id: 'c3', name: '이상해씨', image: 'https://images.pokemontcg.io/sv3pt5/1_hires.png' },
+                    { id: 'c4', name: '피카츄', image: 'https://images.pokemontcg.io/sv3pt5/25_hires.png' }
+                ],
+                ultra: [
+                    { id: 'u1', name: '리자몽 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/199_hires.png' },
+                    { id: 'u2', name: '거북왕 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/202_hires.png' },
+                    { id: 'u3', name: '이상해꽃 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/200_hires.png' }
+                ]
+            },
+            en: {
+                common: [
+                    { id: 'c1', name: 'Charmander', image: 'https://images.pokemontcg.io/sv3pt5/4_hires.png' },
+                    { id: 'c2', name: 'Squirtle', image: 'https://images.pokemontcg.io/sv3pt5/7_hires.png' },
+                    { id: 'c3', name: 'Bulbasaur', image: 'https://images.pokemontcg.io/sv3pt5/1_hires.png' },
+                    { id: 'c4', name: 'Pikachu', image: 'https://images.pokemontcg.io/sv3pt5/25_hires.png' }
+                ],
+                ultra: [
+                    { id: 'u1', name: 'Charizard ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/199_hires.png' },
+                    { id: 'u2', name: 'Blastoise ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/202_hires.png' },
+                    { id: 'u3', name: 'Venusaur ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/200_hires.png' }
+                ]
+            }
         };
 
         window.onload = async function() {
+            document.getElementById('buyPackCount').addEventListener('input', (e) => {
+                const count = Math.max(1, parseInt(e.target.value) || 1);
+                document.getElementById('totalCost').textContent = (count * 1000).toLocaleString();
+            });
+
             try {
                 const res = await fetch('https://api.pokemontcg.io/v2/sets');
                 const data = await res.json();
                 if(data && data.data) {
                     apiSets = data.data.sort((a,b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                 }
-            } catch(e) { console.log("API 접속 제한 - 기본 세트 적용"); }
+            } catch(e) { console.log("API 접속 제한 - 기본 세트 구성 적용"); }
             renderSetSelect();
         };
 
@@ -281,6 +346,31 @@
                     select.appendChild(opt);
                 });
             }
+            updatePackPreview();
+        }
+
+        function updatePackPreview() {
+            selectedSetId = document.getElementById('seriesSelect').value || 'sv3pt5';
+            const packData = packArtMap[selectedSetId] || { logo: `https://images.pokemontcg.io/${selectedSetId}/logo.png` };
+            document.getElementById('previewPackImg').src = packData.logo;
+        }
+
+        // 언어 변경 핸들러
+        function changeLanguage(lang) {
+            currentLang = lang;
+            if (lang === 'ko') {
+                document.getElementById('ui-shop-title').innerText = "📦 포켓몬 카드 세트 선택";
+                document.getElementById('ui-shop-desc').innerText = "원하는 팩을 선택하고 개수를 지정하여 구매하세요!";
+                document.getElementById('ui-buy-label').innerText = "구매 수량: ";
+                document.getElementById('ui-binder-title').innerText = "📘 내 수집 바인더";
+                document.getElementById('ui-empty-pack-msg').innerText = "상점에서 팩을 구매하면 여기에 카드팩이 생성됩니다!";
+            } else {
+                document.getElementById('ui-shop-title').innerText = "📦 Select Pokemon Card Booster";
+                document.getElementById('ui-shop-desc').innerText = "Select a pack and amount to purchase!";
+                document.getElementById('ui-buy-label').innerText = "Amount: ";
+                document.getElementById('ui-binder-title').innerText = "📘 Collection Binder";
+                document.getElementById('ui-empty-pack-msg').innerText = "Buy booster packs in the shop to start opening!";
+            }
         }
 
         function handleAuth() {
@@ -291,8 +381,9 @@
             document.getElementById('authOverlay').style.display = 'none';
 
             const users = JSON.parse(localStorage.getItem('tcg_master_users') || '{}');
-            if(!users[id]) users[id] = { gold: 10000, binder: [] };
+            if(!users[id]) users[id] = { gold: 10000, packInventory: 0, binder: [] };
             gold = users[id].gold;
+            packInventory = users[id].packInventory || 0;
             binder = users[id].binder;
             updateUI();
         }
@@ -301,95 +392,124 @@
         function saveUserData() {
             if(!currentUser) return;
             const users = JSON.parse(localStorage.getItem('tcg_master_users') || '{}');
-            users[currentUser] = { gold: gold, binder: binder };
+            users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
             localStorage.setItem('tcg_master_users', JSON.stringify(users));
         }
         function updateUI() {
             document.getElementById('goldCount').textContent = gold.toLocaleString();
+            document.getElementById('packInventoryCount').textContent = packInventory;
             document.getElementById('binderCount').textContent = binder.length;
         }
 
         function switchView(view) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-btns button').forEach(b => b.classList.remove('active'));
-            if(view === 'shop') { document.getElementById('viewShop').classList.add('active'); document.getElementById('btnNavShop').classList.add('active'); }
-            else if(view === 'open') { document.getElementById('viewOpen').classList.add('active'); document.getElementById('btnNavOpen').classList.add('active'); }
-            else if(view === 'binder') { document.getElementById('viewBinder').classList.add('active'); document.getElementById('btnNavBinder').classList.add('active'); renderBinder(); }
+            if(view === 'shop') { 
+                document.getElementById('viewShop').classList.add('active'); 
+                document.getElementById('btnNavShop').classList.add('active'); 
+            }
+            else if(view === 'open') { 
+                document.getElementById('viewOpen').classList.add('active'); 
+                document.getElementById('btnNavOpen').classList.add('active'); 
+                if(currentPackCards.length === 0) renderPackToOpen();
+            }
+            else if(view === 'binder') { 
+                document.getElementById('viewBinder').classList.add('active'); 
+                document.getElementById('btnNavBinder').classList.add('active'); 
+                renderBinder(); 
+            }
         }
 
-        // 🎯 카드팩 구매 및 확률(밸런스) 알고리즘 적용
-        async function buyPack() {
-            if(gold < 1000) return alert("골드가 부족합니다!");
-            gold -= 1000;
+        // 🛒 팩 여러 개 선택 및 일괄 구매
+        function buyPacks() {
+            const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
+            const totalCost = count * 1000;
+
+            if(gold < totalCost) return alert("골드가 부족합니다!");
+            
+            gold -= totalCost;
+            packInventory += count;
             saveUserData();
             updateUI();
+            
+            alert(`${count}개의 팩을 성공적으로 구매했습니다! 개봉 화면으로 이동합니다.`);
             switchView('open');
+            renderPackToOpen();
+        }
 
-            const setId = document.getElementById('seriesSelect').value || 'sv3pt5';
+        // 📦 카드팩 뜯기 대기 화면 연출 (공식 일러스트 반영)
+        function renderPackToOpen() {
+            const packZone = document.getElementById('packZone');
+            const grid = document.getElementById('packCardsGrid');
+            document.getElementById('nextActionZone').style.display = 'none';
+            grid.innerHTML = '';
+            document.getElementById('btnFlipAll').disabled = true;
+
+            if (packInventory <= 0) {
+                packZone.innerHTML = `<p style="color:#aaa;">${currentLang === 'ko' ? '보유한 카드팩이 없습니다. 상점에서 팩을 구매해주세요!' : 'No packs available. Purchase packs from the shop!'}</p>`;
+                return;
+            }
+
+            const packInfo = packArtMap[selectedSetId] || { logo: `https://images.pokemontcg.io/${selectedSetId}/logo.png`, koName: '포켓몬 카드 팩', enName: 'Booster Pack' };
+            const packName = currentLang === 'ko' ? (packInfo.koName || packInfo.name) : (packInfo.enName || packInfo.name);
+
+            packZone.innerHTML = `
+                <div class="pack-wrapper" onclick="openPack()">
+                    <div class="pack-title">${packName}</div>
+                    <img src="${packInfo.logo}" class="pack-art" alt="Pack Logo">
+                    <div style="font-size:0.8rem; color:var(--accent); font-weight:bold; margin-bottom:5px;">👉 CLICK TO OPEN!</div>
+                </div>
+            `;
+        }
+
+        // 💥 카드팩 개봉 로직 (선택 언어에 따른 API 호출 및 카드 생성)
+        async function openPack() {
+            if (packInventory <= 0) return;
+
+            packInventory--;
+            saveUserData();
+            updateUI();
+
+            const packZone = document.getElementById('packZone');
+            const grid = document.getElementById('packCardsGrid');
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 카드팩이 개봉되었습니다! 카드를 클릭하거나 전체 뒤집기를 누르세요.</p>`;
+            document.getElementById('btnFlipAll').disabled = false;
+            grid.innerHTML = '<p style="color:#aaa;">카드를 불러오는 중...</p>';
+
             let fetchedCards = [];
 
             try {
-                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}`);
+                // 선택 언어(ko/en) 및 세트에 맞춘 카드데이터 요청
+                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${selectedSetId}`);
                 const data = await res.json();
                 if(data && data.data) fetchedCards = data.data;
             } catch(e) {}
 
             currentPackCards = [];
             
-            // 한 팩당 5장 무작위 카드리스트 구성 (희귀도 밸런스 적용)
+            // 팩당 5장 뽑기
             for(let i = 0; i < 5; i++) {
                 let selectedCard = null;
-                const rand = Math.random() * 100; // 0 ~ 100 확률
+                const rand = Math.random() * 100;
 
                 if(fetchedCards.length > 0) {
                     const randomPick = fetchedCards[Math.floor(Math.random() * fetchedCards.length)];
                     selectedCard = {
                         id: randomPick.id + '_' + Date.now() + '_' + i,
                         name: randomPick.name,
-                        image: randomPick.images.large || randomPick.images.small,
-                        rarity: randomPick.rarity || 'Common'
+                        image: randomPick.images.large || randomPick.images.small
                     };
                 } else {
-                    // API 실패시 밸런스 확률 알고리즘 적용
-                    if(rand < 10) { // 10% SAR / 대박 카드
-                        const c = fallbackCards.ultra[Math.floor(Math.random() * fallbackCards.ultra.length)];
-                        selectedCard = { ...c, id: c.id + '_' + Date.now() + '_' + i };
-                    } else if(rand < 35) { // 25% AR / Rare 카드
-                        const c = fallbackCards.rare[Math.floor(Math.random() * fallbackCards.rare.length)];
-                        selectedCard = { ...c, id: c.id + '_' + Date.now() + '_' + i };
-                    } else { // 65% 일반 카드
-                        const c = fallbackCards.common[Math.floor(Math.random() * fallbackCards.common.length)];
-                        selectedCard = { ...c, id: c.id + '_' + Date.now() + '_' + i };
-                    }
+                    // API 응답 실패시 다국어 지원 폴백 데이터 사용
+                    const langData = fallbackCards[currentLang] || fallbackCards.ko;
+                    const pool = rand < 20 ? langData.ultra : langData.common;
+                    const c = pool[Math.floor(Math.random() * pool.length)];
+                    selectedCard = { ...c, id: c.id + '_' + Date.now() + '_' + i };
                 }
                 currentPackCards.push(selectedCard);
             }
 
-            renderPackToOpen();
-        }
-
-        // 📦 카드팩 뜯기 인터페이스 연출
-        function renderPackToOpen() {
-            const packZone = document.getElementById('packZone');
-            const grid = document.getElementById('packCardsGrid');
-            grid.innerHTML = '';
-            document.getElementById('btnFlipAll').disabled = true;
-
-            packZone.innerHTML = `
-                <div class="pack-wrapper" onclick="openPack()">
-                    <div class="pack-title">📦 CLICK TO OPEN!</div>
-                    <div style="font-size:0.75rem; color:#fff; margin-top:5px;">(팩 클릭해서 뜯기)</div>
-                </div>
-            `;
-        }
-
-        // 💥 카드팩 개봉 클릭 시 5장 카드 뒤집어진 채 배치
-        function openPack() {
-            const packZone = document.getElementById('packZone');
-            const grid = document.getElementById('packCardsGrid');
-            packZone.innerHTML = '<p style="color:var(--accent); font-weight:bold;">✨ 카드팩이 개봉되었습니다! 카드를 클릭하거나 전체 뒤집기를 누르세요.</p>';
-            document.getElementById('btnFlipAll').disabled = false;
-
+            // 5장 카드 뒤집어진 상태로 출력
             grid.innerHTML = '';
             currentPackCards.forEach((card, idx) => {
                 const cardEl = document.createElement('div');
@@ -404,21 +524,34 @@
                     </div>
                 `;
 
-                // 클릭 시 단일 카드 뒤집기
-                cardEl.onclick = () => {
-                    cardEl.classList.toggle('flipped');
-                };
-
-                // 카드 드래그 시작 (테이블로 보낼 수 있게)
-                cardEl.ondragstart = (e) => {
-                    e.dataTransfer.setData('text/plain', JSON.stringify(card));
-                };
+                cardEl.onclick = () => cardEl.classList.toggle('flipped');
+                cardEl.ondragstart = (e) => e.dataTransfer.setData('text/plain', JSON.stringify(card));
 
                 grid.appendChild(cardEl);
             });
+
+            // 개봉 완료 후 컨트롤 버튼 표시
+            const nextBtn = document.getElementById('btnNextPack');
+            document.getElementById('nextActionZone').style.display = 'flex';
+
+            if(packInventory > 0) {
+                nextBtn.innerText = currentLang === 'ko' ? `⚡ 바로 다음 팩 까기 (남은 팩: ${packInventory}개)` : `⚡ Open Next Pack (${packInventory} left)`;
+            } else {
+                nextBtn.innerText = currentLang === 'ko' ? `모든 팩 개봉 완료!` : `All Packs Opened!`;
+            }
         }
 
-        // 🔄 카드 전체 뒤집기 (Flip All)
+        // ⚡ 바로 다음 팩 까기
+        function openNextPack() {
+            if(packInventory <= 0) {
+                alert(currentLang === 'ko' ? "보유한 팩을 모두 개봉했습니다! 팩 선택 화면으로 복귀합니다." : "All packs opened! Returning to shop.");
+                switchView('shop');
+                return;
+            }
+            openPack();
+        }
+
+        // 🔄 카드 전체 뒤집기
         function flipAllCards() {
             currentPackCards.forEach((_, idx) => {
                 const el = document.getElementById(`packCard_${idx}`);
@@ -426,7 +559,7 @@
             });
         }
 
-        // 🖱️ 테이블 위 드래그 & 드롭 관련 이벤트 처리
+        // 🖱️ 테이블 드래그 & 드롭
         function allowDrop(ev) { ev.preventDefault(); }
         
         function dropOnDesk(ev) {
@@ -436,7 +569,6 @@
             const desk = document.getElementById('deskArea');
             const deskRect = desk.getBoundingClientRect();
             
-            // 팩에서 드래그해온 카드가 있을 때
             const dataText = ev.dataTransfer.getData('text/plain');
             if(dataText && dataText.startsWith('{')) {
                 const cardData = JSON.parse(dataText);
@@ -458,7 +590,7 @@
             }
         }
 
-        // 🖼️ 테이블 위 카드 렌더링 및 자유 이동
+        // 🖼️ 테이블 렌더링
         function renderDesk() {
             const desk = document.getElementById('deskArea');
             document.querySelectorAll('.table-card').forEach(el => el.remove());
@@ -484,7 +616,6 @@
                     el.appendChild(badge);
                 }
 
-                // 테이블 내부 위치 드래그 이동
                 el.onmousedown = (e) => {
                     let shiftX = e.clientX - el.getBoundingClientRect().left;
                     let shiftY = e.clientY - el.getBoundingClientRect().top;
@@ -499,7 +630,6 @@
                     document.onmouseup = () => { document.onmousemove = null; };
                 };
 
-                // 더블 클릭 시 바인더 저장
                 el.ondblclick = () => {
                     binder.push({ ...c.data, sleeve: c.sleeve, toploader: c.toploader, psa: c.psa });
                     tableCards = tableCards.filter(tc => tc.instanceId !== c.instanceId);
@@ -509,7 +639,6 @@
                     alert("📘 카드가 수집 바인더에 저장되었습니다!");
                 };
 
-                // 슬리브/탑로더/PSA 도구 드롭 적용
                 el.ondragover = (e) => e.preventDefault();
                 el.ondrop = (e) => {
                     e.preventDefault();
@@ -520,7 +649,7 @@
                     if(tool === 'psa') {
                         const grades = [8, 9, 9, 10, 10];
                         c.psa = grades[Math.floor(Math.random() * grades.length)];
-                        alert(`🔍 PSA 감정 결과: [PSA ${c.psa}] 등급 축하합니다!`);
+                        alert(`🔍 PSA 감정 결과: [PSA ${c.psa}] 등급을 받았습니다!`);
                     }
                     renderDesk();
                 };
