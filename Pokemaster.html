@@ -227,29 +227,33 @@
         let tableCards = [];
         let globalZIndex = 100;
 
+        const fallbackPool = [
+            'https://images.pokemontcg.io/sv3pt5/25_hires.png', // Pikachu
+            'https://images.pokemontcg.io/sv3pt5/6_hires.png',  // Charizard
+            'https://images.pokemontcg.io/sv3pt5/9_hires.png',  // Blastoise
+            'https://images.pokemontcg.io/sv3pt5/3_hires.png',  // Venusaur
+            'https://images.pokemontcg.io/sv3pt5/150_hires.png',// Mewtwo
+            'https://images.pokemontcg.io/swsh7/215_hires.png',// Rayquaza
+            'https://images.pokemontcg.io/swsh7/192_hires.png',// Umbreon
+            'https://images.pokemontcg.io/swsh12pt5/160_hires.png', // Pikachu Crown
+            'https://images.pokemontcg.io/base1/4_hires.png',   // Base Charizard
+            'https://images.pokemontcg.io/sv4pt5/234_hires.png' // Shiny Mew
+        ];
+
         const allBuiltInSets = [
-            { id: 'sv8', name: '초전브레이커', total: 130 },
-            { id: 'sv7a', name: '낙원드래고나', total: 94 },
-            { id: 'sv7', name: '스텔라미라클', total: 130 },
-            { id: 'sv6a', name: '나이트원더러', total: 90 },
-            { id: 'sv6', name: '변형의 가면', total: 130 },
-            { id: 'sv5a', name: '크림슨헤이즈', total: 90 },
-            { id: 'sv5m', name: '사이버저지', total: 95 },
-            { id: 'sv5k', name: '와일드포스', total: 95 },
-            { id: 'sv4a', name: '샤이니 보물 ex', total: 360 },
             { id: 'sv3pt5', name: '포켓몬 카드 151', total: 207 },
-            { id: 'kr_promo_1', name: 'K-리그 한정 프로모 팩', total: 30 },
-            { id: 'jp_classic', name: '포켓몬 카드 게임 클래식', total: 60 },
             { id: 'swsh12pt5', name: 'VSTAR 유니버스', total: 160 },
             { id: 'swsh7', name: '이브이 히어로즈', total: 237 },
+            { id: 'sv4pt5', name: '샤이니 보물 ex', total: 240 },
+            { id: 'sv3', name: '흑염의 지배자', total: 139 },
             { id: 'base1', name: '베이스 세트 (초판)', total: 102 }
         ];
 
         function generate200Sets() {
             let sets = [...allBuiltInSets];
-            for(let i = 1; i <= 185; i++) {
+            for(let i = 1; i <= 180; i++) {
                 sets.push({
-                    id: `retro_set_${i}`,
+                    id: `swsh${i % 12 + 1}`,
                     name: `클래식 확장팩 Vol.${i}`,
                     total: 100 + (i % 50)
                 });
@@ -273,7 +277,7 @@
             fullSetsList.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
-                opt.textContent = `${s.name} (${s.total}장) [ID: ${s.id}]`;
+                opt.textContent = `${s.name} (${s.total}장)`;
                 select.appendChild(opt);
             });
             updatePackPreview();
@@ -283,9 +287,12 @@
             selectedSetId = document.getElementById('seriesSelect').value || 'sv3pt5';
             const previewImg = document.getElementById('previewPackImg');
             
-            previewImg.src = `https://images.pokemontcg.io/${selectedSetId}/symbol.png`;
+            previewImg.src = `https://images.pokemontcg.io/${selectedSetId}/logo.png`;
             previewImg.onerror = function() {
-                this.src = 'https://images.pokemontcg.io/base1/symbol.png';
+                this.onerror = function() {
+                    this.src = 'https://images.pokemontcg.io/sv3pt5/symbol.png';
+                };
+                this.src = `https://images.pokemontcg.io/${selectedSetId}/symbol.png`;
             };
         }
 
@@ -372,7 +379,7 @@
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
                     <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.95rem;">${packDisplayName}</div>
-                    <img src="https://images.pokemontcg.io/${selectedSetId}/symbol.png" onerror="this.src='https://images.pokemontcg.io/base1/symbol.png'" class="pack-art" alt="Pack Logo">
+                    <img src="https://images.pokemontcg.io/${selectedSetId}/logo.png" onerror="this.src='https://images.pokemontcg.io/sv3pt5/symbol.png'" class="pack-art" alt="Pack Logo">
                     <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN!</div>
                 </div>
             `;
@@ -389,7 +396,7 @@
             const grid = document.getElementById('packCardsGrid');
             packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 카드팩 개봉 완료!</p>`;
             document.getElementById('btnFlipAll').disabled = false;
-            grid.innerHTML = '<p style="color:#aaa;">카드를 가져오는 중...</p>';
+            grid.innerHTML = '<p style="color:#aaa;">카드를 뽑는 중...</p>';
 
             let fetchedCards = [];
 
@@ -401,6 +408,9 @@
 
             currentPackCards = [];
             
+            // 랜덤 뽑기 (서버 데이터 없으면 다양한 풀에서 서로 다른 카드 뽑기)
+            let shuffledFallback = [...fallbackPool].sort(() => 0.5 - Math.random());
+
             for(let i = 0; i < 5; i++) {
                 let cardObj = null;
                 if(fetchedCards.length > 0) {
@@ -411,17 +421,10 @@
                         image: randomPick.images.large || randomPick.images.small
                     };
                 } else {
-                    const fallbackImgs = [
-                        'https://images.pokemontcg.io/sv3pt5/25_hires.png',
-                        'https://images.pokemontcg.io/sv3pt5/6_hires.png',
-                        'https://images.pokemontcg.io/sv3pt5/9_hires.png',
-                        'https://images.pokemontcg.io/sv3pt5/3_hires.png',
-                        'https://images.pokemontcg.io/sv3pt5/150_hires.png'
-                    ];
                     cardObj = {
                         id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
                         name: 'Special Pokemon Card',
-                        image: fallbackImgs[i % fallbackImgs.length]
+                        image: shuffledFallback[i % shuffledFallback.length]
                     };
                 }
                 currentPackCards.push(cardObj);
