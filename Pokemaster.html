@@ -51,7 +51,6 @@
         }
         .gold-display { font-size: 1.1rem; font-weight: bold; color: var(--accent); display: flex; gap: 15px; align-items: center;}
         .pack-badge { font-size: 0.95rem; color: #4bcffa; background: #1a2744; padding: 4px 10px; border-radius: 20px; border: 1px solid #4bcffa; }
-        .lang-select { background: #0b0d19; color: #fff; border: 1px solid var(--accent); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
         .nav-btns button {
             padding: 8px 14px; margin-left: 3px; border-radius: 8px; border: none;
@@ -88,13 +87,13 @@
             margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 250px;
         }
         .pack-wrapper {
-            width: 160px; height: 230px; background: #111;
+            width: 170px; height: 250px; background: #111;
             border: 3px solid var(--accent); border-radius: 12px; display: flex; flex-direction: column;
-            justify-content: space-between; align-items: center; cursor: pointer; padding: 10px;
+            justify-content: space-between; align-items: center; cursor: pointer; padding: 12px;
             box-shadow: 0 10px 25px rgba(255,203,5,0.3); transition: transform 0.2s;
         }
         .pack-wrapper:hover { transform: scale(1.05); }
-        .pack-art { width: 100%; height: 130px; object-fit: contain; }
+        .pack-art { width: 100%; height: 140px; object-fit: contain; }
 
         .cards-pack-grid { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 15px; width: 100%; }
         .card-flip-container { width: 110px; height: 154px; perspective: 1000px; cursor: pointer; position: relative; }
@@ -105,7 +104,6 @@
         .card-back::after { content: '🌀'; font-size: 2rem; }
         .card-front { transform: rotateY(180deg); background-size: cover; background-position: center; }
 
-        /* 테이블 카드 및 마우스 이동 중첩 처리 */
         .table-card { position: absolute; width: 110px; height: 154px; cursor: grab; border-radius: 8px; transition: box-shadow 0.2s; }
         .table-card:active { cursor: grabbing; }
         .table-card .card-ui { width: 100%; height: 100%; border-radius: 8px; background-size: cover; background-position: center; pointer-events: none; }
@@ -155,37 +153,29 @@
             </div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:10px;">
-            <select id="langSelect" class="lang-select" onchange="changeLanguage(this.value)">
-                <option value="ko">🇰🇷 한국어 (KO)</option>
-                <option value="ja">🇯🇵 日本語 (JP)</option>
-                <option value="en">🇺🇸 English (EN)</option>
-            </select>
-
-            <div class="nav-btns">
-                <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 상점</button>
-                <button id="btnNavOpen" onclick="switchView('open')">🎴 개봉 테이블</button>
-                <button id="btnNavBinder" onclick="switchView('binder')">📘 바인더 (<span id="binderCount">0</span>)</button>
-                <button onclick="logout()" style="background:#e74c3c; color:white;">로그아웃</button>
-            </div>
+        <div class="nav-btns">
+            <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 상점</button>
+            <button id="btnNavOpen" onclick="switchView('open')">🎴 개봉 테이블</button>
+            <button id="btnNavBinder" onclick="switchView('binder')">📘 바인더 (<span id="binderCount">0</span>)</button>
+            <button onclick="logout()" style="background:#e74c3c; color:white;">로그아웃</button>
         </div>
     </div>
 
     <!-- 상점 뷰 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2 id="ui-shop-title">📦 포켓몬 카드 확장팩 선택 (200여개 완벽 지원)</h2>
-            <p id="ui-shop-desc" style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 확장팩을 선택하고 일괄 구매하세요!</p>
+            <h2>📦 포켓몬 카드 확장팩 선택</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 확장팩을 선택하고 구매하세요!</p>
             
             <select id="seriesSelect" class="series-select" onchange="updatePackPreview()">
             </select>
 
             <div id="shopPackPreview" style="margin: 10px 0;">
-                <img id="previewPackImg" src="https://images.pokemontcg.io/sv3pt5/logo.png" style="height: 160px; object-fit: contain;">
+                <img id="previewPackImg" src="https://images.pokemontcg.io/sv3pt5/symbol.png" style="height: 160px; object-fit: contain;">
             </div>
 
             <div class="shop-buy-box">
-                <label id="ui-buy-label" for="buyPackCount">구매 수량: </label>
+                <label for="buyPackCount">구매 수량: </label>
                 <input type="number" id="buyPackCount" value="1" min="1" max="99">
                 <button class="btn-action" onclick="buyPacks()">팩 구매하기 (<span id="totalCost">1,000</span>G)</button>
             </div>
@@ -196,21 +186,19 @@
     <div id="viewOpen" class="view-section">
         <div class="open-container">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;" id="ui-desk-tip">💡 카드를 클릭하면 테이블로 옮겨지며, 마우스로 자유롭게 겹쳐서 이동할 수 있습니다.</p>
+                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 클릭하면 테이블로 옮겨지며, 마우스로 자유롭게 겹쳐서 이동할 수 있습니다.</p>
                 <div>
                     <button class="btn-action" id="btnFlipAll" onclick="flipAllCards()" disabled style="background:#4bcffa; color:black; padding:6px 12px; font-size:0.85rem;">🔄 전체 뒤집기</button>
                     <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 청소</button>
                 </div>
             </div>
 
-            <!-- 카드 배치 작업대 -->
             <div class="desk-area" id="deskArea">
                 <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
                     💡 카드를 <b>클릭</b>하여 테이블로 보낸 후 자유롭게 drag하여 겹쳐보세요!<br>(테이블 위 카드를 <b>더블클릭</b>하면 바인더로 저장됩니다)
                 </p>
             </div>
 
-            <!-- 카드팩 개봉 영역 -->
             <div class="pack-open-stage">
                 <div id="packZone"></div>
                 <div class="cards-pack-grid" id="packCardsGrid"></div>
@@ -225,7 +213,7 @@
 
     <!-- 바인더 뷰 -->
     <div id="viewBinder" class="view-section">
-        <h2 style="margin-bottom: 15px; color: var(--accent);" id="ui-binder-title">📘 내 수집 바인더</h2>
+        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 내 수집 바인더</h2>
         <div class="binder-grid" id="binderGrid"></div>
     </div>
 
@@ -237,60 +225,33 @@
         let binder = [];
         let currentPackCards = [];
         let tableCards = [];
-        let currentLang = 'ko';
         let globalZIndex = 100;
 
-        // 200여 개 세트 완벽 연동 내장 데이터
         const allBuiltInSets = [
-            { id: 'sv8', name: 'Super Electric Breaker', total: 130, ko: '초전브레이커', ja: '超電ブレイカー' },
-            { id: 'sv7a', name: 'Paradise Dragona', total: 94, ko: '낙원드래고나', ja: '楽園ドラゴーナ' },
-            { id: 'sv7', name: 'Stellar Miracle', total: 130, ko: '스텔라미라클', ja: 'ステラミラクル' },
-            { id: 'sv6a', name: 'Night Wanderer', total: 90, ko: '나이트원더러', ja: 'ナイトワンダラー' },
-            { id: 'sv6', name: 'Mask of Change', total: 130, ko: '변환의 가면', ja: '変幻の仮面' },
-            { id: 'sv5a', name: 'Crimson Haze', total: 90, ko: '크림슨헤이즈', ja: 'クリムゾンヘイズ' },
-            { id: 'sv5m', name: 'Cyber Judge', total: 95, ko: '사이버저지', ja: 'サイバージャッジ' },
-            { id: 'sv5k', name: 'Wild Force', total: 95, ko: '와일드포스', ja: 'ワイルドフォース' },
-            { id: 'sv4pt5', name: 'Paldean Fates', total: 240, ko: '팔데아의 운명', ja: 'シャイニートレジャーex' },
-            { id: 'sv4a', name: 'Shiny Treasure ex', total: 360, ko: '샤이니 트레저 ex', ja: 'シャイニートレジャーex' },
-            { id: 'sv4K', name: 'Ancient Roar', total: 90, ko: '고대의 포효', ja: '古代の咆哮' },
-            { id: 'sv4M', name: 'Future Flash', total: 90, ko: '미래의 일섬', ja: '未来の一閃' },
-            { id: 'sv3pt5', name: '151', total: 207, ko: '포켓몬 카드 151', ja: 'ポケモンカード151' },
-            { id: 'sv3', name: 'Ruler of the Black Flame', total: 130, ko: '검은 화염의 지배자', ja: '黒炎の支配者' },
-            { id: 'sv2a', name: 'Clay Burst', total: 95, ko: '클레이버스트', ja: 'クレイバースト' },
-            { id: 'sv2D', name: 'Snow Hazard', total: 95, ko: '스노하자드', ja: 'スノーハザード' },
-            { id: 'sv1s', name: 'Scarlet ex', total: 100, ko: '스카렛ex', ja: 'スカーレットex' },
-            { id: 'sv1v', name: 'Violet ex', total: 100, ko: '바이올렛ex', ja: 'バイオレットex' },
-            { id: 'swsh12pt5', name: 'Crown Zenith', total: 160, ko: 'VSTAR 유니버스', ja: 'VSTARユニバース' },
-            { id: 'swsh12', name: 'Silver Tempest', total: 245, ko: '패러다임 트리거', ja: 'パラダイムトリガー' },
-            { id: 'swsh11', name: 'Lost Origin', total: 247, ko: '로스트아비스', ja: 'ロストアビス' },
-            { id: 'swsh10', name: 'Astral Radiance', total: 246, ko: '타임게이저/스페이스저글러', ja: 'タイムゲイザー' },
-            { id: 'swsh9', name: 'Brilliant Stars', total: 216, ko: '스타버스', ja: 'スターバース' },
-            { id: 'swsh8', name: 'Fusion Strike', total: 284, ko: '퓨전아츠', ja: 'フュージョンアーツ' },
-            { id: 'swsh7', name: 'Evolving Skies', total: 237, ko: '이브이 히어로즈', ja: 'イーブイヒーローズ' },
-            { id: 'swsh6', name: 'Chilling Reign', total: 233, ko: '칠흑의 가이스트', ja: '漆黒のガイスト' },
-            { id: 'swsh5', name: 'Battle Styles', total: 183, ko: '일격/연격 마스터', ja: '一撃マスター' },
-            { id: 'swsh4', name: 'Vivid Voltage', total: 203, ko: '앙천의 볼테커', ja: '仰天のボルテッカー' },
-            { id: 'swsh3', name: 'Darkness Ablaze', total: 201, ko: '무한존', ja: 'ムゲンゾーン' },
-            { id: 'swsh2', name: 'Rebel Clash', total: 209, ko: '반역크래시', ja: '反逆クラッシュ' },
-            { id: 'swsh1', name: 'Sword & Shield Base', total: 216, ko: '소드/실드', ja: 'ソード/シールド' },
-            { id: 'sm12', name: 'Cosmic Eclipse', total: 271, ko: '드림리그', ja: 'ドリームリーグ' },
-            { id: 'sm11', name: 'Unified Minds', total: 258, ko: '미라클트윈', ja: 'ミラクルツイン' },
-            { id: 'sm10', name: 'Unbroken Bonds', total: 234, ko: '더블블레이즈', ja: 'ダブルブレイズ' },
-            { id: 'sm9', name: 'Team Up', total: 196, ko: '태그볼트', ja: 'タッグボルト' },
-            { id: 'xy12', name: 'Evolutions', total: 113, ko: '20주년 팩', ja: '20th Anniversary' },
-            { id: 'base1', name: 'Base Set (1996)', total: 102, ko: '베이스 세트 (초판)', ja: '第1弾拡張パック' }
+            { id: 'sv8', name: '초전브레이커', total: 130 },
+            { id: 'sv7a', name: '낙원드래고나', total: 94 },
+            { id: 'sv7', name: '스텔라미라클', total: 130 },
+            { id: 'sv6a', name: '나이트원더러', total: 90 },
+            { id: 'sv6', name: '변형의 가면', total: 130 },
+            { id: 'sv5a', name: '크림슨헤이즈', total: 90 },
+            { id: 'sv5m', name: '사이버저지', total: 95 },
+            { id: 'sv5k', name: '와일드포스', total: 95 },
+            { id: 'sv4a', name: '샤이니 보물 ex', total: 360 },
+            { id: 'sv3pt5', name: '포켓몬 카드 151', total: 207 },
+            { id: 'kr_promo_1', name: 'K-리그 한정 프로모 팩', total: 30 },
+            { id: 'jp_classic', name: '포켓몬 카드 게임 클래식', total: 60 },
+            { id: 'swsh12pt5', name: 'VSTAR 유니버스', total: 160 },
+            { id: 'swsh7', name: '이브이 히어로즈', total: 237 },
+            { id: 'base1', name: '베이스 세트 (초판)', total: 102 }
         ];
 
-        // 200여 개 세트를 정렬 생성
         function generate200Sets() {
             let sets = [...allBuiltInSets];
-            for(let i = 1; i <= 170; i++) {
+            for(let i = 1; i <= 185; i++) {
                 sets.push({
                     id: `retro_set_${i}`,
-                    name: `Classic Expansion Vol.${i}`,
-                    total: 100 + (i % 50),
-                    ko: `클래식 확장팩 Vol.${i}`,
-                    ja: `クラシック 拡張パック Vol.${i}`
+                    name: `클래식 확장팩 Vol.${i}`,
+                    total: 100 + (i % 50)
                 });
             }
             return sets;
@@ -312,10 +273,7 @@
             fullSetsList.forEach(s => {
                 const opt = document.createElement('option');
                 opt.value = s.id;
-                let locTitle = s.name;
-                if(currentLang === 'ko' && s.ko) locTitle = s.ko;
-                if(currentLang === 'ja' && s.ja) locTitle = s.ja;
-                opt.textContent = `${locTitle} (${s.total}장) [ID: ${s.id}]`;
+                opt.textContent = `${s.name} (${s.total}장) [ID: ${s.id}]`;
                 select.appendChild(opt);
             });
             updatePackPreview();
@@ -323,31 +281,12 @@
 
         function updatePackPreview() {
             selectedSetId = document.getElementById('seriesSelect').value || 'sv3pt5';
-            document.getElementById('previewPackImg').src = `https://images.pokemontcg.io/${selectedSetId}/logo.png`;
-        }
-
-        function changeLanguage(lang) {
-            currentLang = lang;
-            renderSetSelect();
-            if (lang === 'ko') {
-                document.getElementById('ui-shop-title').innerText = "📦 포켓몬 카드 확장팩 선택 (200여개 완벽 지원)";
-                document.getElementById('ui-shop-desc').innerText = "원하는 확장팩을 선택하고 일괄 구매하세요!";
-                document.getElementById('ui-buy-label').innerText = "구매 수량: ";
-                document.getElementById('ui-binder-title').innerText = "📘 내 수집 바인더";
-                document.getElementById('ui-desk-tip').innerText = "💡 카드를 클릭하면 테이블로 옮겨지며, 마우스로 자유롭게 겹쳐서 이동할 수 있습니다.";
-            } else if(lang === 'ja') {
-                document.getElementById('ui-shop-title').innerText = "📦 ポケモンカード 拡張パック選択 (200種以上)";
-                document.getElementById('ui-shop-desc').innerText = "購入するパックと数量を選択してください！";
-                document.getElementById('ui-buy-label').innerText = "購入数量: ";
-                document.getElementById('ui-binder-title').innerText = "📘 コレクションバイダー";
-                document.getElementById('ui-desk-tip').innerText = "💡 カードをクリックでデスクへ配置。重ねて自由に移動可能です！";
-            } else {
-                document.getElementById('ui-shop-title').innerText = "📦 Select Pokemon Booster Pack (200+ Sets)";
-                document.getElementById('ui-shop-desc').innerText = "Select a pack and quantity to purchase!";
-                document.getElementById('ui-buy-label').innerText = "Amount: ";
-                document.getElementById('ui-binder-title').innerText = "📘 Collection Binder";
-                document.getElementById('ui-desk-tip').innerText = "💡 Click cards to put on desk. Move and stack freely with mouse!";
-            }
+            const previewImg = document.getElementById('previewPackImg');
+            
+            previewImg.src = `https://images.pokemontcg.io/${selectedSetId}/symbol.png`;
+            previewImg.onerror = function() {
+                this.src = 'https://images.pokemontcg.io/base1/symbol.png';
+            };
         }
 
         function handleAuth() {
@@ -366,12 +305,14 @@
         }
 
         function logout() { location.reload(); }
+        
         function saveUserData() {
             if(!currentUser) return;
             const users = JSON.parse(localStorage.getItem('tcg_master_users') || '{}');
             users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
             localStorage.setItem('tcg_master_users', JSON.stringify(users));
         }
+
         function updateUI() {
             document.getElementById('goldCount').textContent = gold.toLocaleString();
             document.getElementById('packInventoryCount').textContent = packInventory;
@@ -421,19 +362,18 @@
             document.getElementById('btnFlipAll').disabled = true;
 
             if (packInventory <= 0) {
-                const msg = currentLang === 'ko' ? '보유한 카드팩이 없습니다.' : 'No packs available.';
-                packZone.innerHTML = `<p style="color:#aaa;">${msg}</p>`;
+                packZone.innerHTML = `<p style="color:#aaa;">보유한 카드팩이 없습니다.</p>`;
                 return;
             }
 
             const currentSetObj = fullSetsList.find(s => s.id === selectedSetId);
-            let packDisplayName = currentSetObj ? (currentSetObj[currentLang] || currentSetObj.name) : selectedSetId;
+            let packDisplayName = currentSetObj ? currentSetObj.name : selectedSetId;
 
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
-                    <div style="font-weight:bold; color:var(--accent); text-align:center;">${packDisplayName}</div>
-                    <img src="https://images.pokemontcg.io/${selectedSetId}/logo.png" onerror="this.src='https://images.pokemontcg.io/sv3pt5/logo.png'" class="pack-art" alt="Pack Logo">
-                    <div style="font-size:0.8rem; color:var(--accent); font-weight:bold;">👉 OPEN!</div>
+                    <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.95rem;">${packDisplayName}</div>
+                    <img src="https://images.pokemontcg.io/${selectedSetId}/symbol.png" onerror="this.src='https://images.pokemontcg.io/base1/symbol.png'" class="pack-art" alt="Pack Logo">
+                    <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN!</div>
                 </div>
             `;
         }
@@ -449,7 +389,7 @@
             const grid = document.getElementById('packCardsGrid');
             packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 카드팩 개봉 완료!</p>`;
             document.getElementById('btnFlipAll').disabled = false;
-            grid.innerHTML = '<p style="color:#aaa;">Loading...</p>';
+            grid.innerHTML = '<p style="color:#aaa;">카드를 가져오는 중...</p>';
 
             let fetchedCards = [];
 
@@ -500,7 +440,6 @@
                     </div>
                 `;
 
-                // 클릭 시 뒤집기 & 뒤집힌 상태에서 클릭 시 테이블로 이동
                 cardEl.onclick = () => {
                     if(!cardEl.classList.contains('flipped')) {
                         cardEl.classList.add('flipped');
@@ -518,13 +457,12 @@
             document.getElementById('nextActionZone').style.display = 'flex';
 
             if(packInventory > 0) {
-                nextBtn.innerText = currentLang === 'ko' ? `⚡ 바로 다음 팩 까기 (${packInventory}개 남음)` : `⚡ Open Next Pack (${packInventory} left)`;
+                nextBtn.innerText = `⚡ 바로 다음 팩 까기 (${packInventory}개 남음)`;
             } else {
-                nextBtn.innerText = currentLang === 'ko' ? `모든 팩 개봉 완료!` : `All Packs Opened!`;
+                nextBtn.innerText = `모든 팩 개봉 완료!`;
             }
         }
 
-        // 클릭으로 테이블에 카드 이동 및 중첩 스태킹 위치 배치
         function sendCardToDesk(cardData) {
             document.getElementById('deskNotice').style.display = 'none';
             const desk = document.getElementById('deskArea');
@@ -532,7 +470,6 @@
             const existing = tableCards.find(c => c.instanceId === cardData.id);
             if(existing) return;
 
-            // 살짝 비껴가며 중첩되도록 offset 계산
             const offset = (tableCards.length * 25) % 250;
 
             const cardObj = {
@@ -566,7 +503,6 @@
             });
         }
 
-        // 마우스 잡고 이동 (중첩 및 z-index 최상단 전환)
         function renderDesk() {
             const desk = document.getElementById('deskArea');
             document.querySelectorAll('.table-card').forEach(el => el.remove());
@@ -602,7 +538,6 @@
                     el.appendChild(badge);
                 }
 
-                // 마우스 드래그 (중첩 순서 최상단 격상)
                 el.onmousedown = (e) => {
                     if(e.target.tagName === 'BUTTON') return;
                     
