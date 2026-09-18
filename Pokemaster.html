@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 TCG 마스터 - 리얼 팩 밸런스</title>
+    <title>포켓몬 TCG 전 시리즈 풀 컬렉션</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -62,37 +62,39 @@
         .view-section { display: none; width: 100%; max-width: 1100px; }
         .view-section.active { display: flex; flex-direction: column; align-items: center; }
 
-        /* 상점 */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            width: 100%;
-        }
-
-        .shop-item {
+        /* 모든 시리즈 선택 상점 구역 */
+        .all-sets-panel {
             background: var(--panel);
-            padding: 20px;
-            border-radius: 12px;
+            width: 100%;
+            padding: 25px;
+            border-radius: 15px;
             text-align: center;
             border: 1px solid #232740;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
         }
 
-        .shop-item h3 { color: var(--accent); margin-bottom: 8px; }
-        .shop-item.special { border: 2px solid var(--accent); box-shadow: 0 0 15px rgba(255, 203, 5, 0.3); }
+        .series-select {
+            width: 100%;
+            max-width: 500px;
+            padding: 12px;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            background: #0b0d19;
+            color: var(--accent);
+            border: 2px solid var(--accent);
+            margin: 20px 0;
+            font-weight: bold;
+        }
 
         .btn-buy {
-            margin-top: 15px;
-            padding: 10px 20px;
+            padding: 12px 30px;
+            font-size: 1.2rem;
             background: linear-gradient(135deg, #ffcb05, #e65c00);
             border: none;
-            border-radius: 20px;
+            border-radius: 25px;
             font-weight: bold;
             color: black;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 203, 5, 0.3);
         }
 
         /* 카드 넘기기 개봉 구역 */
@@ -125,7 +127,7 @@
             pointer-events: none;
         }
 
-        /* 슬리브 / 탑로더 드래그 존 */
+        /* 슬리브/탑로더 존 */
         .accessory-zone {
             display: flex;
             gap: 20px;
@@ -212,46 +214,29 @@
     <div class="header-bar">
         <div class="gold-display">💰 <span id="goldCount">10000</span> Gold</div>
         <div class="nav-btns">
-            <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 팩 상점</button>
+            <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 전 세대 상점</button>
             <button id="btnNavOpen" onclick="switchView('open')">🎴 팩 개봉</button>
             <button id="btnNavBinder" onclick="switchView('binder')">📘 내 바인더 (<span id="binderCount">0</span>)</button>
         </div>
     </div>
 
-    <!-- 1. 상점 -->
+    <!-- 1. 모든 세트 선택 상점 -->
     <div id="viewShop" class="view-section active">
-        <div class="shop-grid">
-            <div class="shop-item special">
-                <h3>👑 [30주년] 올스타 대통합 팩</h3>
-                <p>1~9세대 올스타! 레어/VMAX/ex 확률 업!</p>
-                <button class="btn-buy" onclick="buyPack('30th', 3000)">3,000G 구매</button>
-            </div>
-            <div class="shop-item">
-                <h3>📦 [1세대] Base Set (초판)</h3>
-                <p>리자몽, 거북왕 초판 레어의 손맛!</p>
-                <button class="btn-buy" onclick="buyPack('base1', 1000)">1,000G 구매</button>
-            </div>
-            <div class="shop-item">
-                <h3>📦 [7세대] Sun & Moon (GX)</h3>
-                <p>태그팀 GX 레어 배치 팩!</p>
-                <button class="btn-buy" onclick="buyPack('sm9', 1500)">1,500G 구매</button>
-            </div>
-            <div class="shop-item">
-                <h3>📦 [8세대] Vivid Voltage (VMAX)</h3>
-                <p>피카츄 VMAX 하이라이트 팩!</p>
-                <button class="btn-buy" onclick="buyPack('swsh4', 2000)">2,000G 구매</button>
-            </div>
-            <div class="shop-item">
-                <h3>📦 [9세대] Scarlet & Violet (ex)</h3>
-                <p>테라스탈 ex 피날레 팩!</p>
-                <button class="btn-buy" onclick="buyPack('sv1', 2500)">2,500G 구매</button>
-            </div>
+        <div class="all-sets-panel">
+            <h2 style="color: var(--accent);">📦 원하는 포켓몬 카드 시리즈를 선택하세요</h2>
+            <p style="color: #aaa; margin-top: 5px;">역대 모든 세트(Base Set부터 최신 확장팩까지)가 전부 등록되어 있습니다.</p>
+            
+            <select id="seriesSelect" class="series-select">
+                <option value="">전체 시리즈 목록 불러오는 중...</option>
+            </select>
+            <br>
+            <button class="btn-buy" onclick="buySelectedPack()">선택한 팩 구매하기 (1,000 Gold)</button>
         </div>
     </div>
 
     <!-- 2. 팩 개봉 뷰 -->
     <div id="viewOpen" class="view-section">
-        <div id="statusText">상점에서 팩을 구매해주세요!</div>
+        <div id="statusText">상점에서 원하는 팩을 구매해주세요!</div>
         
         <div class="pack-open-area" id="packArea" onclick="swipeAndNext()"></div>
 
@@ -276,6 +261,28 @@
         let hasSleeve = false;
         let hasToploader = false;
 
+        // 페이지 진입 시 역대 모든 세트 목록 한 번에 가져오기
+        window.onload = async function() {
+            try {
+                const res = await fetch('https://api.pokemontcg.io/v2/sets');
+                const data = await res.json();
+                const select = document.getElementById('seriesSelect');
+                select.innerHTML = '';
+
+                // 세트 출시일 순 정렬
+                const sets = data.data.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+
+                sets.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = `[${s.series}] ${s.name} (${s.total}장)`;
+                    select.appendChild(opt);
+                });
+            } catch(e) {
+                document.getElementById('seriesSelect').innerHTML = '<option>시리즈 목록을 불러오지 못했습니다.</option>';
+            }
+        };
+
         function updateUI() {
             document.getElementById('goldCount').textContent = gold.toLocaleString();
             document.getElementById('binderCount').textContent = binder.length;
@@ -298,32 +305,17 @@
             }
         }
 
-        // 캐싱 로더
+        // 캐싱 지원 카드 가져오기
         async function loadSetData(setId) {
-            if (setId === '30th') {
-                if (!setCache['30th']) {
-                    const sets = ['base1', 'sm9', 'swsh4', 'sv1'];
-                    let combined = [];
-                    for(let s of sets) {
-                        const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${s}&pageSize=30`);
-                        const d = await res.json();
-                        combined = combined.concat(d.data);
-                    }
-                    setCache['30th'] = combined;
-                }
-                return setCache['30th'];
-            } else {
-                if (!setCache[setId]) {
-                    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=50`);
-                    const data = await res.json();
-                    setCache[setId] = data.data;
-                }
-                return setCache[setId];
+            if (!setCache[setId]) {
+                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=60`);
+                const data = await res.json();
+                setCache[setId] = data.data;
             }
+            return setCache[setId];
         }
 
-        // 🔥 [리얼 팩 밸런스 알고리즘]
-        // 순서: 에너지/기본(1~3) -> 커먼(4~6) -> 언커먼/트레이너스(7~8) -> 레어/히트(9~10)
+        // 팩 밸런스 배치 (마지막 장 피날레 레어)
         function buildBalancedPack(pool) {
             const commons = pool.filter(c => c.supertype === 'Energy' || c.rarity === 'Common');
             const uncommons = pool.filter(c => c.supertype === 'Trainer' || c.rarity === 'Uncommon');
@@ -332,30 +324,29 @@
             const pack = [];
             const getRandom = (arr) => arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : pool[Math.floor(Math.random() * pool.length)];
 
-            // 1~3장: 에너지 및 극초반 커먼
             for(let i=0; i<3; i++) pack.push(getRandom(commons));
-            // 4~6장: 일반 일반 포켓몬
             for(let i=0; i<3; i++) pack.push(getRandom(commons));
-            // 7~8장: 언커먼 / 트레이너스 카드
             for(let i=0; i<2; i++) pack.push(getRandom(uncommons));
-            // 9장: 언커먼 또는 일반 레어
             pack.push(getRandom(uncommons));
-            // ⭐️ 10장 (마지막 피날레): 무조건 가장 좋은 레어 / VMAX / ex 히트 카드!
-            pack.push(getRandom(rares));
+            pack.push(getRandom(rares)); // 맨 마지막 장 레어!
 
             return pack;
         }
 
-        async function buyPack(setId, price) {
-            if (gold < price) {
+        async function buySelectedPack() {
+            const select = document.getElementById('seriesSelect');
+            const setId = select.value;
+            if(!setId) return;
+
+            if (gold < 1000) {
                 alert("골드가 부족합니다! 카드를 팔아서 모아보세요.");
                 return;
             }
 
-            gold -= price;
+            gold -= 1000;
             updateUI();
             switchView('open');
-            document.getElementById('statusText').textContent = "카드팩 정렬 중 (밸런스 배치 중)...";
+            document.getElementById('statusText').textContent = "선택하신 시리즈 카드 데이터를 불러오는 중...";
 
             try {
                 const pool = await loadSetData(setId);
@@ -364,7 +355,7 @@
                 document.getElementById('accZone').style.display = 'flex';
                 renderPackArea();
             } catch(e) {
-                alert("카드 데이터를 불러오지 못했습니다.");
+                alert("카드 데이터를 불러오는 데 실패했습니다.");
             }
         }
 
@@ -373,16 +364,15 @@
             area.innerHTML = '';
 
             if(currentCardIndex >= currentPackCards.length) {
-                document.getElementById('statusText').textContent = "🎉 팩 개봉 완료! 모든 카드가 바인더에 보관되었습니다.";
+                document.getElementById('statusText').textContent = "🎉 팩 개봉 완료! 바인더에 보관되었습니다.";
                 document.getElementById('accZone').style.display = 'none';
                 return;
             }
 
             const card = currentPackCards[currentCardIndex];
             
-            // 안내 문구에 긴장감 부여
             if (currentCardIndex === 9) {
-                document.getElementById('statusText').textContent = "🔥 [LAST!] 마지막 하이라이트 레어 카드가 등장합니다!";
+                document.getElementById('statusText').textContent = "🔥 [LAST!] 이번 팩의 피날레 레어 카드 등장!";
             } else {
                 document.getElementById('statusText').textContent = `카드를 옆으로 날려보내세요 (${currentCardIndex + 1}/10)`;
             }
@@ -403,13 +393,12 @@
             area.appendChild(el);
         }
 
-        // 옆으로 밀어 넘기는 모션
         function swipeAndNext() {
             if(currentPackCards.length === 0 || currentCardIndex >= currentPackCards.length) return;
 
             const el = document.getElementById('activeCardStack');
             if(el) {
-                el.classList.add('swipe-out'); // 오른쪽으로 날아가는 효과
+                el.classList.add('swipe-out');
                 setTimeout(() => {
                     const card = currentPackCards[currentCardIndex];
                     binder.push({
