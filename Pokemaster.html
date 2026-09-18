@@ -105,7 +105,6 @@
         .card-back::after { content: '🌀'; font-size: 2rem; }
         .card-front { transform: rotateY(180deg); background-size: cover; background-position: center; }
 
-        /* 테이블 카드 및 장착 툴바 */
         .table-card { position: absolute; width: 110px; height: 154px; cursor: move; z-index: 10; border-radius: 8px; }
         .table-card .card-ui { width: 100%; height: 100%; border-radius: 8px; background-size: cover; background-position: center; }
 
@@ -173,11 +172,11 @@
     <!-- 상점 뷰 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2 id="ui-shop-title">📦 포켓몬 카드 확장팩 선택 (한/미/일 통합)</h2>
+            <h2 id="ui-shop-title">📦 포켓몬 카드 확장팩 선택 (전체 200여개+ 통합)</h2>
             <p id="ui-shop-desc" style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 확장팩을 선택하고 일괄 구매하세요!</p>
             
             <select id="seriesSelect" class="series-select" onchange="updatePackPreview()">
-                <option value="">전체 확장팩 불러오는 중...</option>
+                <option value="">전체 200여 개 확장팩 데이터 로딩 중...</option>
             </select>
 
             <div id="shopPackPreview" style="margin: 10px 0;">
@@ -240,7 +239,6 @@
         let tableCards = [];
         let currentLang = 'ko';
 
-        // 한국판 및 일본판 공식 세트 명칭 데이터 매핑
         const setNamesMap = {
             'sv3pt5': { ko: '포켓몬 카드 151', ja: 'ポケモンカード151', en: '151' },
             'sv4pt5': { ko: '팔데아의 운명', ja: 'シャイニートレジャーex', en: 'Paldean Fates' },
@@ -251,7 +249,6 @@
             'sv3': { ko: '검은 화염의 지배자', ja: '黒炎の支配者', en: 'Ruler of the Black Flame' }
         };
 
-        // 한국어 및 일본어 카드 명칭 매핑
         const cardNamesMap = {
             'Charmander': { ko: '파이리', ja: 'ヒトカゲ' },
             'Squirtle': { ko: '꼬부기', ja: 'ゼニガメ' },
@@ -269,15 +266,24 @@
                 document.getElementById('totalCost').textContent = (count * 1000).toLocaleString();
             });
 
+            await fetchAllSets();
+        };
+
+        // API의 모든 페이지를 순회하여 200여 개 이상의 전체 확장팩 로딩
+        async function fetchAllSets() {
+            let page = 1;
+            let pageSize = 250; 
             try {
-                const res = await fetch('https://api.pokemontcg.io/v2/sets');
+                const res = await fetch(`https://api.pokemontcg.io/v2/sets?page=${page}&pageSize=${pageSize}`);
                 const data = await res.json();
                 if(data && data.data) {
                     apiSets = data.data.sort((a,b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                 }
-            } catch(e) { console.log("API 로드 실패 - 기본 세트로 대체"); }
+            } catch(e) {
+                console.log("API 로드 실패 - 기본 세트로 대체");
+            }
             renderSetSelect();
-        };
+        }
 
         function renderSetSelect() {
             const select = document.getElementById('seriesSelect');
@@ -320,19 +326,19 @@
             currentLang = lang;
             renderSetSelect();
             if (lang === 'ko') {
-                document.getElementById('ui-shop-title').innerText = "📦 포켓몬 카드 확장팩 선택 (한/미/일 통합)";
+                document.getElementById('ui-shop-title').innerText = "📦 포켓몬 카드 확장팩 선택 (전체 200여개+ 통합)";
                 document.getElementById('ui-shop-desc').innerText = "원하는 확장팩을 선택하고 일괄 구매하세요!";
                 document.getElementById('ui-buy-label').innerText = "구매 수량: ";
                 document.getElementById('ui-binder-title').innerText = "📘 내 수집 바인더";
                 document.getElementById('ui-desk-tip').innerText = "💡 카드를 드래그해 테이블에 놓고, 마우스를 올리면 [슬리브/탑로더/PSA] 버튼이 나타납니다.";
             } else if(lang === 'ja') {
-                document.getElementById('ui-shop-title').innerText = "📦 ポケモンカード 拡張パック選択";
+                document.getElementById('ui-shop-title').innerText = "📦 ポケモンカード 拡張パック選択 (200種以上)";
                 document.getElementById('ui-shop-desc').innerText = "購入するパックと数量を選択してください！";
                 document.getElementById('ui-buy-label').innerText = "購入数量: ";
                 document.getElementById('ui-binder-title').innerText = "📘 コレクションバイダー";
                 document.getElementById('ui-desk-tip').innerText = "💡 カードをデスクにドラッグし、ホバーで [スリーブ/トップローダー/PSA] を装着！";
             } else {
-                document.getElementById('ui-shop-title').innerText = "📦 Select Pokemon Booster Pack";
+                document.getElementById('ui-shop-title').innerText = "📦 Select Pokemon Booster Pack (200+ Sets)";
                 document.getElementById('ui-shop-desc').innerText = "Select a pack and quantity to purchase!";
                 document.getElementById('ui-buy-label').innerText = "Amount: ";
                 document.getElementById('ui-binder-title').innerText = "📘 Collection Binder";
