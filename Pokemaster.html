@@ -26,38 +26,29 @@
             padding: 15px;
         }
 
-        /* 0. 로그인 / 회원가입 모달 */
+        /* 로그인 모달 */
         .auth-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.85);
-            display: flex; justify-content: center; align-items: center;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
             z-index: 9999;
         }
         .auth-box {
-            background: var(--panel);
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid var(--accent);
-            width: 320px;
-            text-align: center;
+            background: var(--panel); padding: 30px; border-radius: 15px;
+            border: 2px solid var(--accent); width: 320px; text-align: center;
         }
         .auth-box input {
-            width: 100%; padding: 10px; margin: 8px 0;
-            border-radius: 6px; border: 1px solid #333;
-            background: #0b0d19; color: #fff;
+            width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px;
+            border: 1px solid #333; background: #0b0d19; color: #fff;
         }
         .auth-box button {
-            width: 100%; padding: 10px; margin-top: 10px;
-            background: var(--accent); border: none; font-weight: bold;
-            border-radius: 6px; cursor: pointer;
+            width: 100%; padding: 10px; margin-top: 10px; background: var(--accent);
+            border: none; font-weight: bold; border-radius: 6px; cursor: pointer;
         }
 
         /* 상단 UI */
         .header-bar {
-            width: 100%; max-width: 1100px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: var(--panel); padding: 15px 25px; border-radius: 15px;
+            width: 100%; max-width: 1100px; display: flex; justify-content: space-between;
+            align-items: center; background: var(--panel); padding: 15px 25px; border-radius: 15px;
             margin-bottom: 15px;
         }
         .user-info { font-size: 0.9rem; color: #aaa; }
@@ -73,69 +64,60 @@
 
         /* 상점 구역 */
         .shop-panel {
-            background: var(--panel); width: 100%; padding: 20px;
-            border-radius: 15px; text-align: center;
+            background: var(--panel); width: 100%; padding: 20px; border-radius: 15px; text-align: center;
         }
         .series-select {
-            width: 100%; max-width: 450px; padding: 10px;
-            background: #0b0d19; color: var(--accent); border: 1px solid var(--accent);
-            border-radius: 8px; margin: 15px 0; font-weight: bold;
+            width: 100%; max-width: 450px; padding: 10px; background: #0b0d19;
+            color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; margin: 15px 0; font-weight: bold;
         }
 
-        /* 개봉 테이블(Desk) 구역 */
-        .open-container {
-            width: 100%; display: flex; flex-direction: column; align-items: center;
-        }
-        .table-controls {
-            width: 100%; display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px;
-        }
+        /* 테이블 구역 */
+        .open-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .table-controls { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .desk-area {
-            width: 100%; height: 380px; background: var(--desk);
-            border: 2px dashed #38426b; border-radius: 15px;
-            position: relative; overflow: hidden;
+            width: 100%; height: 380px; background: var(--desk); border: 2px dashed #38426b;
+            border-radius: 15px; position: relative; overflow: hidden;
         }
 
-        /* 드래그 팩 개봉 존 */
-        .pack-drop-zone {
-            width: 200px; height: 280px; margin-top: 15px;
-            position: relative; perspective: 1000px;
+        /* 카드 대체 스타일 (이미지 로딩 실패 시 표시) */
+        .card-fallback {
+            width: 100%; height: 100%; background: linear-gradient(135deg, #ffcb05, #e65c00);
+            border-radius: 8px; border: 2px solid #fff; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: #000; font-weight: bold;
+            padding: 5px; text-align: center; font-size: 0.75rem;
         }
+
+        /* 팩 드래그 존 */
+        .pack-drop-zone { width: 200px; height: 260px; margin-top: 15px; position: relative; perspective: 1000px; }
         .card-draggable {
-            width: 180px; height: 250px; position: absolute;
-            cursor: grab; transition: transform 0.1s ease;
-            user-select: none;
+            width: 180px; height: 250px; position: absolute; cursor: grab;
+            transition: transform 0.1s ease; user-select: none;
         }
         .card-draggable img { width: 100%; height: 100%; border-radius: 10px; pointer-events: none; }
         
-        /* 테이블 위에 배치된 카드 스타일 */
-        .table-card {
-            position: absolute; width: 110px; height: 150px; cursor: move;
-            transition: box-shadow 0.2s;
-        }
+        /* 테이블 카드 */
+        .table-card { position: absolute; width: 110px; height: 150px; cursor: move; }
         .table-card img { width: 100%; height: 100%; border-radius: 6px; pointer-events: none; }
 
-        /* 슬리브 / 탑로더 / PSA 오버레이 효과 */
-        .sleeve-effect { box-shadow: 0 0 10px rgba(255, 255, 255, 0.8) !important; }
+        /* 효과 */
+        .sleeve-effect { box-shadow: 0 0 12px rgba(255, 255, 255, 0.9) !important; }
         .toploader-effect { border: 4px solid #7ec8ff !important; border-radius: 8px; box-shadow: 0 0 15px #0088ff !important; }
         .psa-badge {
-            position: absolute; top: -12px; right: -12px; background: red; color: white;
-            font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 10px; border: 1px solid white;
+            position: absolute; top: -10px; right: -10px; background: red; color: white;
+            font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 10px; border: 1px solid white; z-index: 10;
         }
 
-        /* 드래그 악세서리 / PSA 코너 */
         .tool-zone { display: flex; gap: 15px; margin: 15px 0; }
         .tool-item {
             padding: 10px 15px; background: #232740; border: 1px dashed var(--accent);
             border-radius: 8px; cursor: grab; font-size: 0.85rem; font-weight: bold;
         }
 
-        /* 바인더 */
         .binder-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 12px; width: 100%; background: #121526; padding: 20px; border-radius: 15px;
         }
-        .binder-card { position: relative; border-radius: 6px; background: #000; }
+        .binder-card { position: relative; border-radius: 6px; background: #000; min-height: 150px; }
         .binder-card img { width: 100%; display: block; border-radius: 6px; }
 
         .btn-action {
@@ -146,7 +128,6 @@
 </head>
 <body>
 
-    <!-- 0. 로그인 / 회원가입 인증 시스템 -->
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-box">
             <h2 id="authTitle" style="color:var(--accent); margin-bottom:15px;">🔑 회원 로그인</h2>
@@ -159,7 +140,6 @@
         </div>
     </div>
 
-    <!-- 상단 UI -->
     <div class="header-bar">
         <div>
             <span class="user-info">접속자: <b id="displayUserId" style="color:#fff;">-</b></span>
@@ -173,12 +153,9 @@
         </div>
     </div>
 
-    <!-- 1. 상점 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
             <h2>📦 원하는 포켓몬 카드 세트 선택</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">언어별 세트 구성/카드 수가 모두 다르게 반영됩니다.</p>
-            
             <select id="seriesSelect" class="series-select">
                 <option value="">카드 세트 불러오는 중...</option>
             </select><br>
@@ -186,40 +163,34 @@
         </div>
     </div>
 
-    <!-- 2. 개봉 테이블 (Desk) -->
     <div id="viewOpen" class="view-section">
         <div class="open-container">
-            <!-- 상단 도구 및 리프레시 버튼 -->
             <div class="table-controls">
                 <div class="tool-zone">
                     <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'sleeve')">✨ 슬리브</div>
                     <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'toploader')">🛡️ 탑로더</div>
                     <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'psa')" style="border-color:#ff4757; color:#ff4757;">🔍 PSA 감정하기</div>
                 </div>
-                <button class="btn-action" style="background:#e74c3c; color:white;" onclick="refreshTable()">🔄 테이블 리프레시 (카드 싹 청소)</button>
+                <button class="btn-action" style="background:#e74c3c; color:white;" onclick="refreshTable()">🔄 테이블 청소</button>
             </div>
 
-            <!-- 카드 개봉 테이블 구역 -->
             <div class="desk-area" id="deskArea" ondragover="allowDrop(event)" ondrop="dropOnDesk(event)">
-                <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#555; pointer-events:none;">
-                    💡 카드를 위로 드래그하여 날리면 이 테이블 위에 안착합니다.<br>
+                <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none;">
+                    💡 하단 카드를 <b>위로 드래그해 날리면</b> 테이블 위에 안착합니다.<br>
                     (테이블 위 카드를 <b>더블클릭</b>하면 바인더로 저장됩니다)
                 </p>
             </div>
 
-            <!-- 팩 개봉 드래그 존 -->
             <div class="pack-drop-zone" id="packZone"></div>
         </div>
     </div>
 
-    <!-- 3. 바인더 -->
     <div id="viewBinder" class="view-section">
         <h2 style="margin-bottom: 15px; color: var(--accent);">📘 내 수집 바인더</h2>
         <div class="binder-grid" id="binderGrid"></div>
     </div>
 
     <script>
-        // --- 1. 회원가입 / 로그인 시스템 ---
         let isSignUpMode = false;
         let currentUser = null;
 
@@ -269,7 +240,6 @@
             updateUI();
         }
 
-        // --- 2. 메인 TCG 시스템 ---
         let gold = 10000;
         let binder = [];
         let setCache = {};
@@ -284,16 +254,15 @@
                 const select = document.getElementById('seriesSelect');
                 select.innerHTML = '';
 
-                // 발매일 기준 정렬 (한/일/영 세트 특성이 API 데이터의 세트별 total 개수로 반영됨)
                 const sets = data.data.sort((a,b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                 sets.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = `[${s.series}] ${s.name} (총 ${s.total}장 구성)`;
+                    opt.textContent = `[${s.series}] ${s.name} (${s.total}장)`;
                     select.appendChild(opt);
                 });
             } catch(e) {
-                document.getElementById('seriesSelect').innerHTML = '<option>세트 목록 불러오기 실패</option>';
+                document.getElementById('seriesSelect').innerHTML = '<option value="base1">기본 세트 (Base Set)</option>';
             }
         };
 
@@ -310,10 +279,8 @@
             else if(view === 'binder') { document.getElementById('viewBinder').classList.add('active'); document.getElementById('btnNavBinder').classList.add('active'); renderBinder(); }
         }
 
-        // --- 3. 팩 구매 및 개봉 ---
         async function buyPack() {
-            const setId = document.getElementById('seriesSelect').value;
-            if(!setId) return;
+            const setId = document.getElementById('seriesSelect').value || 'base1';
             if(gold < 1000) return alert("골드가 부족합니다!");
 
             gold -= 1000;
@@ -321,45 +288,71 @@
             updateUI();
             switchView('open');
 
-            if(!setCache[setId]) {
-                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=60`);
-                const data = await res.json();
-                setCache[setId] = data.data;
+            try {
+                if(!setCache[setId]) {
+                    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=60`);
+                    const data = await res.json();
+                    setCache[setId] = data.data;
+                }
+
+                const pool = setCache[setId];
+                const commons = pool.filter(c => c.supertype === 'Energy' || c.rarity === 'Common');
+                const uncommons = pool.filter(c => c.supertype === 'Trainer' || c.rarity === 'Uncommon');
+                const rares = pool.filter(c => c.rarity && (c.rarity.includes('Rare') || c.rarity.includes('Promo')));
+
+                const getRandom = (arr) => arr.length > 0 ? arr[Math.floor(Math.random()*arr.length)] : pool[Math.floor(Math.random()*pool.length)];
+
+                currentPackCards = [];
+                for(let i=0; i<6; i++) currentPackCards.push(getRandom(commons));
+                for(let i=0; i<3; i++) currentPackCards.push(getRandom(uncommons));
+                currentPackCards.push(getRandom(rares));
+            } catch(e) {
+                // 네트워크 오류 시 더미 카드 생성
+                currentPackCards = Array(10).fill({
+                    name: '피카츄 레어',
+                    images: { small: '', large: '' },
+                    rarity: 'Rare'
+                });
             }
-
-            const pool = setCache[setId];
-            // 실제 팩 밸런스: 일반 -> 언커먼 -> 마지막 레어 피날레
-            const commons = pool.filter(c => c.supertype === 'Energy' || c.rarity === 'Common');
-            const uncommons = pool.filter(c => c.supertype === 'Trainer' || c.rarity === 'Uncommon');
-            const rares = pool.filter(c => c.rarity && (c.rarity.includes('Rare') || c.rarity.includes('Promo')));
-
-            const getRandom = (arr) => arr.length > 0 ? arr[Math.floor(Math.random()*arr.length)] : pool[Math.floor(Math.random()*pool.length)];
-
-            currentPackCards = [];
-            for(let i=0; i<6; i++) currentPackCards.push(getRandom(commons));
-            for(let i=0; i<3; i++) currentPackCards.push(getRandom(uncommons));
-            currentPackCards.push(getRandom(rares)); // 맨 마지막 10번째 레어!
 
             currentCardIndex = 0;
             renderPackStack();
         }
 
-        // 마우스 드래그로 위로 싹 날리는 액션 구현
+        // 이미지 로드 실패 대응 태그 생성
+        function createCardElement(cardData) {
+            const wrapper = document.createElement('div');
+            wrapper.style.width = '100%';
+            wrapper.style.height = '100%';
+
+            const imgUrl = cardData.images.large || cardData.images.small;
+            if(imgUrl) {
+                const img = document.createElement('img');
+                img.src = imgUrl;
+                img.onerror = () => {
+                    wrapper.innerHTML = `<div class="card-fallback">⚡<br>${cardData.name || '포켓몬 카드'}<br>(${cardData.rarity || 'Rare'})</div>`;
+                };
+                wrapper.appendChild(img);
+            } else {
+                wrapper.innerHTML = `<div class="card-fallback">⚡<br>${cardData.name || '포켓몬 카드'}<br>(${cardData.rarity || 'Rare'})</div>`;
+            }
+            return wrapper;
+        }
+
         function renderPackStack() {
             const packZone = document.getElementById('packZone');
             packZone.innerHTML = '';
 
             if(currentCardIndex >= currentPackCards.length) {
-                packZone.innerHTML = '<p style="text-align:center; color:#aaa; margin-top:50px;">팩 개봉 완료!</p>';
+                packZone.innerHTML = '<p style="text-align:center; color:#aaa; margin-top:50px;">🎉 팩 개봉 완료!</p>';
                 return;
             }
 
             const cardData = currentPackCards[currentCardIndex];
             const cardEl = document.createElement('div');
             cardEl.className = 'card-draggable';
-            cardEl.innerHTML = `<img src="${cardData.images.large || cardData.images.small}">`;
+            cardEl.appendChild(createCardElement(cardData));
 
-            // 마우스 드래그 감지 (위로 날리기)
             let startY = 0;
             cardEl.onmousedown = (e) => {
                 startY = e.clientY;
@@ -372,7 +365,7 @@
                     document.onmousemove = null;
                     document.onmouseup = null;
 
-                    if(diffY < -80) { // 위로 충분히 올렸을 때 -> 테이블로 날려 안착!
+                    if(diffY < -70) {
                         spawnCardOnDesk(cardData);
                         currentCardIndex++;
                         renderPackStack();
@@ -385,7 +378,6 @@
             packZone.appendChild(cardEl);
         }
 
-        // --- 4. 테이블(Desk) 및 악세서리 / PSA 시스템 ---
         function spawnCardOnDesk(cardData) {
             document.getElementById('deskNotice').style.display = 'none';
             const desk = document.getElementById('deskArea');
@@ -406,7 +398,6 @@
 
         function renderDesk() {
             const desk = document.getElementById('deskArea');
-            // 기존 카드 요소만 제거
             document.querySelectorAll('.table-card').forEach(el => el.remove());
 
             tableCards.forEach((c) => {
@@ -418,10 +409,14 @@
                 el.style.left = c.x + 'px';
                 el.style.top = c.y + 'px';
 
-                let psaHTML = c.psa ? `<div class="psa-badge">PSA ${c.psa}</div>` : '';
-                el.innerHTML = `<img src="${c.data.images.small}">${psaHTML}`;
+                el.appendChild(createCardElement(c.data));
+                if(c.psa) {
+                    const badge = document.createElement('div');
+                    badge.className = 'psa-badge';
+                    badge.textContent = `PSA ${c.psa}`;
+                    el.appendChild(badge);
+                }
 
-                // 테이블 안에서 자유 이동 드래그
                 el.onmousedown = (e) => {
                     let shiftX = e.clientX - el.getBoundingClientRect().left;
                     let shiftY = e.clientY - el.getBoundingClientRect().top;
@@ -436,7 +431,6 @@
                     document.onmouseup = () => { document.onmousemove = null; };
                 };
 
-                // 🔥 더블 클릭시 바인더로 이동!
                 el.ondblclick = () => {
                     binder.push({ ...c.data, sleeve: c.sleeve, toploader: c.toploader, psa: c.psa });
                     tableCards = tableCards.filter(tc => tc.instanceId !== c.instanceId);
@@ -446,7 +440,6 @@
                     alert("📘 카드가 바인더에 보관되었습니다!");
                 };
 
-                // 악세서리/PSA 드롭 이벤트 수신
                 el.ondragover = (e) => e.preventDefault();
                 el.ondrop = (e) => {
                     e.preventDefault();
@@ -455,10 +448,9 @@
                     if(tool === 'sleeve') c.sleeve = true;
                     if(tool === 'toploader') c.toploader = true;
                     if(tool === 'psa') {
-                        // PSA 1 ~ 10 랜덤 등급 부여 (10등급 확률 희귀)
                         const grades = [6, 7, 8, 9, 9, 9, 10];
                         c.psa = grades[Math.floor(Math.random() * grades.length)];
-                        alert(`🔍 PSA 감정 결과: [PSA ${c.psa}] 등급을 받았습니다!`);
+                        alert(`🔍 PSA 감정 결과: [PSA ${c.psa}] 등급 받음!`);
                     }
                     renderDesk();
                 };
@@ -467,9 +459,8 @@
             });
         }
 
-        // 테이블 리프레시 버튼 (모두 싹 없애기)
         function refreshTable() {
-            if(confirm("테이블 위 모든 카드를 치우시겠습니까? (바인더에 안 넣은 카드는 사라집니다)")) {
+            if(confirm("테이블 위 모든 카드를 치우시겠습니까?")) {
                 tableCards = [];
                 renderDesk();
                 document.getElementById('deskNotice').style.display = 'block';
@@ -480,7 +471,6 @@
         function allowDrop(ev) { ev.preventDefault(); }
         function dropOnDesk(ev) { ev.preventDefault(); }
 
-        // --- 5. 바인더 렌더링 ---
         function renderBinder() {
             const grid = document.getElementById('binderGrid');
             grid.innerHTML = '';
@@ -490,17 +480,19 @@
                 return;
             }
 
-            binder.forEach((card, idx) => {
+            binder.forEach((card) => {
                 const item = document.createElement('div');
                 item.className = 'binder-card';
                 if(card.sleeve) item.classList.add('sleeve-effect');
                 if(card.toploader) item.classList.add('toploader-effect');
 
-                let psaBadge = card.psa ? `<div class="psa-badge">PSA ${card.psa}</div>` : '';
-                item.innerHTML = `
-                    ${psaBadge}
-                    <img src="${card.images.small}">
-                `;
+                item.appendChild(createCardElement(card));
+                if(card.psa) {
+                    const badge = document.createElement('div');
+                    badge.className = 'psa-badge';
+                    badge.textContent = `PSA ${card.psa}`;
+                    item.appendChild(badge);
+                }
                 grid.appendChild(item);
             });
         }
