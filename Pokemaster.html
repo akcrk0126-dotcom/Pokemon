@@ -237,9 +237,7 @@
         let currentLang = 'ko';
         let globalZIndex = 100;
 
-        // 언어별 다국어 타이틀 및 정면 팩 로고/아트 매핑 데이터베이스
         const allBuiltInSets = [
-            // 한국 / 일본 / 글로벌 전용 세트 포함
             { id: 'sv8', name: 'Super Electric Breaker', total: 130, ko: '초전브레이커', ja: '超電ブレイカー', 
               img: { ko: 'https://images.pokemontcg.io/sv8/symbol.png', ja: 'https://images.pokemontcg.io/sv8/symbol.png', en: 'https://images.pokemontcg.io/sv8/symbol.png' } },
             { id: 'sv7a', name: 'Paradise Dragona', total: 94, ko: '낙원드래고나', ja: '楽園ドラゴーナ',
@@ -260,12 +258,6 @@
               img: { ko: 'https://images.pokemontcg.io/sv4pt5/symbol.png', ja: 'https://images.pokemontcg.io/sv4pt5/symbol.png', en: 'https://images.pokemontcg.io/sv4pt5/symbol.png' } },
             { id: 'sv3pt5', name: '151', total: 207, ko: '포켓몬 카드 151', ja: 'ポケモンカード151',
               img: { ko: 'https://images.pokemontcg.io/sv3pt5/symbol.png', ja: 'https://images.pokemontcg.io/sv3pt5/symbol.png', en: 'https://images.pokemontcg.io/sv3pt5/symbol.png' } },
-            
-            // 한국 / 일본 독자 및 전용 패키지 세트 추가
-            { id: 'kr_promo_1', name: 'K-League Limited Promo Pack', total: 30, ko: 'K-리그 한정 프로모 팩', ja: 'Kリーグ 限定プロモパック',
-              img: { ko: 'https://images.pokemontcg.io/swsh1/symbol.png', ja: 'https://images.pokemontcg.io/swsh1/symbol.png', en: 'https://images.pokemontcg.io/swsh1/symbol.png' } },
-            { id: 'jp_classic', name: 'Pokemon Card Game Classic', total: 60, ko: '포켓몬 카드 게임 클래식 (JP)', ja: 'ポケモンカードゲーム Classic',
-              img: { ko: 'https://images.pokemontcg.io/base1/symbol.png', ja: 'https://images.pokemontcg.io/base1/symbol.png', en: 'https://images.pokemontcg.io/base1/symbol.png' } },
             { id: 'swsh12pt5', name: 'Crown Zenith', total: 160, ko: 'VSTAR 유니버스', ja: 'VSTARユニバース',
               img: { ko: 'https://images.pokemontcg.io/swsh12pt5/symbol.png', ja: 'https://images.pokemontcg.io/swsh12pt5/symbol.png', en: 'https://images.pokemontcg.io/swsh12pt5/symbol.png' } },
             { id: 'swsh7', name: 'Evolving Skies', total: 237, ko: '이브이 히어로즈', ja: 'イーブイヒーローズ',
@@ -314,7 +306,6 @@
             updatePackPreview();
         }
 
-        // 언어 변경 및 팩 선택 시 팩 정면 심볼/로고 이미지로 변경 (카드 뒷면 오류 수정)
         function updatePackPreview() {
             selectedSetId = document.getElementById('seriesSelect').value || 'sv3pt5';
             const currentSet = fullSetsList.find(s => s.id === selectedSetId);
@@ -325,7 +316,6 @@
                 : `https://images.pokemontcg.io/${selectedSetId}/symbol.png`;
 
             previewImg.src = packImgUrl;
-            // 로드 실패 시 뒷면이 아닌 기본 대체 심볼 처리
             previewImg.onerror = function() {
                 this.src = 'https://images.pokemontcg.io/base1/symbol.png';
             };
@@ -474,10 +464,20 @@
                 const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${selectedSetId}&pageSize=30`);
                 const data = await res.json();
                 if(data && data.data && data.data.length > 0) fetchedCards = data.data;
-            } catch(e) {}
+            } catch(e) {
+                console.error("API Fetch Error:", e);
+            }
 
             currentPackCards = [];
             
+            const fallbackImgs = [
+                'https://images.pokemontcg.io/sv3pt5/25_hires.png',
+                'https://images.pokemontcg.io/sv3pt5/6_hires.png',
+                'https://images.pokemontcg.io/sv3pt5/9_hires.png',
+                'https://images.pokemontcg.io/sv3pt5/3_hires.png',
+                'https://images.pokemontcg.io/sv3pt5/150_hires.png'
+            ];
+
             for(let i = 0; i < 5; i++) {
                 let cardObj = null;
                 if(fetchedCards.length > 0) {
@@ -485,16 +485,9 @@
                     cardObj = {
                         id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
                         name: randomPick.name,
-                        image: randomPick.images.large || randomPick.images.small
+                        image: (randomPick.images && (randomPick.images.large || randomPick.images.small)) ? (randomPick.images.large || randomPick.images.small) : fallbackImgs[i]
                     };
                 } else {
-                    const fallbackImgs = [
-                        'https://images.pokemontcg.io/sv3pt5/25_hires.png',
-                        'https://images.pokemontcg.io/sv3pt5/6_hires.png',
-                        'https://images.pokemontcg.io/sv3pt5/9_hires.png',
-                        'https://images.pokemontcg.io/sv3pt5/3_hires.png',
-                        'https://images.pokemontcg.io/sv3pt5/150_hires.png'
-                    ];
                     cardObj = {
                         id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
                         name: 'Special Pokemon Card',
@@ -510,10 +503,11 @@
                 cardEl.className = 'card-flip-container';
                 cardEl.id = `packCard_${idx}`;
 
+                // 카드 앞면 이미지를 인라인 스타일로 바인딩
                 cardEl.innerHTML = `
                     <div class="card-inner">
                         <div class="card-back"></div>
-                        <div class="card-front" style="background-image: url('${card.image}')"></div>
+                        <div class="card-front" style="background-image: url(&quot;${card.image}&quot;); background-size: cover; background-position: center;"></div>
                     </div>
                 `;
 
@@ -542,7 +536,6 @@
 
         function sendCardToDesk(cardData) {
             document.getElementById('deskNotice').style.display = 'none';
-            const desk = document.getElementById('deskArea');
             
             const existing = tableCards.find(c => c.instanceId === cardData.id);
             if(existing) return;
