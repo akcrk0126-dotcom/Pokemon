@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>포켓몬 TCG - 얼티밋 마스터 컬렉션</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500;700;900&family=Montserrat:wght@800;900&display=swap');
+
+    :root {
+      --bg-dark: #08090c;
+      --panel-bg: #12141d;
+      --accent-yellow: #f1c40f;
+      --card-w: 185px;
+      --card-h: 260px;
+    }
+
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0; padding: 0;
+      background: radial-gradient(circle, #1a1e2b 0%, #050608 100%);
+      color: #fff; font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      overflow-x: hidden;
+    }
+
+    /* 로그인 Overlay */
+    .auth-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(5, 6, 8, 0.95); z-index: 200;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .auth-card {
+      background: var(--panel-bg); border: 2px solid var(--accent-yellow);
+      border-radius: 16px; padding: 30px; width: 360px; text-align: center;
+      box-shadow: 0 0 30px rgba(241, 196, 15, 0.3);
+    }
+    .auth-card h2 { margin-top: 0; color: var(--accent-yellow); font-family: 'Montserrat', sans-serif; }
+    .auth-input {
+      width: 100%; padding: 10px 14px; margin: 8px 0; border-radius: 8px;
+      border: 1px solid #3b4258; background: #0a0c12; color: #fff; font-size: 14px;
+    }
+    .auth-btn {
+      width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none;
+      background: var(--accent-yellow); color: #000; font-weight: bold; cursor: pointer;
+      font-size: 15px; transition: 0.2s;
+    }
+    .auth-btn:hover { background: #d4ac0d; }
+
+    header {
+      width: 100%; padding: 12px 25px; background: var(--panel-bg);
+      border-bottom: 2px solid #282c3c; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.8); z-index: 10;
+    }
+
+    .title-logo { font-size: 20px; font-weight: 900; color: var(--accent-yellow); font-family: 'Montserrat', sans-serif; text-shadow: 0 0 10px rgba(241,196,15,0.4); }
+    .user-info-bar { display: flex; align-items: center; gap: 15px; }
+    .gold-box {
+      background: #000; border: 2px solid var(--accent-yellow);
+      padding: 6px 14px; border-radius: 20px; font-weight: 900; color: var(--accent-yellow); font-size: 14px;
+    }
+
+    .nav-btn {
+      background: #232736; color: #fff; border: 1px solid #444b60;
+      padding: 8px 16px; border-radius: 6px; cursor: pointer;
+      font-weight: bold; font-size: 13px; transition: 0.2s;
+    }
+    .nav-btn:hover { background: #343b52; color: var(--accent-yellow); border-color: var(--accent-yellow); }
+
+    .main-stage {
+      flex: 1; width: 100%; max-width: 1400px;
+      display: flex; flex-direction: column; align-items: center; padding: 15px;
+    }
+
+    .card-table {
+      width: 100%; height: 750px; position: relative;
+      border: 2px solid #2d3345; border-radius: 14px; background: rgba(0,0,0,0.4);
+      overflow: hidden; backdrop-filter: blur(5px);
+    }
+
+    .tool-zone {
+      position: absolute; top: 15px; right: 15px; display: flex; gap: 12px;
+      background: rgba(10,12,18,0.85); padding: 10px; border-radius: 12px; border: 1px solid #333a4e; z-index: 5;
+    }
+    .tool-box {
+      width: 110px; height: 130px; border: 2px dashed var(--accent-yellow); border-radius: 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; font-size: 11px; color: #fff; background: rgba(255,255,255,0.03);
+    }
+    .tool-box.drag-over { background: rgba(241, 196, 15, 0.3); transform: scale(1.05); }
+
+    .bottom-zone { position: absolute; bottom: 15px; left: 15px; display: flex; gap: 12px; z-index: 5; }
+    .sell-zone {
+      width: 120px; height: 110px; border: 2px dashed #2ecc71; border-radius: 12px;
+      background: rgba(46, 204, 113, 0.15); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; color: #2ecc71; font-size: 12px; font-weight: bold; text-align: center;
+    }
+    .sell-zone.drag-over { background: rgba(46, 204, 113, 0.4); transform: scale(1.05); }
+
+    .trash-zone {
+      width: 100px; height: 110px; border: 2px dashed #e74c3c; border-radius: 12px;
+      background: rgba(231, 76, 60, 0.15); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; color: #e74c3c; font-size: 12px; font-weight: bold;
+    }
+    .trash-zone.drag-over { background: rgba(231, 76, 60, 0.4); transform: scale(1.05); }
+
+    /* 리얼 포켓몬 부스터 팩 디자인 */
+    .unopened-pack {
+      width: 175px; height: 285px; position: absolute;
+      border-radius: 6px; cursor: pointer; z-index: 50; text-align: center;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.8), 0 0 15px rgba(255,255,255,0.2);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    .unopened-pack:hover {
+      transform: scale(1.08) translateY(-5px);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.9), 0 0 25px rgba(241, 196, 15, 0.6);
+    }
+
+    .pack-crimp-top, .pack-crimp-bottom {
+      height: 18px; width: 100%;
+      background: repeating-linear-gradient(90deg, #555 0px, #aaa 3px, #222 6px);
+      border-bottom: 1px solid rgba(0,0,0,0.5); border-top: 1px solid rgba(255,255,255,0.4);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.8); z-index: 3;
+    }
+    .pack-crimp-bottom { border-top: 1px solid rgba(0,0,0,0.5); border-bottom: none; }
+
+    .pack-body {
+      flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+      padding: 8px 6px; overflow: hidden;
+    }
+
+    .pack-body::before {
+      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
+      animation: packShine 3s infinite linear; pointer-events: none; z-index: 2;
+    }
+    @keyframes packShine { 0% { transform: translateY(-30%) rotate(0deg); } 100% { transform: translateY(30%) rotate(0deg); } }
+
+    .pack-dragon { background: linear-gradient(165deg, #0f2027, #203a43, #2c5364); }
+    .pack-psychic { background: linear-gradient(165deg, #2b1055, #7597de); }
+    .pack-classic { background: linear-gradient(165deg, #b91d73, #f953c6); }
+
+    .pack-header-logo {
+      font-family: 'Montserrat', sans-serif; font-size: 11px; font-weight: 900; color: #f1c40f;
+      letter-spacing: 1px; text-shadow: 0 2px 4px #000; z-index: 2; margin-top: 2px;
+      background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 10px; border: 1px solid rgba(241,196,15,0.5);
+    }
+    
+    .pack-art-img {
+      width: 125px; height: 125px; border-radius: 50%; object-fit: cover;
+      border: 3px solid #f1c40f; box-shadow: 0 0 15px rgba(0,0,0,0.8); z-index: 1; margin: 4px 0;
+    }
+
+    .pack-footer-text {
+      font-size: 10px; font-weight: bold; color: #fff; text-shadow: 0 1px 3px #000; z-index: 2;
+      background: rgba(0,0,0,0.7); width: 100%; padding: 4px 0; border-radius: 4px;
+    }
+
+    /* 카드 기본 스타일 */
+    .draggable-card {
+      width: var(--card-w); height: var(--card-h); position: absolute; perspective: 1000px; cursor: grab; touch-action: none;
+    }
+    .draggable-card:active { cursor: grabbing; }
+
+    .card-inner {
+      width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1); border-radius: 10px; pointer-events: none;
+    }
+    .card-inner.flipped { transform: rotateY(180deg); }
+
+    .card-face {
+      position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+      border-radius: 10px; border: 3px solid #111; overflow: hidden;
+    }
+
+    .card-back {
+      background: linear-gradient(135deg, #151e27 0%, #0a0e14 100%);
+      display: flex; justify-content: center; align-items: center; border: 4px solid #1e824c;
+    }
+    .pokeball {
+      width: 80px; height: 80px; background: linear-gradient(#e53935 45%, #111 45%, #111 55%, #f5f5f5 55%);
+      border-radius: 50%; border: 6px solid #111;
+    }
+
+    .card-front {
+      transform: rotateY(180deg); background: #f8f9fa; color: #000;
+      display: flex; flex-direction: column; padding: 8px; font-size: 11px; position: relative;
+    }
+
+    .card-type-grass { background: linear-gradient(180deg, #a8e6cf 0%, #e8f5e9 100%); }
+    .card-type-fire  { background: linear-gradient(180deg, #ff8b8b 0%, #ffebee 100%); }
+    .card-type-water { background: linear-gradient(180deg, #74b9ff 0%, #e3f2fd 100%); }
+    .card-type-electric { background: linear-gradient(180deg, #ffeaa7 0%, #fffde7 100%); }
+    .card-type-psychic { background: linear-gradient(180deg, #a29bfe 0%, #f3e5f5 100%); }
+    .card-type-dragon { background: linear-gradient(180deg, #fdcb6e 0%, #d63031 100%); }
+
+    .card-header { display: flex; justify-content: space-between; font-weight: 900; z-index: 2; }
+    .card-img-box {
+      width: 100%; height: 125px; background: #000; border: 2px solid #485460;
+      border-radius: 6px; margin: 4px 0; display: flex; justify-content: center; align-items: center; overflow: hidden; z-index: 2;
+    }
+    .card-img-box img { width: 100%; height: 100%; object-fit: cover; }
+    .card-body { background: rgba(255,255,255,0.92); padding: 6px; border-radius: 6px; font-size: 10px; margin-top: auto; z-index: 2; }
+
+    .rarity-AR .holo-layer { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(135deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%); mix-blend-mode: overlay; pointer-events: none; z-index: 3; }
+    .rarity-SR { border: 3px solid #f1c40f !important; }
+    .rarity-SR .holo-layer { position: absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(115deg, transparent 20%, rgba(255,241,118,0.6) 45%, rgba(120,220,255,0.6) 55%, transparent 80%); background-size: 200% 200%; animation: shiftHolo 2.5s infinite linear; mix-blend-mode: color-dodge; pointer-events: none; z-index: 3; }
+
+    .rarity-SAR .card-front, .rarity-MUR .card-front { padding: 0; background: #000; }
+    .rarity-SAR .card-img-box, .rarity-MUR .card-img-box { position: absolute; top:0; left:0; width:100%; height:100%; margin:0; border:none; }
+    .rarity-SAR .card-header, .rarity-MUR .card-header { position: absolute; top: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.8); padding: 4px 8px; border-radius: 6px; color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+    .rarity-SAR .card-body, .rarity-MUR .card-body { position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.85); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+    
+    .rarity-SAR { border: 3px solid #ff7675 !important; box-shadow: 0 0 20px rgba(255, 118, 117, 0.9); }
+    .rarity-SAR .holo-layer { position: absolute; top:0; left:0; width:100%; height:100%; background: radial-gradient(circle, rgba(255,0,128,0.4) 0%, rgba(0,255,255,0.4) 50%, rgba(255,255,0,0.4) 100%); background-size: 180% 180%; animation: sarGlow 3s infinite alternate ease-in-out; mix-blend-mode: color-dodge; pointer-events: none; z-index: 3; }
+
+    .rarity-MUR { border: 4px solid #f1c40f !important; box-shadow: 0 0 35px rgba(241, 196, 15, 1); }
+    .rarity-MUR .holo-layer { position: absolute; top:-50%; left:-50%; width:200%; height:200%; background: conic-gradient(from 0deg, #f1c40f, #e67e22, #e74c3c, #9b59b6, #3498db, #f1c40f); animation: rotateMur 3.5s linear infinite; opacity: 0.5; mix-blend-mode: color-dodge; pointer-events: none; z-index: 3; }
+
+    @keyframes shiftHolo { 0% { background-position: 0% 0%; } 100% { background-position: 200% 200%; } }
+    @keyframes sarGlow { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(360deg); } }
+    @keyframes rotateMur { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .card-sleeve { position: absolute; top: -3px; left: -3px; right: -3px; bottom: -3px; border: 2px solid rgba(255, 255, 255, 0.9); border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.05) 100%); pointer-events: none; display: none; z-index: 4; }
+    .card-toploader { position: absolute; top: -7px; left: -7px; right: -7px; bottom: -7px; border: 5px solid rgba(120, 210, 255, 0.9); border-radius: 14px; background: linear-gradient(135deg, rgba(135,206,235,0.3) 0%, rgba(255,255,255,0.1) 100%); pointer-events: none; display: none; z-index: 4; }
+    .has-sleeve .card-sleeve { display: block; }
+    .has-toploader .card-toploader { display: block; }
+
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; }
+    .modal-content { background: var(--panel-bg); border: 2px solid #3b4258; border-radius: 12px; padding: 20px; max-width: 650px; width: 90%; position: relative; }
+    .close-btn { position: absolute; top: 15px; right: 15px; background: #e74c3c; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+    .pack-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+    .pack-card { background: #1e2230; border: 2px solid #3b4258; border-radius: 8px; padding: 12px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+      <h2>⚡ TCG 수집가 로그인</h2>
+      <p style="font-size:12px; color:#aaa; margin-bottom:15px;">아이디를 입력하세요.<br>(신규 아이디는 자동으로 생성됩니다)</p>
+      <input type="text" id="usernameInput" class="auth-input" placeholder="아이디">
+      <input type="password" id="passwordInput" class="auth-input" placeholder="비밀번호">
+      <button class="auth-btn" onclick="handleAuth()">시작하기 / 로그인</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="title-logo">⚡ POKÉMON TCG ULTIMATE</div>
+    <div class="user-info-bar">
+      <span style="font-size:14px; font-weight:bold; color:#74b9ff;">👤 <span id="currentUserName">게스트</span> 님</span>
+      <div class="gold-box">💰 <span id="userGold">10,000</span> G</div>
+      <button class="nav-btn" onclick="openShop()">🛒 카드팩 상점</button>
+      <button class="nav-btn" style="background:#e74c3c; border-color:#c0392b;" onclick="handleLogout()">🚪 로그아웃</button>
+    </div>
+  </header>
+
+  <div class="main-stage">
+    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:10px;">
+      <span style="font-size:13px; color:#aaa;">✨ 진짜 부스터 팩을 뜯고 <b>SAR & MUR 스페셜 아트 카드</b>를 수집하세요!</span>
+      <button class="nav-btn" style="background:#2980b9; border-color:#3498db;" onclick="flipAllCards()">🔄 전체 카드 뒤집기</button>
+    </div>
+
+    <div class="card-table" id="cardTable">
+      <div class="tool-zone">
+        <div class="tool-box" id="sleeveBox">
+          <span style="font-size:24px;">📄</span><b>슬리브</b>
+        </div>
+        <div class="tool-box" id="toploaderBox">
+          <span style="font-size:24px;">🛡️</span><b>탑로더</b>
+        </div>
+      </div>
+
+      <div class="bottom-zone">
+        <div class="sell-zone" id="sellBox">
+          <span style="font-size:24px;">💰</span><span>카드 판매</span>
+        </div>
+        <div class="trash-zone" id="trashBox">
+          <span style="font-size:24px;">🗑️</span><span>버리기</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="shopModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal('shopModal')">X</button>
+      <h2 style="margin:0; font-family:'Montserrat', sans-serif;">🛒 BOOSTER PACK SHOP</h2>
+      <div class="pack-grid">
+        <div class="pack-card">
+          <h4 style="color:#ff7675; margin:0 0 5px 0;">🔴 전설의 드래곤</h4>
+          <button class="nav-btn" style="background:#e74c3c; width:100%; margin-top:10px;" onclick="buyPack('dragon')">1,000 G</button>
+        </div>
+        <div class="pack-card">
+          <h4 style="color:#a29bfe; margin:0 0 5px 0;">🔮 환상의 환영</h4>
+          <button class="nav-btn" style="background:#9b59b6; width:100%; margin-top:10px;" onclick="buyPack('psychic')">1,000 G</button>
+        </div>
+        <div class="pack-card">
+          <h4 style="color:#ffeaa7; margin:0 0 5px 0;">⚡ 스타터 클래식</h4>
+          <button class="nav-btn" style="background:#f1c40f; color:#000; width:100%; margin-top:10px;" onclick="buyPack('classic')">1,000 G</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const sellPriceTable = { "C": 100, "U": 300, "AR": 1500, "SR": 5000, "SAR": 20000, "MUR": 100000 };
+
+    const packMeta = {
+      dragon: { title: "전설의 드래곤", class: "pack-dragon", img: "https://images.pokemontcg.io/swsh7/218_hires.png" },
+      psychic: { title: "환상의 환영", class: "pack-psychic", img: "https://images.pokemontcg.io/sm115/31_hires.png" },
+      classic: { title: "스타터 클래식", class: "pack-classic", img: "https://images.pokemontcg.io/swsh11tg/TG05_hires.png" }
+    };
+
+    const cardPool = {
+      dragon: [
+        { id: "d1", name: "아르세우스 MUR", type: "dragon", hp: 330, skill: "창조의빛", rarity: "MUR", img: "https://images.pokemontcg.io/swsh9/123_hires.png" },
+        { id: "d2", name: "레쿠쟈 SAR", type: "dragon", hp: 280, skill: "화룡점정", rarity: "SAR", img: "https://images.pokemontcg.io/swsh7/218_hires.png" },
+        { id: "d3", name: "기라티나 SAR", type: "dragon", hp: 280, skill: "섀도다이브", rarity: "SAR", img: "https://images.pokemontcg.io/swsh11/186_hires.png" },
+        { id: "d4", name: "한카리아스 SR", type: "dragon", hp: 220, skill: "드래곤클로", rarity: "SR", img: "https://images.pokemontcg.io/swsh9/112_hires.png" },
+        { id: "d5", name: "망나뇽 AR", type: "dragon", hp: 160, skill: "용의파동", rarity: "AR", img: "https://images.pokemontcg.io/swsh7/191_hires.png" },
+        { id: "d6", name: "파이리", type: "fire", hp: 70, skill: "불꽃세례", rarity: "C", img: "https://images.pokemontcg.io/pyp/1_hires.png" },
+        { id: "d7", name: "리자드", type: "fire", hp: 90, skill: "화염밀치기", rarity: "U", img: "https://images.pokemontcg.io/swsh35/19_hires.png" }
+      ],
+      psychic: [
+        { id: "p1", name: "뮤츠 MUR", type: "psychic", hp: 320, skill: "사이코브레이크", rarity: "MUR", img: "https://images.pokemontcg.io/sm115/31_hires.png" },
+        { id: "p2", name: "닌피아 SAR", type: "psychic", hp: 220, skill: "드레인키스", rarity: "SAR", img: "https://images.pokemontcg.io/swsh7/212_hires.png" },
+        { id: "p3", name: "개굴닌자 SAR", type: "water", hp: 230, skill: "물수리검", rarity: "SAR", img: "https://images.pokemontcg.io/swsh10tg/TG06_hires.png" },
+        { id: "p4", name: "뮤 ex", type: "psychic", hp: 180, skill: "게놈리코드", rarity: "SR", img: "https://images.pokemontcg.io/swsh8/114_hires.png" },
+        { id: "p5", name: "팬텀 AR", type: "psychic", hp: 140, skill: "섀도볼", rarity: "AR", img: "https://images.pokemontcg.io/swsh11tg/TG05_hires.png" },
+        { id: "p6", name: "고스", type: "psychic", hp: 50, skill: "핥기", rarity: "C", img: "https://images.pokemontcg.io/swsh10/63_hires.png" }
+      ],
+      classic: [
+        { id: "c1", name: "피카츄 ex SAR", type: "electric", hp: 210, skill: "볼트태클", rarity: "SAR", img: "https://images.pokemontcg.io/swsh11tg/TG05_hires.png" },
+        { id: "c2", name: "루기아 SR", type: "psychic", hp: 220, skill: "에어로블라스트", rarity: "SR", img: "https://images.pokemontcg.io/swsh12/138_hires.png" },
+        { id: "c3", name: "잠만보 AR", type: "electric", hp: 160, skill: "누르기", rarity: "AR", img: "https://images.pokemontcg.io/swsh10tg/TG04_hires.png" },
+        { id: "c4", name: "피카츄", type: "electric", hp: 60, skill: "10만볼트", rarity: "C", img: "https://images.pokemontcg.io/swsh4/44_hires.png" },
+        { id: "c5", name: "이상해씨", type: "grass", hp: 60, skill: "덩굴채찍", rarity: "C", img: "https://images.pokemontcg.io/swsh35/1_hires.png" },
+        { id: "c6", name: "꼬부기", type: "water", hp: 60, skill: "물대포", rarity: "C", img: "https://images.pokemontcg.io/swsh35/14_hires.png" }
+      ]
+    };
+
+    let currentUser = null;
+    let userGold = 10000;
+    let activeCards = [];
+    let highestZIndex = 100;
+
+    function handleAuth() {
+      const user = document.getElementById('usernameInput').value.trim();
+      if(!user) { alert("아이디를 입력해 주세요!"); return; }
+
+      currentUser = user;
+      document.getElementById('currentUserName').innerText = currentUser;
+      document.getElementById('authOverlay').style.display = 'none';
+
+      loadUserData();
+    }
+
+    function handleLogout() {
+      saveUserData();
+      currentUser = null;
+      document.getElementById('authOverlay').style.display = 'flex';
+      document.getElementById('usernameInput').value = '';
+      document.getElementById('passwordInput').value = '';
+      
+      document.querySelectorAll('.draggable-card, .unopened-pack').forEach(el => el.remove());
+      activeCards = [];
+    }
+
+    function saveUserData() {
+      if(!currentUser) return;
+      const dataToSave = { gold: userGold, cards: activeCards };
+      localStorage.setItem(`pokemon_tcg_user_${currentUser}`, JSON.stringify(dataToSave));
+    }
+
+    function loadUserData() {
+      const saved = localStorage.getItem(`pokemon_tcg_user_${currentUser}`);
+      document.querySelectorAll('.draggable-card, .unopened-pack').forEach(el => el.remove());
+      activeCards = [];
+
+      if(saved) {
+        const parsed = JSON.parse(saved);
+        userGold = parsed.gold;
+        activeCards = parsed.cards || [];
+        activeCards.forEach(cData => renderCard(cData));
+      } else {
+        userGold = 10000;
+        activeCards = [];
+        spawnUnopenedPack('dragon');
+      }
+
+      document.getElementById('userGold').innerText = userGold.toLocaleString();
+    }
+
+    function openShop() { document.getElementById('shopModal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function buyPack(packType) {
+      if(userGold < 1000) { alert("골드가 부족합니다!"); return; }
+      userGold -= 1000;
+      document.getElementById('userGold').innerText = userGold.toLocaleString();
+      closeModal('shopModal');
+      spawnUnopenedPack(packType);
+      saveUserData();
+    }
+
+    function spawnUnopenedPack(packType) {
+      const table = document.getElementById('cardTable');
+      const meta = packMeta[packType] || packMeta.dragon;
+      
+      const pack = document.createElement('div');
+      pack.className = `unopened-pack ${meta.class}`;
+      pack.style.left = `${250 + Math.random() * 50}px`;
+      pack.style.top = `${200 + Math.random() * 50}px`;
+      
+      pack.innerHTML = `
+        <div class="pack-crimp-top"></div>
+        <div class="pack-body">
+          <div class="pack-header-logo">POKÉMON TCG</div>
+          <img src="${meta.img}" class="pack-art-img" alt="Pack Art">
+          <div style="font-weight:900; font-size:13px; text-shadow:0 2px 4px #000;">${meta.title}</div>
+          <div class="pack-footer-text">5 CARDS INCLUDED</div>
+        </div>
+        <div class="pack-crimp-bottom"></div>
+      `;
+
+      pack.onclick = () => {
+        pack.style.transform = "scale(0.01) rotate(20deg)";
+        pack.style.opacity = "0";
+        setTimeout(() => {
+          pack.remove();
+          spawnStackedCards(packType);
+        }, 200);
+      };
+
+      table.appendChild(pack);
+    }
+
+    function getRandomRarity() {
+      const rand = Math.random() * 100;
+      if (rand < 0.5) return "MUR";
+      if (rand < 2.5) return "SAR";
+      if (rand < 10) return "SR";
+      if (rand < 25) return "AR";
+      if (rand < 55) return "U";
+      return "C";
+    }
+
+    function spawnStackedCards(packType) {
+      const pool = cardPool[packType] || cardPool.classic;
+      const startX = 220 + Math.random() * 30;
+      const startY = 200 + Math.random() * 30;
+
+      for(let i = 0; i < 5; i++) {
+        const targetRarity = getRandomRarity();
+        const filtered = pool.filter(c => c.rarity === targetRarity);
+        const baseData = filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)] : pool[0];
+
+        const cardInstance = {
+          uniqueId: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+          ...baseData,
+          x: startX + (4 - i) * 3,
+          y: startY + (4 - i) * 3,
+          isFlipped: false,
+          hasSleeve: false,
+          hasToploader: false
+        };
+
+        activeCards.push(cardInstance);
+        renderCard(cardInstance);
+      }
+      saveUserData();
+    }
+
+    function renderCard(cData) {
+      const table = document.getElementById('cardTable');
+      const cardEl = document.createElement('div');
+      cardEl.className = `draggable-card rarity-${cData.rarity} ${cData.hasSleeve ? 'has-sleeve' : ''} ${cData.hasToploader ? 'has-toploader' : ''}`;
+      cardEl.id = cData.uniqueId;
+      
+      cardEl.style.left = `${cData.x}px`;
+      cardEl.style.top = `${cData.y}px`;
+      cardEl.style.zIndex = ++highestZIndex;
+
+      cardEl.innerHTML = `
+        <div class="card-sleeve"></div>
+        <div class="card-toploader"></div>
+        <div class="card-inner ${cData.isFlipped ? 'flipped' : ''}">
+          <div class="card-face card-back">
+            <div class="pokeball"></div>
+          </div>
+          <div class="card-face card-front card-type-${cData.type}">
+            <div class="holo-layer"></div>
+            <div class="card-header">
+              <span>${cData.name}</span>
+              <span style="color:#e74c3c;">${cData.hp} HP</span>
+            </div>
+            <div class="card-img-box">
+              <img src="${cData.img}" alt="Pokemon" crossorigin="anonymous">
+            </div>
+            <div class="card-body">
+              <b>기술: ${cData.skill}</b>
+              <div style="margin-top:2px; font-weight:bold; color:#d63031;">[${cData.rarity}] (${sellPriceTable[cData.rarity]}G)</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      cardEl.addEventListener('click', () => {
+        const inner = cardEl.querySelector('.card-inner');
+        if(!inner.classList.contains('flipped')) {
+          inner.classList.add('flipped');
+          cData.isFlipped = true;
+          saveUserData();
+        }
+      });
+
+      enableDrag(cardEl, cData);
+      table.appendChild(cardEl);
+    }
+
+    function flipAllCards() {
+      const allCardInners = document.querySelectorAll('.card-inner');
+      allCardInners.forEach(card => card.classList.add('flipped'));
+      activeCards.forEach(c => c.isFlipped = true);
+      saveUserData();
+    }
+
+    function enableDrag(element, cardData) {
+      let isDragging = false;
+      let startX, startY, initialLeft, initialTop;
+
+      element.addEventListener('mousedown', startDrag);
+      element.addEventListener('touchstart', startDrag, { passive: false });
+
+      function startDrag(e) {
+        isDragging = true;
+        highestZIndex++;
+        element.style.zIndex = highestZIndex;
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        startX = clientX;
+        startY = clientY;
+        initialLeft = element.offsetLeft;
+        initialTop = element.offsetTop;
+
+        document.addEventListener('mousemove', moveDrag);
+        document.addEventListener('touchmove', moveDrag, { passive: false });
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+      }
+
+      function moveDrag(e) {
+        if (!isDragging) return;
+        if (e.cancelable) e.preventDefault();
+
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const newX = initialLeft + (clientX - startX);
+        const newY = initialTop + (clientY - startY);
+
+        element.style.left = `${newX}px`;
+        element.style.top = `${newY}px`;
+
+        cardData.x = newX;
+        cardData.y = newY;
+
+        checkDropZoneHover(element);
+      }
+
+      function stopDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+
+        document.removeEventListener('mousemove', moveDrag);
+        document.removeEventListener('touchmove', moveDrag);
+        document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchend', stopDrag);
+
+        handleDropAction(element, cardData);
+        saveUserData();
+      }
+    }
+
+    function checkDropZoneHover(el) {
+      const rect = el.getBoundingClientRect();
+      document.getElementById('sleeveBox').classList.toggle('drag-over', isOverlapping(rect, document.getElementById('sleeveBox').getBoundingClientRect()));
+      document.getElementById('toploaderBox').classList.toggle('drag-over', isOverlapping(rect, document.getElementById('toploaderBox').getBoundingClientRect()));
+      document.getElementById('sellBox').classList.toggle('drag-over', isOverlapping(rect, document.getElementById('sellBox').getBoundingClientRect()));
+      document.getElementById('trashBox').classList.toggle('drag-over', isOverlapping(rect, document.getElementById('trashBox').getBoundingClientRect()));
+    }
+
+    function handleDropAction(el, cardData) {
+      const rect = el.getBoundingClientRect();
+      const sleeveBox = document.getElementById('sleeveBox');
+      const toploaderBox = document.getElementById('toploaderBox');
+      const sellBox = document.getElementById('sellBox');
+      const trashBox = document.getElementById('trashBox');
+
+      if (isOverlapping(rect, sleeveBox.getBoundingClientRect())) {
+        el.classList.add('has-sleeve');
+        cardData.hasSleeve = true;
+        sleeveBox.classList.remove('drag-over');
+      } else if (isOverlapping(rect, toploaderBox.getBoundingClientRect())) {
+        el.classList.add('has-sleeve', 'has-toploader');
+        cardData.hasSleeve = true;
+        cardData.hasToploader = true;
+        toploaderBox.classList.remove('drag-over');
+      } else if (isOverlapping(rect, sellBox.getBoundingClientRect())) {
+        sellBox.classList.remove('drag-over');
+        userGold += (sellPriceTable[cardData.rarity] || 100);
+        document.getElementById('userGold').innerText = userGold.toLocaleString();
+        activeCards = activeCards.filter(c => c.uniqueId !== cardData.uniqueId);
+        el.remove();
+      } else if (isOverlapping(rect, trashBox.getBoundingClientRect())) {
+        trashBox.classList.remove('drag-over');
+        activeCards = activeCards.filter(c => c.uniqueId !== cardData.uniqueId);
+        el.remove();
+      }
+    }
+
+    function isOverlapping(r1, r2) {
+      return !(r1.right < r2.left || r1.left > r2.right || r1.bottom < r2.top || r1.top > r2.bottom);
+    }
+  </script>
+</body>
+</html>
