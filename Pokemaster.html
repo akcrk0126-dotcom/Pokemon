@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 TCG 마스터 시뮬레이터</title>
+    <title>포켓몬 TCG 마스터 시뮬레이터 Ultimate</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -49,10 +49,9 @@
             align-items: center; background: var(--panel); padding: 15px 25px; border-radius: 15px;
             margin-bottom: 15px; flex-wrap: wrap; gap: 10px;
         }
-        .user-info { font-size: 0.9rem; color: #aaa; }
-        .gold-display { font-size: 1.2rem; font-weight: bold; color: var(--accent); display: flex; gap: 15px; align-items: center;}
-        .pack-badge { font-size: 1rem; color: #4bcffa; background: #1a2744; padding: 4px 10px; border-radius: 20px; border: 1px solid #4bcffa; }
-        .lang-select { background: #0b0d19; color: #fff; border: 1px solid var(--accent); padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+        .gold-display { font-size: 1.1rem; font-weight: bold; color: var(--accent); display: flex; gap: 15px; align-items: center;}
+        .pack-badge { font-size: 0.95rem; color: #4bcffa; background: #1a2744; padding: 4px 10px; border-radius: 20px; border: 1px solid #4bcffa; }
+        .lang-select { background: #0b0d19; color: #fff; border: 1px solid var(--accent); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; }
         
         .nav-btns button {
             padding: 8px 14px; margin-left: 3px; border-radius: 8px; border: none;
@@ -68,7 +67,7 @@
             display: flex; flex-direction: column; align-items: center;
         }
         .series-select {
-            width: 100%; max-width: 500px; padding: 12px; background: #0b0d19;
+            width: 100%; max-width: 650px; padding: 12px; background: #0b0d19;
             color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; margin: 15px 0; font-weight: bold;
         }
         .shop-buy-box {
@@ -78,83 +77,60 @@
             width: 70px; padding: 8px; text-align: center; background: #16192b; color: #fff; border: 1px solid var(--accent); border-radius: 6px; font-weight: bold; font-size: 1rem;
         }
 
-        /* 개봉 영역 및 테이블 */
         .open-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
-        .table-controls { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
         .desk-area {
-            width: 100%; height: 420px; background: var(--desk); border: 2px dashed #38426b;
-            border-radius: 15px; position: relative; overflow: hidden;
+            width: 100%; height: 440px; background: var(--desk); border: 2px dashed #38426b;
+            border-radius: 15px; position: relative; overflow: hidden; margin-top: 10px;
         }
 
-        /* 팩 뜯는 존 및 공식 일러스트 팩 디자인 */
         .pack-open-stage {
             width: 100%; background: var(--panel); border-radius: 15px; padding: 20px;
-            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 280px;
+            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 250px;
         }
         .pack-wrapper {
-            width: 170px; height: 240px; background: #111;
+            width: 160px; height: 230px; background: #111;
             border: 3px solid var(--accent); border-radius: 12px; display: flex; flex-direction: column;
             justify-content: space-between; align-items: center; cursor: pointer; padding: 10px;
-            box-shadow: 0 10px 25px rgba(255,203,5,0.3); transition: transform 0.2s, box-shadow 0.2s;
-            position: relative; overflow: hidden;
+            box-shadow: 0 10px 25px rgba(255,203,5,0.3); transition: transform 0.2s;
         }
-        .pack-wrapper:hover { transform: scale(1.05); box-shadow: 0 15px 30px rgba(255,203,5,0.5); }
-        .pack-art { width: 100%; height: 140px; object-fit: contain; margin-top: 10px; }
-        .pack-title { font-weight: bold; color: var(--accent); font-size: 0.95rem; text-shadow: 0 2px 4px #000; text-align: center; }
+        .pack-wrapper:hover { transform: scale(1.05); }
+        .pack-art { width: 100%; height: 130px; object-fit: contain; }
 
-        /* 카드 3D 뒤집기 스타일 */
-        .cards-pack-grid {
-            display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 15px; width: 100%;
-        }
-        .card-flip-container {
-            width: 110px; height: 154px; perspective: 1000px; cursor: pointer; position: relative;
-        }
-        .card-inner {
-            width: 100%; height: 100%; position: absolute; transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 8px;
-        }
+        .cards-pack-grid { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 15px; width: 100%; }
+        .card-flip-container { width: 110px; height: 154px; perspective: 1000px; cursor: pointer; position: relative; }
+        .card-inner { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; transition: transform 0.5s; border-radius: 8px; }
         .card-flip-container.flipped .card-inner { transform: rotateY(180deg); }
-        .card-front, .card-back {
-            width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 8px; overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-        }
-        .card-back {
-            background: linear-gradient(135deg, #1b2755, #0a0f24);
-            border: 2px solid var(--accent); display: flex; justify-content: center; align-items: center;
-        }
+        .card-front, .card-back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 8px; overflow: hidden; }
+        .card-back { background: linear-gradient(135deg, #1b2755, #0a0f24); border: 2px solid var(--accent); display: flex; justify-content: center; align-items: center; }
         .card-back::after { content: '🌀'; font-size: 2rem; }
-        .card-front {
-            transform: rotateY(180deg); background-size: cover; background-position: center;
-        }
+        .card-front { transform: rotateY(180deg); background-size: cover; background-position: center; }
 
-        /* 테이블 카드 (드래그 가능) */
-        .table-card { position: absolute; width: 110px; height: 154px; cursor: move; z-index: 10; }
+        /* 테이블 카드 및 장착 툴바 */
+        .table-card { position: absolute; width: 110px; height: 154px; cursor: move; z-index: 10; border-radius: 8px; }
         .table-card .card-ui { width: 100%; height: 100%; border-radius: 8px; background-size: cover; background-position: center; }
 
-        .sleeve-effect { box-shadow: 0 0 15px rgba(255, 255, 255, 0.9) !important; border: 2px solid #fff !important; border-radius: 8px; }
-        .toploader-effect { border: 4px solid #7ec8ff !important; border-radius: 10px; box-shadow: 0 0 20px #0088ff !important; }
+        .card-menu {
+            position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+            background: #111; border: 1px solid var(--accent); border-radius: 6px; padding: 3px;
+            display: none; gap: 4px; z-index: 100; white-space: nowrap;
+        }
+        .table-card:hover .card-menu, .table-card.selected .card-menu { display: flex; }
+        .card-menu button {
+            background: #222; color: #fff; border: none; padding: 3px 6px; font-size: 0.75rem; border-radius: 4px; cursor: pointer;
+        }
+        .card-menu button:hover { background: var(--accent); color: #000; }
+
+        .sleeve-effect { box-shadow: 0 0 12px rgba(255, 255, 255, 0.9) !important; border: 2px solid #fff !important; }
+        .toploader-effect { border: 4px solid #7ec8ff !important; box-shadow: 0 0 15px #0088ff !important; }
         .psa-badge {
-            position: absolute; top: -10px; right: -10px; background: #e74c3c; color: white;
-            font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 10px; border: 1.5px solid white; z-index: 20;
+            position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white;
+            font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 8px; border: 1px solid white; z-index: 20;
         }
 
-        .tool-zone { display: flex; gap: 10px; }
-        .tool-item {
-            padding: 8px 12px; background: #232740; border: 1px dashed var(--accent);
-            border-radius: 8px; cursor: grab; font-size: 0.85rem; font-weight: bold;
-        }
-
-        .binder-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px;
-        }
+        .binder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px; }
         .binder-card { position: relative; border-radius: 8px; width: 110px; height: 154px; }
 
-        .btn-action {
-            padding: 10px 20px; background: var(--accent); border: none;
-            border-radius: 6px; font-weight: bold; cursor: pointer; color: black;
-        }
-        .btn-action:disabled { background: #555; cursor: not-allowed; }
+        .btn-action { padding: 10px 20px; background: var(--accent); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: black; }
         .action-controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
     </style>
 </head>
@@ -181,6 +157,7 @@
         <div style="display:flex; align-items:center; gap:10px;">
             <select id="langSelect" class="lang-select" onchange="changeLanguage(this.value)">
                 <option value="ko">🇰🇷 한국어 (KO)</option>
+                <option value="ja">🇯🇵 日本語 (JP)</option>
                 <option value="en">🇺🇸 English (EN)</option>
             </select>
 
@@ -196,16 +173,15 @@
     <!-- 상점 뷰 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2 id="ui-shop-title">📦 포켓몬 카드 세트 선택</h2>
-            <p id="ui-shop-desc" style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 팩을 선택하고 개수를 지정하여 구매하세요!</p>
+            <h2 id="ui-shop-title">📦 포켓몬 카드 확장팩 선택 (한/미/일 통합)</h2>
+            <p id="ui-shop-desc" style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 확장팩을 선택하고 일괄 구매하세요!</p>
             
             <select id="seriesSelect" class="series-select" onchange="updatePackPreview()">
-                <option value="">세트 로딩 중...</option>
+                <option value="">전체 확장팩 불러오는 중...</option>
             </select>
 
-            <!-- 공식 팩 이미지 미리보기 -->
             <div id="shopPackPreview" style="margin: 10px 0;">
-                <img id="previewPackImg" src="https://images.pokemontcg.io/sv3pt5/logo.png" style="height: 180px; object-fit: contain;">
+                <img id="previewPackImg" src="https://images.pokemontcg.io/sv3pt5/logo.png" style="height: 160px; object-fit: contain;">
             </div>
 
             <div class="shop-buy-box">
@@ -219,35 +195,29 @@
     <!-- 개봉 및 테이블 뷰 -->
     <div id="viewOpen" class="view-section">
         <div class="open-container">
-            <div class="table-controls">
-                <div class="tool-zone">
-                    <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'sleeve')">✨ 슬리브</div>
-                    <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'toploader')">🛡️ 탑로더</div>
-                    <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'psa')" style="border-color:#ff4757; color:#ff4757;">🔍 PSA 감정</div>
-                </div>
+            <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+                <p style="color:#aaa; font-size:0.85rem;" id="ui-desk-tip">💡 카드를 드래그해 테이블에 놓고, 마우스를 올리면 [슬리브/탑로더/PSA] 버튼이 나타납니다.</p>
                 <div>
-                    <button class="btn-action" id="btnFlipAll" onclick="flipAllCards()" disabled style="background:#4bcffa; color:black;">🔄 카드 전체 뒤집기</button>
-                    <button class="btn-action" style="background:#e74c3c; color:white;" onclick="refreshTable()">🧹 테이블 청소</button>
+                    <button class="btn-action" id="btnFlipAll" onclick="flipAllCards()" disabled style="background:#4bcffa; color:black; padding:6px 12px; font-size:0.85rem;">🔄 전체 뒤집기</button>
+                    <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 청소</button>
                 </div>
             </div>
 
             <!-- 카드 배치 작업대 -->
             <div class="desk-area" id="deskArea" ondragover="allowDrop(event)" ondrop="dropOnDesk(event)">
                 <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
-                    💡 뽑은 카드를 <b>테이블로 드래그</b>하여 배치하세요.<br>(테이블 위 카드를 <b>더블클릭</b>하면 바인더로 저장됩니다)
+                    💡 뽑은 카드를 <b>테이블로 드래그</b>하세요.<br>(테이블 위 카드를 <b>더블클릭</b>하면 바인더에 저장됩니다)
                 </p>
             </div>
 
-            <!-- 카드팩 개봉 스테이지 -->
+            <!-- 카드팩 개봉 영역 -->
             <div class="pack-open-stage">
-                <div id="packZone">
-                    <p style="color:#aaa;" id="ui-empty-pack-msg">상점에서 팩을 구매하면 여기에 카드팩이 생성됩니다!</p>
-                </div>
+                <div id="packZone"></div>
                 <div class="cards-pack-grid" id="packCardsGrid"></div>
                 
                 <div class="action-controls" id="nextActionZone" style="display:none;">
-                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white; font-size:1.05rem;">⚡ 바로 다음 팩 까기</button>
-                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 팩 선택 화면으로 복귀</button>
+                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ 바로 다음 팩 까기</button>
+                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 팩 선택 화면 복귀</button>
                 </div>
             </div>
         </div>
@@ -270,41 +240,27 @@
         let tableCards = [];
         let currentLang = 'ko';
 
-        // 공식 세트별 정보 (공식 팩 일러스트 및 이미지 지원)
-        const packArtMap = {
-            'sv3pt5': { name: '포켓몬 카드 151', logo: 'https://images.pokemontcg.io/sv3pt5/logo.png', koName: '포켓몬 카드 151', enName: '151 Booster Pack' },
-            'sv4pt5': { name: '팔데아의 운명', logo: 'https://images.pokemontcg.io/sv4pt5/logo.png', koName: '팔데아의 운명', enName: 'Paldean Fates' },
-            'swsh12pt5': { name: 'Crown Zenith', logo: 'https://images.pokemontcg.io/swsh12pt5/logo.png', koName: 'VSTAR 유니버스', enName: 'Crown Zenith' }
+        // 한국판 및 일본판 공식 세트 명칭 데이터 매핑
+        const setNamesMap = {
+            'sv3pt5': { ko: '포켓몬 카드 151', ja: 'ポケモンカード151', en: '151' },
+            'sv4pt5': { ko: '팔데아의 운명', ja: 'シャイニートレジャーex', en: 'Paldean Fates' },
+            'swsh12pt5': { ko: 'VSTAR 유니버스', ja: 'VSTARユニバース', en: 'Crown Zenith' },
+            'sv2a': { ko: '클레이버스트', ja: 'クレイバースト', en: 'Clay Burst' },
+            'sv1s': { ko: '스카렛ex', ja: 'スカーレットex', en: 'Scarlet ex' },
+            'sv1v': { ko: '바이올렛ex', ja: 'バイオレットex', en: 'Violet ex' },
+            'sv3': { ko: '검은 화염의 지배자', ja: '黒炎の支配者', en: 'Ruler of the Black Flame' }
         };
 
-        // 언어별 다국어 카드 폴백 데이터 (API 접근 제한 시 사용)
-        const fallbackCards = {
-            ko: {
-                common: [
-                    { id: 'c1', name: '파이리', image: 'https://images.pokemontcg.io/sv3pt5/4_hires.png' },
-                    { id: 'c2', name: '꼬부기', image: 'https://images.pokemontcg.io/sv3pt5/7_hires.png' },
-                    { id: 'c3', name: '이상해씨', image: 'https://images.pokemontcg.io/sv3pt5/1_hires.png' },
-                    { id: 'c4', name: '피카츄', image: 'https://images.pokemontcg.io/sv3pt5/25_hires.png' }
-                ],
-                ultra: [
-                    { id: 'u1', name: '리자몽 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/199_hires.png' },
-                    { id: 'u2', name: '거북왕 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/202_hires.png' },
-                    { id: 'u3', name: '이상해꽃 ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/200_hires.png' }
-                ]
-            },
-            en: {
-                common: [
-                    { id: 'c1', name: 'Charmander', image: 'https://images.pokemontcg.io/sv3pt5/4_hires.png' },
-                    { id: 'c2', name: 'Squirtle', image: 'https://images.pokemontcg.io/sv3pt5/7_hires.png' },
-                    { id: 'c3', name: 'Bulbasaur', image: 'https://images.pokemontcg.io/sv3pt5/1_hires.png' },
-                    { id: 'c4', name: 'Pikachu', image: 'https://images.pokemontcg.io/sv3pt5/25_hires.png' }
-                ],
-                ultra: [
-                    { id: 'u1', name: 'Charizard ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/199_hires.png' },
-                    { id: 'u2', name: 'Blastoise ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/202_hires.png' },
-                    { id: 'u3', name: 'Venusaur ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/200_hires.png' }
-                ]
-            }
+        // 한국어 및 일본어 카드 명칭 매핑
+        const cardNamesMap = {
+            'Charmander': { ko: '파이리', ja: 'ヒトカゲ' },
+            'Squirtle': { ko: '꼬부기', ja: 'ゼニガメ' },
+            'Bulbasaur': { ko: '이상해씨', ja: 'フシギダネ' },
+            'Pikachu': { ko: '피카츄', ja: 'ピカチュウ' },
+            'Charizard ex': { ko: '리자몽 ex', ja: 'リザードン ex' },
+            'Blastoise ex': { ko: '거북왕 ex', ja: 'カメックス ex' },
+            'Venusaur ex': { ko: '이상해꽃 ex', ja: 'フシギバナ ex' },
+            'Mewtwo': { ko: '뮤츠', ja: 'ミュウツー' }
         };
 
         window.onload = async function() {
@@ -319,7 +275,7 @@
                 if(data && data.data) {
                     apiSets = data.data.sort((a,b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                 }
-            } catch(e) { console.log("API 접속 제한 - 기본 세트 구성 적용"); }
+            } catch(e) { console.log("API 로드 실패 - 기본 세트로 대체"); }
             renderSetSelect();
         };
 
@@ -330,19 +286,25 @@
                 apiSets.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = `[${s.series}] ${s.name} (${s.total}장)`;
+                    
+                    let localizedTitle = '';
+                    if (setNamesMap[s.id]) {
+                        localizedTitle = ` [${setNamesMap[s.id][currentLang] || setNamesMap[s.id].en}]`;
+                    }
+                    opt.textContent = `${s.name}${localizedTitle} (${s.total}장)`;
                     select.appendChild(opt);
                 });
             } else {
                 const defaultSets = [
-                    { id: 'sv3pt5', name: '[Scarlet & Violet] 151 (포켓몬 카드 151)' },
-                    { id: 'sv4pt5', name: '[Scarlet & Violet] Paldean Fates (팔데아의 운명)' },
-                    { id: 'swsh12pt5', name: '[Sword & Shield] Crown Zenith (VSTAR 유니버스)' }
+                    { id: 'sv3pt5', name: '151 (sv3pt5)' },
+                    { id: 'sv4pt5', name: 'Paldean Fates (sv4pt5)' },
+                    { id: 'swsh12pt5', name: 'Crown Zenith (swsh12pt5)' }
                 ];
                 defaultSets.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = s.name;
+                    const loc = setNamesMap[s.id] ? setNamesMap[s.id][currentLang] : s.name;
+                    opt.textContent = `${s.name} [${loc}]`;
                     select.appendChild(opt);
                 });
             }
@@ -351,25 +313,30 @@
 
         function updatePackPreview() {
             selectedSetId = document.getElementById('seriesSelect').value || 'sv3pt5';
-            const packData = packArtMap[selectedSetId] || { logo: `https://images.pokemontcg.io/${selectedSetId}/logo.png` };
-            document.getElementById('previewPackImg').src = packData.logo;
+            document.getElementById('previewPackImg').src = `https://images.pokemontcg.io/${selectedSetId}/logo.png`;
         }
 
-        // 언어 변경 핸들러
         function changeLanguage(lang) {
             currentLang = lang;
+            renderSetSelect();
             if (lang === 'ko') {
-                document.getElementById('ui-shop-title').innerText = "📦 포켓몬 카드 세트 선택";
-                document.getElementById('ui-shop-desc').innerText = "원하는 팩을 선택하고 개수를 지정하여 구매하세요!";
+                document.getElementById('ui-shop-title').innerText = "📦 포켓몬 카드 확장팩 선택 (한/미/일 통합)";
+                document.getElementById('ui-shop-desc').innerText = "원하는 확장팩을 선택하고 일괄 구매하세요!";
                 document.getElementById('ui-buy-label').innerText = "구매 수량: ";
                 document.getElementById('ui-binder-title').innerText = "📘 내 수집 바인더";
-                document.getElementById('ui-empty-pack-msg').innerText = "상점에서 팩을 구매하면 여기에 카드팩이 생성됩니다!";
+                document.getElementById('ui-desk-tip').innerText = "💡 카드를 드래그해 테이블에 놓고, 마우스를 올리면 [슬리브/탑로더/PSA] 버튼이 나타납니다.";
+            } else if(lang === 'ja') {
+                document.getElementById('ui-shop-title').innerText = "📦 ポケモンカード 拡張パック選択";
+                document.getElementById('ui-shop-desc').innerText = "購入するパックと数量を選択してください！";
+                document.getElementById('ui-buy-label').innerText = "購入数量: ";
+                document.getElementById('ui-binder-title').innerText = "📘 コレクションバイダー";
+                document.getElementById('ui-desk-tip').innerText = "💡 カードをデスクにドラッグし、ホバーで [スリーブ/トップローダー/PSA] を装着！";
             } else {
-                document.getElementById('ui-shop-title').innerText = "📦 Select Pokemon Card Booster";
-                document.getElementById('ui-shop-desc').innerText = "Select a pack and amount to purchase!";
+                document.getElementById('ui-shop-title').innerText = "📦 Select Pokemon Booster Pack";
+                document.getElementById('ui-shop-desc').innerText = "Select a pack and quantity to purchase!";
                 document.getElementById('ui-buy-label').innerText = "Amount: ";
                 document.getElementById('ui-binder-title').innerText = "📘 Collection Binder";
-                document.getElementById('ui-empty-pack-msg').innerText = "Buy booster packs in the shop to start opening!";
+                document.getElementById('ui-desk-tip').innerText = "💡 Drag card to desk, hover to attach [Sleeve/Toploader/PSA].";
             }
         }
 
@@ -420,7 +387,6 @@
             }
         }
 
-        // 🛒 팩 여러 개 선택 및 일괄 구매
         function buyPacks() {
             const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
             const totalCost = count * 1000;
@@ -432,12 +398,11 @@
             saveUserData();
             updateUI();
             
-            alert(`${count}개의 팩을 성공적으로 구매했습니다! 개봉 화면으로 이동합니다.`);
+            alert(`${count}개의 팩을 성공적으로 구매했습니다!`);
             switchView('open');
             renderPackToOpen();
         }
 
-        // 📦 카드팩 뜯기 대기 화면 연출 (공식 일러스트 반영)
         function renderPackToOpen() {
             const packZone = document.getElementById('packZone');
             const grid = document.getElementById('packCardsGrid');
@@ -446,23 +411,25 @@
             document.getElementById('btnFlipAll').disabled = true;
 
             if (packInventory <= 0) {
-                packZone.innerHTML = `<p style="color:#aaa;">${currentLang === 'ko' ? '보유한 카드팩이 없습니다. 상점에서 팩을 구매해주세요!' : 'No packs available. Purchase packs from the shop!'}</p>`;
+                const msg = currentLang === 'ko' ? '보유한 카드팩이 없습니다.' : (currentLang === 'ja' ? 'パックを所持していません。' : 'No packs available.');
+                packZone.innerHTML = `<p style="color:#aaa;">${msg}</p>`;
                 return;
             }
 
-            const packInfo = packArtMap[selectedSetId] || { logo: `https://images.pokemontcg.io/${selectedSetId}/logo.png`, koName: '포켓몬 카드 팩', enName: 'Booster Pack' };
-            const packName = currentLang === 'ko' ? (packInfo.koName || packInfo.name) : (packInfo.enName || packInfo.name);
+            let packDisplayName = selectedSetId;
+            if(setNamesMap[selectedSetId] && setNamesMap[selectedSetId][currentLang]) {
+                packDisplayName = setNamesMap[selectedSetId][currentLang];
+            }
 
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
-                    <div class="pack-title">${packName}</div>
-                    <img src="${packInfo.logo}" class="pack-art" alt="Pack Logo">
-                    <div style="font-size:0.8rem; color:var(--accent); font-weight:bold; margin-bottom:5px;">👉 CLICK TO OPEN!</div>
+                    <div style="font-weight:bold; color:var(--accent); text-align:center;">${packDisplayName}</div>
+                    <img src="https://images.pokemontcg.io/${selectedSetId}/logo.png" class="pack-art" alt="Pack Logo">
+                    <div style="font-size:0.8rem; color:var(--accent); font-weight:bold;">👉 OPEN!</div>
                 </div>
             `;
         }
 
-        // 💥 카드팩 개봉 로직 (선택 언어에 따른 API 호출 및 카드 생성)
         async function openPack() {
             if (packInventory <= 0) return;
 
@@ -472,14 +439,13 @@
 
             const packZone = document.getElementById('packZone');
             const grid = document.getElementById('packCardsGrid');
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 카드팩이 개봉되었습니다! 카드를 클릭하거나 전체 뒤집기를 누르세요.</p>`;
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 카드팩 개봉 완료!</p>`;
             document.getElementById('btnFlipAll').disabled = false;
-            grid.innerHTML = '<p style="color:#aaa;">카드를 불러오는 중...</p>';
+            grid.innerHTML = '<p style="color:#aaa;">Loading...</p>';
 
             let fetchedCards = [];
 
             try {
-                // 선택 언어(ko/en) 및 세트에 맞춘 카드데이터 요청
                 const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${selectedSetId}`);
                 const data = await res.json();
                 if(data && data.data) fetchedCards = data.data;
@@ -487,29 +453,29 @@
 
             currentPackCards = [];
             
-            // 팩당 5장 뽑기
             for(let i = 0; i < 5; i++) {
-                let selectedCard = null;
-                const rand = Math.random() * 100;
-
+                let cardObj = null;
                 if(fetchedCards.length > 0) {
                     const randomPick = fetchedCards[Math.floor(Math.random() * fetchedCards.length)];
-                    selectedCard = {
-                        id: randomPick.id + '_' + Date.now() + '_' + i,
-                        name: randomPick.name,
+                    let cardName = randomPick.name;
+                    if(cardNamesMap[cardName] && cardNamesMap[cardName][currentLang]) {
+                        cardName = cardNamesMap[cardName][currentLang];
+                    }
+                    cardObj = {
+                        id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                        name: cardName,
                         image: randomPick.images.large || randomPick.images.small
                     };
                 } else {
-                    // API 응답 실패시 다국어 지원 폴백 데이터 사용
-                    const langData = fallbackCards[currentLang] || fallbackCards.ko;
-                    const pool = rand < 20 ? langData.ultra : langData.common;
-                    const c = pool[Math.floor(Math.random() * pool.length)];
-                    selectedCard = { ...c, id: c.id + '_' + Date.now() + '_' + i };
+                    cardObj = {
+                        id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                        name: currentLang === 'ko' ? '피카츄' : (currentLang === 'ja' ? 'ピカチュウ' : 'Pikachu'),
+                        image: 'https://images.pokemontcg.io/sv3pt5/25_hires.png'
+                    };
                 }
-                currentPackCards.push(selectedCard);
+                currentPackCards.push(cardObj);
             }
 
-            // 5장 카드 뒤집어진 상태로 출력
             grid.innerHTML = '';
             currentPackCards.forEach((card, idx) => {
                 const cardEl = document.createElement('div');
@@ -525,33 +491,32 @@
                 `;
 
                 cardEl.onclick = () => cardEl.classList.toggle('flipped');
-                cardEl.ondragstart = (e) => e.dataTransfer.setData('text/plain', JSON.stringify(card));
+                cardEl.ondragstart = (e) => {
+                    e.dataTransfer.setData('application/json', JSON.stringify(card));
+                };
 
                 grid.appendChild(cardEl);
             });
 
-            // 개봉 완료 후 컨트롤 버튼 표시
             const nextBtn = document.getElementById('btnNextPack');
             document.getElementById('nextActionZone').style.display = 'flex';
 
             if(packInventory > 0) {
-                nextBtn.innerText = currentLang === 'ko' ? `⚡ 바로 다음 팩 까기 (남은 팩: ${packInventory}개)` : `⚡ Open Next Pack (${packInventory} left)`;
+                nextBtn.innerText = currentLang === 'ko' ? `⚡ 바로 다음 팩 까기 (${packInventory}개 남음)` : (currentLang === 'ja' ? `⚡ 次のパックを開ける (残り${packInventory}個)` : `⚡ Open Next Pack (${packInventory} left)`);
             } else {
-                nextBtn.innerText = currentLang === 'ko' ? `모든 팩 개봉 완료!` : `All Packs Opened!`;
+                nextBtn.innerText = currentLang === 'ko' ? `모든 팩 개봉 완료!` : (currentLang === 'ja' ? `全パック開封完了！` : `All Packs Opened!`);
             }
         }
 
-        // ⚡ 바로 다음 팩 까기
         function openNextPack() {
             if(packInventory <= 0) {
-                alert(currentLang === 'ko' ? "보유한 팩을 모두 개봉했습니다! 팩 선택 화면으로 복귀합니다." : "All packs opened! Returning to shop.");
+                alert(currentLang === 'ko' ? "보유한 팩을 모두 개봉했습니다!" : "All packs opened!");
                 switchView('shop');
                 return;
             }
             openPack();
         }
 
-        // 🔄 카드 전체 뒤집기
         function flipAllCards() {
             currentPackCards.forEach((_, idx) => {
                 const el = document.getElementById(`packCard_${idx}`);
@@ -559,7 +524,6 @@
             });
         }
 
-        // 🖱️ 테이블 드래그 & 드롭
         function allowDrop(ev) { ev.preventDefault(); }
         
         function dropOnDesk(ev) {
@@ -569,14 +533,18 @@
             const desk = document.getElementById('deskArea');
             const deskRect = desk.getBoundingClientRect();
             
-            const dataText = ev.dataTransfer.getData('text/plain');
-            if(dataText && dataText.startsWith('{')) {
-                const cardData = JSON.parse(dataText);
+            const jsonText = ev.dataTransfer.getData('application/json');
+            if(jsonText) {
+                const cardData = JSON.parse(jsonText);
+                
+                const existingIndex = tableCards.findIndex(c => c.instanceId === cardData.id);
+                if(existingIndex !== -1) return;
+
                 const dropX = ev.clientX - deskRect.left - 55;
                 const dropY = ev.clientY - deskRect.top - 77;
 
                 const cardObj = {
-                    instanceId: Date.now() + Math.random(),
+                    instanceId: cardData.id,
                     data: cardData,
                     sleeve: false,
                     toploader: false,
@@ -590,7 +558,6 @@
             }
         }
 
-        // 🖼️ 테이블 렌더링
         function renderDesk() {
             const desk = document.getElementById('deskArea');
             document.querySelectorAll('.table-card').forEach(el => el.remove());
@@ -603,6 +570,15 @@
 
                 el.style.left = c.x + 'px';
                 el.style.top = c.y + 'px';
+
+                const menu = document.createElement('div');
+                menu.className = 'card-menu';
+                menu.innerHTML = `
+                    <button onclick="toggleSleeve('${c.instanceId}')">✨슬리브</button>
+                    <button onclick="toggleToploader('${c.instanceId}')">🛡️탑로더</button>
+                    <button onclick="gradePSA('${c.instanceId}')">🔍PSA</button>
+                `;
+                el.appendChild(menu);
 
                 const imgDiv = document.createElement('div');
                 imgDiv.className = 'card-ui';
@@ -617,6 +593,7 @@
                 }
 
                 el.onmousedown = (e) => {
+                    if(e.target.tagName === 'BUTTON') return;
                     let shiftX = e.clientX - el.getBoundingClientRect().left;
                     let shiftY = e.clientY - el.getBoundingClientRect().top;
 
@@ -639,23 +616,26 @@
                     alert("📘 카드가 수집 바인더에 저장되었습니다!");
                 };
 
-                el.ondragover = (e) => e.preventDefault();
-                el.ondrop = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    const tool = e.dataTransfer.getData('toolType');
-                    if(tool === 'sleeve') c.sleeve = true;
-                    if(tool === 'toploader') c.toploader = true;
-                    if(tool === 'psa') {
-                        const grades = [8, 9, 9, 10, 10];
-                        c.psa = grades[Math.floor(Math.random() * grades.length)];
-                        alert(`🔍 PSA 감정 결과: [PSA ${c.psa}] 등급을 받았습니다!`);
-                    }
-                    renderDesk();
-                };
-
                 desk.appendChild(el);
             });
+        }
+
+        function toggleSleeve(id) {
+            const card = tableCards.find(c => c.instanceId === id);
+            if(card) { card.sleeve = !card.sleeve; renderDesk(); }
+        }
+        function toggleToploader(id) {
+            const card = tableCards.find(c => c.instanceId === id);
+            if(card) { card.toploader = !card.toploader; renderDesk(); }
+        }
+        function gradePSA(id) {
+            const card = tableCards.find(c => c.instanceId === id);
+            if(card) {
+                const grades = [8, 9, 9, 10, 10];
+                card.psa = grades[Math.floor(Math.random() * grades.length)];
+                alert(`🔍 PSA 감정 완료: [PSA ${card.psa}] 등급을 획득했습니다!`);
+                renderDesk();
+            }
         }
 
         function refreshTable() {
@@ -665,8 +645,6 @@
                 document.getElementById('deskNotice').style.display = 'block';
             }
         }
-
-        function dragTool(ev, type) { ev.dataTransfer.setData("toolType", type); }
 
         function renderBinder() {
             const grid = document.getElementById('binderGrid');
