@@ -3,22 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 TCG 전 시리즈 풀 컬렉션</title>
+    <title>포켓몬 TCG 마스터 시뮬레이터</title>
     <style>
         :root {
             --bg: #0b0d19;
             --panel: #16192b;
             --accent: #ffcb05;
             --text: #ffffff;
+            --desk: #1e243d;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-drag: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Pretendard', sans-serif;
@@ -28,240 +23,260 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
         }
 
-        .header-bar {
-            width: 100%;
-            max-width: 1100px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* 0. 로그인 / 회원가입 모달 */
+        .auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .auth-box {
             background: var(--panel);
-            padding: 15px 25px;
+            padding: 30px;
             border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            margin-bottom: 20px;
+            border: 2px solid var(--accent);
+            width: 320px;
+            text-align: center;
+        }
+        .auth-box input {
+            width: 100%; padding: 10px; margin: 8px 0;
+            border-radius: 6px; border: 1px solid #333;
+            background: #0b0d19; color: #fff;
+        }
+        .auth-box button {
+            width: 100%; padding: 10px; margin-top: 10px;
+            background: var(--accent); border: none; font-weight: bold;
+            border-radius: 6px; cursor: pointer;
         }
 
-        .gold-display { font-size: 1.3rem; font-weight: bold; color: var(--accent); }
-
+        /* 상단 UI */
+        .header-bar {
+            width: 100%; max-width: 1100px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--panel); padding: 15px 25px; border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        .user-info { font-size: 0.9rem; color: #aaa; }
+        .gold-display { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
         .nav-btns button {
-            padding: 8px 16px;
-            margin-left: 8px;
-            border-radius: 8px;
-            border: none;
-            background: #232740;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
+            padding: 8px 14px; margin-left: 5px; border-radius: 8px; border: none;
+            background: #232740; color: white; font-weight: bold; cursor: pointer;
         }
-
         .nav-btns button.active { background: var(--accent); color: black; }
 
         .view-section { display: none; width: 100%; max-width: 1100px; }
         .view-section.active { display: flex; flex-direction: column; align-items: center; }
 
-        /* 모든 시리즈 선택 상점 구역 */
-        .all-sets-panel {
-            background: var(--panel);
-            width: 100%;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            border: 1px solid #232740;
+        /* 상점 구역 */
+        .shop-panel {
+            background: var(--panel); width: 100%; padding: 20px;
+            border-radius: 15px; text-align: center;
         }
-
         .series-select {
-            width: 100%;
-            max-width: 500px;
-            padding: 12px;
-            font-size: 1.1rem;
-            border-radius: 8px;
-            background: #0b0d19;
-            color: var(--accent);
-            border: 2px solid var(--accent);
-            margin: 20px 0;
-            font-weight: bold;
+            width: 100%; max-width: 450px; padding: 10px;
+            background: #0b0d19; color: var(--accent); border: 1px solid var(--accent);
+            border-radius: 8px; margin: 15px 0; font-weight: bold;
         }
 
-        .btn-buy {
-            padding: 12px 30px;
-            font-size: 1.2rem;
-            background: linear-gradient(135deg, #ffcb05, #e65c00);
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            color: black;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 203, 5, 0.3);
+        /* 개봉 테이블(Desk) 구역 */
+        .open-container {
+            width: 100%; display: flex; flex-direction: column; align-items: center;
+        }
+        .table-controls {
+            width: 100%; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px;
+        }
+        .desk-area {
+            width: 100%; height: 380px; background: var(--desk);
+            border: 2px dashed #38426b; border-radius: 15px;
+            position: relative; overflow: hidden;
         }
 
-        /* 카드 넘기기 개봉 구역 */
-        .pack-open-area {
-            position: relative;
-            width: 260px;
-            height: 360px;
-            margin-top: 30px;
-            perspective: 1000px;
+        /* 드래그 팩 개봉 존 */
+        .pack-drop-zone {
+            width: 200px; height: 280px; margin-top: 15px;
+            position: relative; perspective: 1000px;
+        }
+        .card-draggable {
+            width: 180px; height: 250px; position: absolute;
+            cursor: grab; transition: transform 0.1s ease;
+            user-select: none;
+        }
+        .card-draggable img { width: 100%; height: 100%; border-radius: 10px; pointer-events: none; }
+        
+        /* 테이블 위에 배치된 카드 스타일 */
+        .table-card {
+            position: absolute; width: 110px; height: 150px; cursor: move;
+            transition: box-shadow 0.2s;
+        }
+        .table-card img { width: 100%; height: 100%; border-radius: 6px; pointer-events: none; }
+
+        /* 슬리브 / 탑로더 / PSA 오버레이 효과 */
+        .sleeve-effect { box-shadow: 0 0 10px rgba(255, 255, 255, 0.8) !important; }
+        .toploader-effect { border: 4px solid #7ec8ff !important; border-radius: 8px; box-shadow: 0 0 15px #0088ff !important; }
+        .psa-badge {
+            position: absolute; top: -12px; right: -12px; background: red; color: white;
+            font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 10px; border: 1px solid white;
         }
 
-        .card-stack {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-            transition: transform 0.4s ease-out, opacity 0.3s;
-        }
-
-        .card-stack.swipe-out {
-            transform: translateX(120%) rotate(20deg) !important;
-            opacity: 0;
-        }
-
-        .card-stack img {
-            width: 100%;
-            height: 100%;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.7);
-            pointer-events: none;
-        }
-
-        /* 슬리브/탑로더 존 */
-        .accessory-zone {
-            display: flex;
-            gap: 20px;
-            margin-top: 25px;
-        }
-
-        .acc-item {
-            width: 90px;
-            height: 100px;
-            border: 2px dashed var(--accent);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            cursor: grab;
-            background: rgba(255,255,255,0.05);
-            text-align: center;
-        }
-
-        .toploader-effect {
-            border: 6px solid rgba(180, 220, 255, 0.9) !important;
-            box-shadow: 0 0 25px rgba(0, 150, 255, 0.9) !important;
-            border-radius: 12px;
-        }
-
-        .sleeve-effect {
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.9) !important;
+        /* 드래그 악세서리 / PSA 코너 */
+        .tool-zone { display: flex; gap: 15px; margin: 15px 0; }
+        .tool-item {
+            padding: 10px 15px; background: #232740; border: 1px dashed var(--accent);
+            border-radius: 8px; cursor: grab; font-size: 0.85rem; font-weight: bold;
         }
 
         /* 바인더 */
         .binder-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 15px;
-            width: 100%;
-            background: #121526;
-            padding: 20px;
-            border-radius: 15px;
-            min-height: 400px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px; width: 100%; background: #121526; padding: 20px; border-radius: 15px;
         }
+        .binder-card { position: relative; border-radius: 6px; background: #000; }
+        .binder-card img { width: 100%; display: block; border-radius: 6px; }
 
-        .binder-card {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 2px solid #232740;
-            background: #000;
+        .btn-action {
+            padding: 8px 16px; background: var(--accent); border: none;
+            border-radius: 6px; font-weight: bold; cursor: pointer;
         }
-
-        .binder-card img { width: 100%; display: block; }
-        
-        .sell-btn {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            background: #e74c3c;
-            border: none;
-            color: white;
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .rarity-badge {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            background: rgba(0,0,0,0.8);
-            color: var(--accent);
-            font-size: 0.65rem;
-            padding: 2px 5px;
-            border-radius: 4px;
-        }
-
-        #statusText { margin-top: 15px; color: var(--accent); font-weight: bold; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <div class="header-bar">
-        <div class="gold-display">💰 <span id="goldCount">10000</span> Gold</div>
-        <div class="nav-btns">
-            <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 전 세대 상점</button>
-            <button id="btnNavOpen" onclick="switchView('open')">🎴 팩 개봉</button>
-            <button id="btnNavBinder" onclick="switchView('binder')">📘 내 바인더 (<span id="binderCount">0</span>)</button>
+    <!-- 0. 로그인 / 회원가입 인증 시스템 -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-box">
+            <h2 id="authTitle" style="color:var(--accent); margin-bottom:15px;">🔑 회원 로그인</h2>
+            <input type="text" id="authId" placeholder="아이디">
+            <input type="password" id="authPw" placeholder="비밀번호">
+            <button id="authBtn" onclick="handleAuth()">로그인</button>
+            <p style="margin-top:10px; font-size:0.8rem; color:#aaa; cursor:pointer;" onclick="toggleAuthMode()">
+                <span id="toggleText">계정이 없으신가요? 회원가입</span>
+            </p>
         </div>
     </div>
 
-    <!-- 1. 모든 세트 선택 상점 -->
+    <!-- 상단 UI -->
+    <div class="header-bar">
+        <div>
+            <span class="user-info">접속자: <b id="displayUserId" style="color:#fff;">-</b></span>
+            <div class="gold-display">💰 <span id="goldCount">10000</span> Gold</div>
+        </div>
+        <div class="nav-btns">
+            <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 상점</button>
+            <button id="btnNavOpen" onclick="switchView('open')">🎴 개봉 테이블</button>
+            <button id="btnNavBinder" onclick="switchView('binder')">📘 바인더 (<span id="binderCount">0</span>)</button>
+            <button onclick="logout()" style="background:#e74c3c; color:white;">로그아웃</button>
+        </div>
+    </div>
+
+    <!-- 1. 상점 -->
     <div id="viewShop" class="view-section active">
-        <div class="all-sets-panel">
-            <h2 style="color: var(--accent);">📦 원하는 포켓몬 카드 시리즈를 선택하세요</h2>
-            <p style="color: #aaa; margin-top: 5px;">역대 모든 세트(Base Set부터 최신 확장팩까지)가 전부 등록되어 있습니다.</p>
+        <div class="shop-panel">
+            <h2>📦 원하는 포켓몬 카드 세트 선택</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">언어별 세트 구성/카드 수가 모두 다르게 반영됩니다.</p>
             
             <select id="seriesSelect" class="series-select">
-                <option value="">전체 시리즈 목록 불러오는 중...</option>
-            </select>
-            <br>
-            <button class="btn-buy" onclick="buySelectedPack()">선택한 팩 구매하기 (1,000 Gold)</button>
+                <option value="">카드 세트 불러오는 중...</option>
+            </select><br>
+            <button class="btn-action" onclick="buyPack()">선택한 팩 구매 (1,000G)</button>
         </div>
     </div>
 
-    <!-- 2. 팩 개봉 뷰 -->
+    <!-- 2. 개봉 테이블 (Desk) -->
     <div id="viewOpen" class="view-section">
-        <div id="statusText">상점에서 원하는 팩을 구매해주세요!</div>
-        
-        <div class="pack-open-area" id="packArea" onclick="swipeAndNext()"></div>
+        <div class="open-container">
+            <!-- 상단 도구 및 리프레시 버튼 -->
+            <div class="table-controls">
+                <div class="tool-zone">
+                    <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'sleeve')">✨ 슬리브</div>
+                    <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'toploader')">🛡️ 탑로더</div>
+                    <div class="tool-item" draggable="true" ondragstart="dragTool(event, 'psa')" style="border-color:#ff4757; color:#ff4757;">🔍 PSA 감정하기</div>
+                </div>
+                <button class="btn-action" style="background:#e74c3c; color:white;" onclick="refreshTable()">🔄 테이블 리프레시 (카드 싹 청소)</button>
+            </div>
 
-        <div class="accessory-zone" id="accZone" style="display:none;">
-            <div class="acc-item" draggable="true" ondragstart="dragAcc(event, 'sleeve')">✨ 슬리브<br>(드래그)</div>
-            <div class="acc-item" draggable="true" ondragstart="dragAcc(event, 'toploader')">🛡️ 탑로더<br>(드래그)</div>
+            <!-- 카드 개봉 테이블 구역 -->
+            <div class="desk-area" id="deskArea" ondragover="allowDrop(event)" ondrop="dropOnDesk(event)">
+                <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#555; pointer-events:none;">
+                    💡 카드를 위로 드래그하여 날리면 이 테이블 위에 안착합니다.<br>
+                    (테이블 위 카드를 <b>더블클릭</b>하면 바인더로 저장됩니다)
+                </p>
+            </div>
+
+            <!-- 팩 개봉 드래그 존 -->
+            <div class="pack-drop-zone" id="packZone"></div>
         </div>
     </div>
 
     <!-- 3. 바인더 -->
     <div id="viewBinder" class="view-section">
-        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 내 포켓몬 카드 바인더</h2>
+        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 내 수집 바인더</h2>
         <div class="binder-grid" id="binderGrid"></div>
     </div>
 
     <script>
+        // --- 1. 회원가입 / 로그인 시스템 ---
+        let isSignUpMode = false;
+        let currentUser = null;
+
+        function toggleAuthMode() {
+            isSignUpMode = !isSignUpMode;
+            document.getElementById('authTitle').textContent = isSignUpMode ? "📝 회원가입" : "🔑 회원 로그인";
+            document.getElementById('authBtn').textContent = isSignUpMode ? "가입하기" : "로그인";
+            document.getElementById('toggleText').textContent = isSignUpMode ? "이미 계정이 있으신가요? 로그인" : "계정이 없으신가요? 회원가입";
+        }
+
+        function handleAuth() {
+            const id = document.getElementById('authId').value.trim();
+            const pw = document.getElementById('authPw').value.trim();
+            if(!id || !pw) return alert("아이디와 비밀번호를 입력해주세요.");
+
+            const users = JSON.parse(localStorage.getItem('tcg_users') || '{}');
+
+            if(isSignUpMode) {
+                if(users[id]) return alert("이미 존재하는 아이디입니다.");
+                users[id] = { pw: pw, gold: 10000, binder: [] };
+                localStorage.setItem('tcg_users', JSON.stringify(users));
+                alert("회원가입 완료! 로그인 해주세요.");
+                toggleAuthMode();
+            } else {
+                if(!users[id] || users[id].pw !== pw) return alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+                currentUser = id;
+                document.getElementById('displayUserId').textContent = id;
+                document.getElementById('authOverlay').style.display = 'none';
+                loadUserData();
+            }
+        }
+
+        function logout() { location.reload(); }
+
+        function saveUserData() {
+            if(!currentUser) return;
+            const users = JSON.parse(localStorage.getItem('tcg_users') || '{}');
+            users[currentUser].gold = gold;
+            users[currentUser].binder = binder;
+            localStorage.setItem('tcg_users', JSON.stringify(users));
+        }
+
+        function loadUserData() {
+            const users = JSON.parse(localStorage.getItem('tcg_users') || '{}');
+            gold = users[currentUser].gold || 10000;
+            binder = users[currentUser].binder || [];
+            updateUI();
+        }
+
+        // --- 2. 메인 TCG 시스템 ---
         let gold = 10000;
         let binder = [];
-        let setCache = {}; 
+        let setCache = {};
         let currentPackCards = [];
         let currentCardIndex = 0;
-        let hasSleeve = false;
-        let hasToploader = false;
+        let tableCards = []; 
 
-        // 페이지 진입 시 역대 모든 세트 목록 한 번에 가져오기
         window.onload = async function() {
             try {
                 const res = await fetch('https://api.pokemontcg.io/v2/sets');
@@ -269,17 +284,16 @@
                 const select = document.getElementById('seriesSelect');
                 select.innerHTML = '';
 
-                // 세트 출시일 순 정렬
-                const sets = data.data.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
-
+                // 발매일 기준 정렬 (한/일/영 세트 특성이 API 데이터의 세트별 total 개수로 반영됨)
+                const sets = data.data.sort((a,b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                 sets.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = `[${s.series}] ${s.name} (${s.total}장)`;
+                    opt.textContent = `[${s.series}] ${s.name} (총 ${s.total}장 구성)`;
                     select.appendChild(opt);
                 });
             } catch(e) {
-                document.getElementById('seriesSelect').innerHTML = '<option>시리즈 목록을 불러오지 못했습니다.</option>';
+                document.getElementById('seriesSelect').innerHTML = '<option>세트 목록 불러오기 실패</option>';
             }
         };
 
@@ -291,146 +305,182 @@
         function switchView(view) {
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-btns button').forEach(b => b.classList.remove('active'));
-
-            if(view === 'shop') {
-                document.getElementById('viewShop').classList.add('active');
-                document.getElementById('btnNavShop').classList.add('active');
-            } else if(view === 'open') {
-                document.getElementById('viewOpen').classList.add('active');
-                document.getElementById('btnNavOpen').classList.add('active');
-            } else if(view === 'binder') {
-                document.getElementById('viewBinder').classList.add('active');
-                document.getElementById('btnNavBinder').classList.add('active');
-                renderBinder();
-            }
+            if(view === 'shop') { document.getElementById('viewShop').classList.add('active'); document.getElementById('btnNavShop').classList.add('active'); }
+            else if(view === 'open') { document.getElementById('viewOpen').classList.add('active'); document.getElementById('btnNavOpen').classList.add('active'); }
+            else if(view === 'binder') { document.getElementById('viewBinder').classList.add('active'); document.getElementById('btnNavBinder').classList.add('active'); renderBinder(); }
         }
 
-        // 캐싱 지원 카드 가져오기
-        async function loadSetData(setId) {
-            if (!setCache[setId]) {
+        // --- 3. 팩 구매 및 개봉 ---
+        async function buyPack() {
+            const setId = document.getElementById('seriesSelect').value;
+            if(!setId) return;
+            if(gold < 1000) return alert("골드가 부족합니다!");
+
+            gold -= 1000;
+            saveUserData();
+            updateUI();
+            switchView('open');
+
+            if(!setCache[setId]) {
                 const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=60`);
                 const data = await res.json();
                 setCache[setId] = data.data;
             }
-            return setCache[setId];
-        }
 
-        // 팩 밸런스 배치 (마지막 장 피날레 레어)
-        function buildBalancedPack(pool) {
+            const pool = setCache[setId];
+            // 실제 팩 밸런스: 일반 -> 언커먼 -> 마지막 레어 피날레
             const commons = pool.filter(c => c.supertype === 'Energy' || c.rarity === 'Common');
             const uncommons = pool.filter(c => c.supertype === 'Trainer' || c.rarity === 'Uncommon');
-            const rares = pool.filter(c => c.rarity && (c.rarity.includes('Rare') || c.rarity.includes('Promo') || c.rarity.includes('LEGEND')));
+            const rares = pool.filter(c => c.rarity && (c.rarity.includes('Rare') || c.rarity.includes('Promo')));
 
-            const pack = [];
-            const getRandom = (arr) => arr.length > 0 ? arr[Math.floor(Math.random() * arr.length)] : pool[Math.floor(Math.random() * pool.length)];
+            const getRandom = (arr) => arr.length > 0 ? arr[Math.floor(Math.random()*arr.length)] : pool[Math.floor(Math.random()*pool.length)];
 
-            for(let i=0; i<3; i++) pack.push(getRandom(commons));
-            for(let i=0; i<3; i++) pack.push(getRandom(commons));
-            for(let i=0; i<2; i++) pack.push(getRandom(uncommons));
-            pack.push(getRandom(uncommons));
-            pack.push(getRandom(rares)); // 맨 마지막 장 레어!
+            currentPackCards = [];
+            for(let i=0; i<6; i++) currentPackCards.push(getRandom(commons));
+            for(let i=0; i<3; i++) currentPackCards.push(getRandom(uncommons));
+            currentPackCards.push(getRandom(rares)); // 맨 마지막 10번째 레어!
 
-            return pack;
+            currentCardIndex = 0;
+            renderPackStack();
         }
 
-        async function buySelectedPack() {
-            const select = document.getElementById('seriesSelect');
-            const setId = select.value;
-            if(!setId) return;
-
-            if (gold < 1000) {
-                alert("골드가 부족합니다! 카드를 팔아서 모아보세요.");
-                return;
-            }
-
-            gold -= 1000;
-            updateUI();
-            switchView('open');
-            document.getElementById('statusText').textContent = "선택하신 시리즈 카드 데이터를 불러오는 중...";
-
-            try {
-                const pool = await loadSetData(setId);
-                currentPackCards = buildBalancedPack(pool);
-                currentCardIndex = 0;
-                document.getElementById('accZone').style.display = 'flex';
-                renderPackArea();
-            } catch(e) {
-                alert("카드 데이터를 불러오는 데 실패했습니다.");
-            }
-        }
-
-        function renderPackArea() {
-            const area = document.getElementById('packArea');
-            area.innerHTML = '';
+        // 마우스 드래그로 위로 싹 날리는 액션 구현
+        function renderPackStack() {
+            const packZone = document.getElementById('packZone');
+            packZone.innerHTML = '';
 
             if(currentCardIndex >= currentPackCards.length) {
-                document.getElementById('statusText').textContent = "🎉 팩 개봉 완료! 바인더에 보관되었습니다.";
-                document.getElementById('accZone').style.display = 'none';
+                packZone.innerHTML = '<p style="text-align:center; color:#aaa; margin-top:50px;">팩 개봉 완료!</p>';
                 return;
             }
 
-            const card = currentPackCards[currentCardIndex];
+            const cardData = currentPackCards[currentCardIndex];
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card-draggable';
+            cardEl.innerHTML = `<img src="${cardData.images.large || cardData.images.small}">`;
+
+            // 마우스 드래그 감지 (위로 날리기)
+            let startY = 0;
+            cardEl.onmousedown = (e) => {
+                startY = e.clientY;
+                document.onmousemove = (e) => {
+                    let diffY = e.clientY - startY;
+                    if(diffY < 0) cardEl.style.transform = `translateY(${diffY}px) rotate(${diffY * 0.05}deg)`;
+                };
+                document.onmouseup = (e) => {
+                    let diffY = e.clientY - startY;
+                    document.onmousemove = null;
+                    document.onmouseup = null;
+
+                    if(diffY < -80) { // 위로 충분히 올렸을 때 -> 테이블로 날려 안착!
+                        spawnCardOnDesk(cardData);
+                        currentCardIndex++;
+                        renderPackStack();
+                    } else {
+                        cardEl.style.transform = `translateY(0px)`;
+                    }
+                };
+            };
+
+            packZone.appendChild(cardEl);
+        }
+
+        // --- 4. 테이블(Desk) 및 악세서리 / PSA 시스템 ---
+        function spawnCardOnDesk(cardData) {
+            document.getElementById('deskNotice').style.display = 'none';
+            const desk = document.getElementById('deskArea');
             
-            if (currentCardIndex === 9) {
-                document.getElementById('statusText').textContent = "🔥 [LAST!] 이번 팩의 피날레 레어 카드 등장!";
-            } else {
-                document.getElementById('statusText').textContent = `카드를 옆으로 날려보내세요 (${currentCardIndex + 1}/10)`;
-            }
+            const cardObj = {
+                instanceId: Date.now() + Math.random(),
+                data: cardData,
+                sleeve: false,
+                toploader: false,
+                psa: null,
+                x: Math.random() * (desk.clientWidth - 120),
+                y: Math.random() * (desk.clientHeight - 160)
+            };
 
-            const el = document.createElement('div');
-            el.id = "activeCardStack";
-            el.className = 'card-stack';
-            if(hasSleeve) el.classList.add('sleeve-effect');
-            if(hasToploader) el.classList.add('toploader-effect');
-
-            el.ondragover = (e) => e.preventDefault();
-            el.ondrop = (e) => dropAcc(e);
-
-            const img = document.createElement('img');
-            img.src = card.images.large || card.images.small;
-
-            el.appendChild(img);
-            area.appendChild(el);
+            tableCards.push(cardObj);
+            renderDesk();
         }
 
-        function swipeAndNext() {
-            if(currentPackCards.length === 0 || currentCardIndex >= currentPackCards.length) return;
+        function renderDesk() {
+            const desk = document.getElementById('deskArea');
+            // 기존 카드 요소만 제거
+            document.querySelectorAll('.table-card').forEach(el => el.remove());
 
-            const el = document.getElementById('activeCardStack');
-            if(el) {
-                el.classList.add('swipe-out');
-                setTimeout(() => {
-                    const card = currentPackCards[currentCardIndex];
-                    binder.push({
-                        ...card,
-                        sleeve: hasSleeve,
-                        toploader: hasToploader
-                    });
+            tableCards.forEach((c) => {
+                const el = document.createElement('div');
+                el.className = 'table-card';
+                if(c.sleeve) el.classList.add('sleeve-effect');
+                if(c.toploader) el.classList.add('toploader-effect');
 
-                    hasSleeve = false;
-                    hasToploader = false;
-                    currentCardIndex++;
-                    renderPackArea();
+                el.style.left = c.x + 'px';
+                el.style.top = c.y + 'px';
+
+                let psaHTML = c.psa ? `<div class="psa-badge">PSA ${c.psa}</div>` : '';
+                el.innerHTML = `<img src="${c.data.images.small}">${psaHTML}`;
+
+                // 테이블 안에서 자유 이동 드래그
+                el.onmousedown = (e) => {
+                    let shiftX = e.clientX - el.getBoundingClientRect().left;
+                    let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+                    document.onmousemove = (e) => {
+                        let newX = e.clientX - shiftX - desk.getBoundingClientRect().left;
+                        let newY = e.clientY - shiftY - desk.getBoundingClientRect().top;
+                        el.style.left = newX + 'px';
+                        el.style.top = newY + 'px';
+                        c.x = newX; c.y = newY;
+                    };
+                    document.onmouseup = () => { document.onmousemove = null; };
+                };
+
+                // 🔥 더블 클릭시 바인더로 이동!
+                el.ondblclick = () => {
+                    binder.push({ ...c.data, sleeve: c.sleeve, toploader: c.toploader, psa: c.psa });
+                    tableCards = tableCards.filter(tc => tc.instanceId !== c.instanceId);
+                    saveUserData();
                     updateUI();
-                }, 250);
+                    renderDesk();
+                    alert("📘 카드가 바인더에 보관되었습니다!");
+                };
+
+                // 악세서리/PSA 드롭 이벤트 수신
+                el.ondragover = (e) => e.preventDefault();
+                el.ondrop = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const tool = e.dataTransfer.getData('toolType');
+                    if(tool === 'sleeve') c.sleeve = true;
+                    if(tool === 'toploader') c.toploader = true;
+                    if(tool === 'psa') {
+                        // PSA 1 ~ 10 랜덤 등급 부여 (10등급 확률 희귀)
+                        const grades = [6, 7, 8, 9, 9, 9, 10];
+                        c.psa = grades[Math.floor(Math.random() * grades.length)];
+                        alert(`🔍 PSA 감정 결과: [PSA ${c.psa}] 등급을 받았습니다!`);
+                    }
+                    renderDesk();
+                };
+
+                desk.appendChild(el);
+            });
+        }
+
+        // 테이블 리프레시 버튼 (모두 싹 없애기)
+        function refreshTable() {
+            if(confirm("테이블 위 모든 카드를 치우시겠습니까? (바인더에 안 넣은 카드는 사라집니다)")) {
+                tableCards = [];
+                renderDesk();
+                document.getElementById('deskNotice').style.display = 'block';
             }
         }
 
-        function dragAcc(ev, type) { ev.dataTransfer.setData("type", type); }
+        function dragTool(ev, type) { ev.dataTransfer.setData("toolType", type); }
+        function allowDrop(ev) { ev.preventDefault(); }
+        function dropOnDesk(ev) { ev.preventDefault(); }
 
-        function dropAcc(ev) {
-            ev.preventDefault();
-            const type = ev.dataTransfer.getData("type");
-            if(type === 'toploader') {
-                hasToploader = true;
-                alert("🛡️ 탑로더 장착 성공!");
-            } else if(type === 'sleeve') {
-                hasSleeve = true;
-                alert("✨ 슬리브 씌우기 완료!");
-            }
-            renderPackArea();
-        }
-
+        // --- 5. 바인더 렌더링 ---
         function renderBinder() {
             const grid = document.getElementById('binderGrid');
             grid.innerHTML = '';
@@ -440,29 +490,19 @@
                 return;
             }
 
-            binder.forEach((card, index) => {
+            binder.forEach((card, idx) => {
                 const item = document.createElement('div');
                 item.className = 'binder-card';
-                if(card.toploader) item.classList.add('toploader-effect');
                 if(card.sleeve) item.classList.add('sleeve-effect');
+                if(card.toploader) item.classList.add('toploader-effect');
 
-                const isRare = card.rarity && (card.rarity.includes('Rare') || card.rarity.includes('Secret'));
-                const price = isRare ? 1500 : 200;
-
+                let psaBadge = card.psa ? `<div class="psa-badge">PSA ${card.psa}</div>` : '';
                 item.innerHTML = `
-                    <span class="rarity-badge">${card.rarity || 'Common'}</span>
-                    <img src="${card.images.small}" alt="${card.name}">
-                    <button class="sell-btn" onclick="sellCard(${index}, ${price})">판매 (+${price}G)</button>
+                    ${psaBadge}
+                    <img src="${card.images.small}">
                 `;
                 grid.appendChild(item);
             });
-        }
-
-        function sellCard(index, price) {
-            binder.splice(index, 1);
-            gold += price;
-            updateUI();
-            renderBinder();
         }
     </script>
 </body>
