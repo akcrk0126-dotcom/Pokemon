@@ -75,25 +75,15 @@
         .open-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
         .table-controls { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .desk-area {
-            width: 100%; height: 400px; background: var(--desk); border: 2px dashed #38426b;
+            width: 100%; height: 450px; background: var(--desk); border: 2px dashed #38426b;
             border-radius: 15px; position: relative; overflow: hidden;
         }
 
         .card-ui {
             width: 100%; height: 100%; border-radius: 8px; overflow: hidden;
-            background: linear-gradient(135deg, #2b3252, #111425);
-            border: 2px solid #56649c; display: flex; flex-direction: column;
-            justify-content: space-between; padding: 8px; position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5); user-select: none;
+            position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.5); user-select: none;
+            background-size: cover; background-position: center;
         }
-        .card-ui.rare { border-color: var(--accent); background: linear-gradient(135deg, #4a3b00, #1a1500); }
-        .card-ui .card-title { font-weight: bold; font-size: 0.8rem; color: #fff; text-align: center; }
-        .card-ui .card-type { font-size: 0.65rem; color: var(--accent); text-align: center; }
-        .card-ui .card-art {
-            width: 100%; height: 55%; background: #000; border-radius: 4px;
-            display: flex; justify-content: center; align-items: center; font-size: 2.2rem;
-        }
-        .card-ui .card-lang-flag { position: absolute; top: 4px; left: 4px; font-size: 0.6rem; background: rgba(0,0,0,0.6); padding: 1px 4px; border-radius: 3px; }
 
         .pack-drop-zone { width: 180px; height: 250px; margin-top: 15px; position: relative; perspective: 1000px; }
         .card-draggable {
@@ -101,13 +91,13 @@
             transition: transform 0.1s ease; user-select: none;
         }
         
-        .table-card { position: absolute; width: 120px; height: 170px; cursor: move; }
+        .table-card { position: absolute; width: 130px; height: 182px; cursor: move; }
 
-        .sleeve-effect { box-shadow: 0 0 15px rgba(255, 255, 255, 0.9) !important; border: 2px solid #fff !important; }
+        .sleeve-effect { box-shadow: 0 0 15px rgba(255, 255, 255, 0.9) !important; border: 2px solid #fff !important; border-radius: 8px; }
         .toploader-effect { border: 5px solid #7ec8ff !important; border-radius: 10px; box-shadow: 0 0 20px #0088ff !important; }
         .psa-badge {
             position: absolute; top: -10px; right: -10px; background: #e74c3c; color: white;
-            font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 10px; border: 1px solid white; z-index: 20;
+            font-size: 0.75rem; font-weight: bold; padding: 2px 8px; border-radius: 10px; border: 1.5px solid white; z-index: 20;
         }
 
         .tool-zone { display: flex; gap: 10px; margin: 15px 0; }
@@ -120,7 +110,7 @@
             display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px;
         }
-        .binder-card { position: relative; border-radius: 8px; width: 130px; height: 180px; }
+        .binder-card { position: relative; border-radius: 8px; width: 130px; height: 182px; }
 
         .btn-action {
             padding: 10px 20px; background: var(--accent); border: none;
@@ -133,8 +123,8 @@
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-box">
             <h2 id="authTitle" style="color:var(--accent); margin-bottom:15px;">🔑 로그인 / 회원가입</h2>
-            <input type="text" id="authId" placeholder="아이디">
-            <input type="password" id="authPw" placeholder="비밀번호">
+            <input type="text" id="authId" placeholder="아이디" value="Trainer">
+            <input type="password" id="authPw" placeholder="비밀번호" value="1234">
             <button id="authBtn" onclick="handleAuth()">시작하기</button>
         </div>
     </div>
@@ -202,45 +192,17 @@
         let apiSets = [];
 
         const i18n = {
-            ko: {
-                flag: '🇰🇷', user: '유저', shop: '🏪 상점', open: '🎴 개봉 테이블', binder: '📘 바인더',
-                shopTitle: '📦 포켓몬 카드 세트 선택', shopSub: '전 세계 발매된 모든 카드 세트를 선택해 팩을 뽑아보세요!',
-                buyBtn: '선택한 팩 구매 (1,000G)', toolSleeve: '✨ 슬리브', toolToploader: '🛡️ 탑로더',
-                toolPsa: '🔍 PSA 감정하기', btnClear: '🔄 테이블 청소', binderTitle: '📘 내 수집 바인더',
-                notice: '💡 카드를 위로 드래그해서 날리면 테이블 위에 안착합니다.<br>(테이블 위 카드를 더블클릭하면 바인더로 저장됩니다)',
-                saved: '📘 카드가 내 바인더에 안전하게 저장되었습니다!', emptyBinder: '바인더가 비어있습니다.'
-            },
-            ja: {
-                flag: '🇯🇵', user: 'ユーザー', shop: '🏪 ショップ', open: '🎴 開封テーブル', binder: '📘 バインダー',
-                shopTitle: '📦 ポケモンカードセット選択', shopSub: '全世界で発売された全カードセットを選択してパックを購入！',
-                buyBtn: '選択したパックを購入 (1,000G)', toolSleeve: '✨ スリーブ', toolToploader: '🛡️ トップローダー',
-                toolPsa: '🔍 PSA鑑定する', btnClear: '🔄 テーブル清掃', binderTitle: '📘 コレクション バインダー',
-                notice: '💡 カードを上にスワイプして飛ばすとテーブルに置かれます。<br>(ダブルクリックでバインダーに保存)',
-                saved: '📘 カードがバインダーに保存されました！', emptyBinder: 'バインダーが空です。'
-            },
-            en: {
-                flag: '🇺🇸', user: 'User', shop: '🏪 Shop', open: '🎴 Opening Table', binder: '📘 Binder',
-                shopTitle: '📦 Select Pokemon Card Set', shopSub: 'Select from all worldwide official Pokemon sets!',
-                buyBtn: 'Buy Selected Pack (1,000G)', toolSleeve: '✨ Sleeve', toolToploader: '🛡️ Toploader',
-                toolPsa: '🔍 PSA Grade', btnClear: '🔄 Clear Table', binderTitle: '📘 Collection Binder',
-                notice: '💡 Drag & flick card upwards to land on table.<br>(Double-click card on table to save in Binder)',
-                saved: '📘 Card safely stored in Binder!', emptyBinder: 'Binder is empty.'
-            }
+            ko: { user: '유저', shop: '🏪 상점', open: '🎴 개봉 테이블', binder: '📘 바인더', shopTitle: '📦 포켓몬 카드 세트 선택', shopSub: '전 세계 발매된 모든 카드 세트를 선택해 팩을 뽑아보세요!', buyBtn: '선택한 팩 구매 (1,000G)', toolSleeve: '✨ 슬리브', toolToploader: '🛡️ 탑로더', toolPsa: '🔍 PSA 감정하기', btnClear: '🔄 테이블 청소', binderTitle: '📘 내 수집 바인더', notice: '💡 카드를 위로 드래그해서 날리면 테이블 위에 안착합니다.<br>(테이블 위 카드를 더블클릭하면 바인더로 저장됩니다)', saved: '📘 카드가 내 바인더에 안전하게 저장되었습니다!', emptyBinder: '바인더가 비어있습니다.' },
+            ja: { user: 'ユーザー', shop: '🏪 ショップ', open: '🎴 開封テーブル', binder: '📘 バインダー', shopTitle: '📦 ポケモンカードセット選択', shopSub: '全世界で発売された全カードセットを選択してパックを購入！', buyBtn: '選択したパックを購入 (1,000G)', toolSleeve: '✨ スリーブ', toolToploader: 'トップローダー', toolPsa: '🔍 PSA鑑定する', btnClear: '🔄 テーブル清掃', binderTitle: '📘 コレクション バインダー', notice: '💡 カードを上にスワイプして飛ばすとテーブルに置かれます。<br>(ダブルクリックでバインダーに保存)', saved: '📘 カードがバインダーに保存されました！', emptyBinder: 'バインダーが空です。' },
+            en: { user: 'User', shop: '🏪 Shop', open: '🎴 Opening Table', binder: '📘 Binder', shopTitle: '📦 Select Pokemon Card Set', shopSub: 'Select from all worldwide official Pokemon sets!', buyBtn: 'Buy Selected Pack (1,000G)', toolSleeve: '✨ Sleeve', toolToploader: '🛡️ Toploader', toolPsa: '🔍 PSA Grade', btnClear: '🔄 Clear Table', binderTitle: '📘 Collection Binder', notice: '💡 Drag & flick card upwards to land on table.<br>(Double-click card on table to save in Binder)', saved: '📘 Card safely stored in Binder!', emptyBinder: 'Binder is empty.' }
         };
 
-        const builtInPokemon = [
-            { name: { ko: "리자몽 ex", ja: "リザードン ex", en: "Charizard ex" }, type: { ko: "🔥 불꽃", ja: "🔥 ほのお", en: "🔥 Fire" }, rarity: "Rare SAR", emoji: "🐉", rare: true },
-            { name: { ko: "피카츄 VMAX", ja: "ピカチュウ VMAX", en: "Pikachu VMAX" }, type: { ko: "⚡ 전기", ja: "⚡ でんき", en: "⚡ Lightning" }, rarity: "Rare Secret", emoji: "⚡", rare: true },
-            { name: { ko: "뮤츠", ja: "ミュウツー", en: "Mewtwo" }, type: { ko: "🔮 에스퍼", ja: "🔮 ちょう", en: "🔮 Psychic" }, rarity: "Rare", emoji: "👽", rare: true },
-            { name: { ko: "거북왕", ja: "カメックス", en: "Blastoise" }, type: { ko: "💧 물", ja: "💧 みず", en: "💧 Water" }, rarity: "Rare", emoji: "🐢", rare: true },
-            { name: { ko: "이상해꽃", ja: "フシギバナ", en: "Venusaur" }, type: { ko: "🍃 풀", ja: "🍃 くさ", en: "🍃 Grass" }, rarity: "Rare", emoji: "🌺", rare: true },
-            { name: { ko: "파이리", ja: "ヒトカゲ", en: "Charmander" }, type: { ko: "🔥 불꽃", ja: "🔥 ほのお", en: "🔥 Fire" }, rarity: "Common", emoji: "🦎", rare: false },
-            { name: { ko: "꼬부기", ja: "ゼニガメ", en: "Squirtle" }, type: { ko: "💧 물", ja: "💧 みず", en: "💧 Water" }, rarity: "Common", emoji: "🐢", rare: false },
-            { name: { ko: "이상해씨", ja: "フシギダネ", en: "Bulbasaur" }, type: { ko: "🍃 풀", ja: "🍃 くさ", en: "🍃 Grass" }, rarity: "Common", emoji: "🌱", rare: false },
-            { name: { ko: "피카츄", ja: "ピカチュウ", en: "Pikachu" }, type: { ko: "⚡ 전기", ja: "⚡ でんき", en: "⚡ Lightning" }, rarity: "Common", emoji: "🖱️", rare: false },
-            { name: { ko: "박사의 연구", ja: "博士の研究", en: "Professor's Research" }, type: { ko: "📜 트레이너", ja: "📜 トレーナー", en: "📜 Trainer" }, rarity: "Uncommon", emoji: "🧪", rare: false },
-            { name: { ko: "하이퍼볼", ja: "ハイパーボール", en: "Ultra Ball" }, type: { ko: "🎾 트레이너", ja: "🎾 トレーナー", en: "🎾 Trainer" }, rarity: "Uncommon", emoji: "⚽", rare: false },
-            { name: { ko: "기본 에너지", ja: "基本エネルギー", en: "Basic Energy" }, type: { ko: "💎 에너지", ja: "💎 エネルギー", en: "💎 Energy" }, rarity: "Common", emoji: "💎", rare: false }
+        const fallbackCards = [
+            { id: 'fb1', image: 'https://images.pokemontcg.io/sv3pt5/183_hires.png', name: '리자몽 ex SAR' },
+            { id: 'fb2', image: 'https://images.pokemontcg.io/sv3pt5/173_hires.png', name: '피카츄 AR' },
+            { id: 'fb3', image: 'https://images.pokemontcg.io/sv3pt5/182_hires.png', name: '거북왕 ex SAR' },
+            { id: 'fb4', image: 'https://images.pokemontcg.io/sv3pt5/180_hires.png', name: '이상해꽃 ex SAR' },
+            { id: 'fb5', image: 'https://images.pokemontcg.io/sv3pt5/151_hires.png', name: '뮤츠' }
         ];
 
         let currentUser = null;
@@ -252,16 +214,15 @@
 
         window.onload = async function() {
             try {
-                // CORS 프록시 경유
-                const res = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://api.pokemontcg.io/v2/sets'));
+                const res = await fetch('https://api.pokemontcg.io/v2/sets');
                 const data = await res.json();
                 if(data && data.data) {
                     apiSets = data.data.sort((a,b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                 }
-                renderSetSelect();
             } catch(e) {
-                renderSetSelect();
+                console.log("API 직접 불러오기 실패, 폴백 세트 적용");
             }
+            renderSetSelect();
         };
 
         function renderSetSelect() {
@@ -276,18 +237,10 @@
                     select.appendChild(opt);
                 });
             } else {
-                // API 실패 시 작동할 풍부한 팩 데이터 베이스
                 const defaultSets = [
-                    { id: 'sv4pt5', name: '[Scarlet & Violet] Paldean Fates (팔데아의 운명)' },
                     { id: 'sv3pt5', name: '[Scarlet & Violet] 151 (포켓몬 카드 151)' },
-                    { id: 'sv1', name: '[Scarlet & Violet] Base Set (스칼렛&바이올렛)' },
+                    { id: 'sv4pt5', name: '[Scarlet & Violet] Paldean Fates (팔데아의 운명)' },
                     { id: 'swsh12pt5', name: '[Sword & Shield] Crown Zenith (VSTAR 유니버스)' },
-                    { id: 'swsh11', name: '[Sword & Shield] Lost Origin (로스트아비스)' },
-                    { id: 'swsh7', name: '[Sword & Shield] Evolving Skies (이브이 히어로즈)' },
-                    { id: 'swsh4', name: '[Sword & Shield] Vivid Voltage (앙천의 볼트태클)' },
-                    { id: 'sm115', name: '[Sun & Moon] Hidden Fates (울트라샤이니)' },
-                    { id: 'sm9', name: '[Sun & Moon] Team Up (태그볼트)' },
-                    { id: 'xy12', name: '[XY] Evolutions (20주년 팩)' },
                     { id: 'base1', name: '[Classic] Base Set (초판 베이스 세트)' }
                 ];
                 defaultSets.forEach(s => {
@@ -327,8 +280,7 @@
 
         function handleAuth() {
             const id = document.getElementById('authId').value.trim();
-            const pw = document.getElementById('authPw').value.trim();
-            if(!id || !pw) return alert("아이디와 비밀번호를 입력하세요.");
+            if(!id) return alert("아이디를 입력하세요.");
 
             currentUser = id;
             document.getElementById('displayUserId').textContent = id;
@@ -365,21 +317,36 @@
             else if(view === 'binder') { document.getElementById('viewBinder').classList.add('active'); document.getElementById('btnNavBinder').classList.add('active'); renderBinder(); }
         }
 
-        function buyPack() {
+        async function buyPack() {
             if(gold < 1000) return alert("골드가 부족합니다!");
             gold -= 1000;
             saveUserData();
             updateUI();
             switchView('open');
 
-            const commons = builtInPokemon.filter(p => !p.rare);
-            const rares = builtInPokemon.filter(p => p.rare);
-
-            currentPackCards = [];
-            for(let i=0; i<9; i++) {
-                currentPackCards.push(commons[Math.floor(Math.random() * commons.length)]);
+            const setId = document.getElementById('seriesSelect').value || 'sv3pt5';
+            
+            try {
+                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}`);
+                const data = await res.json();
+                
+                if(data && data.data && data.data.length > 0) {
+                    const cards = data.data;
+                    currentPackCards = [];
+                    for(let i=0; i<5; i++) {
+                        const randomCard = cards[Math.floor(Math.random() * cards.length)];
+                        currentPackCards.push({
+                            id: randomCard.id,
+                            image: randomCard.images.large || randomCard.images.small,
+                            name: randomCard.name
+                        });
+                    }
+                } else {
+                    throw new Error("No Cards");
+                }
+            } catch(e) {
+                currentPackCards = [...fallbackCards];
             }
-            currentPackCards.push(rares[Math.floor(Math.random() * rares.length)]);
 
             currentCardIndex = 0;
             renderPackStack();
@@ -387,21 +354,8 @@
 
         function createCardUI(card) {
             const cardEl = document.createElement('div');
-            cardEl.className = `card-ui ${card.rare ? 'rare' : ''}`;
-            
-            const cardName = card.name[currentLang] || card.name['en'];
-            const cardType = card.type[currentLang] || card.type['en'];
-            const flag = i18n[currentLang].flag;
-
-            cardEl.innerHTML = `
-                <div class="card-lang-flag">${flag}</div>
-                <div class="card-type">${cardType}</div>
-                <div class="card-art">${card.emoji}</div>
-                <div>
-                    <div class="card-title">${cardName}</div>
-                    <div style="font-size:0.6rem; text-align:center; color:#aaa; margin-top:2px;">${card.rarity}</div>
-                </div>
-            `;
+            cardEl.className = 'card-ui';
+            cardEl.style.backgroundImage = `url('${card.image}')`;
             return cardEl;
         }
 
@@ -410,7 +364,7 @@
             packZone.innerHTML = '';
 
             if(currentCardIndex >= currentPackCards.length) {
-                packZone.innerHTML = '<p style="text-align:center; color:#aaa; margin-top:80px;">🎉 Pack Complete!</p>';
+                packZone.innerHTML = '<p style="text-align:center; color:#aaa; margin-top:80px; font-weight:bold;">🎉 팩 개봉 완료!</p>';
                 return;
             }
 
@@ -431,7 +385,7 @@
                     document.onmousemove = null;
                     document.onmouseup = null;
 
-                    if(diffY < -70) {
+                    if(diffY < -50) {
                         spawnCardOnDesk(cardData);
                         currentCardIndex++;
                         renderPackStack();
@@ -454,8 +408,8 @@
                 sleeve: false,
                 toploader: false,
                 psa: null,
-                x: Math.random() * (desk.clientWidth - 130),
-                y: Math.random() * (desk.clientHeight - 180)
+                x: Math.max(10, Math.random() * (desk.clientWidth - 150)),
+                y: Math.max(10, Math.random() * (desk.clientHeight - 200))
             };
 
             tableCards.push(cardObj);
@@ -515,9 +469,9 @@
                     if(tool === 'sleeve') c.sleeve = true;
                     if(tool === 'toploader') c.toploader = true;
                     if(tool === 'psa') {
-                        const grades = [7, 8, 9, 9, 10];
+                        const grades = [8, 9, 9, 10, 10];
                         c.psa = grades[Math.floor(Math.random() * grades.length)];
-                        alert(`🔍 PSA Grade Result: [PSA ${c.psa}]`);
+                        alert(`🔍 PSA 감정 결과: [PSA ${c.psa}] 등급을 받았습니다!`);
                     }
                     renderDesk();
                 };
