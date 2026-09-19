@@ -190,11 +190,9 @@
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
             <h2>⚡ Master Booster Shop</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">전 세계 약 200여 개의 모든 공식 포켓몬 카드 확장팩 데이터베이스를 로드합니다!</p>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">1~4번 카드는 일반, 마지막 5번째 카드에서 히트(RR/SAR/SR/UR) 카드가 나옵니다!</p>
 
-            <select id="seriesSelect" class="series-select" onchange="updatePackPreview()">
-                <option value="">팩 목록 불러오는 중...</option>
-            </select>
+            <select id="seriesSelect" class="series-select" onchange="updatePackPreview()"></select>
 
             <div id="shopPackPreview" style="margin: 10px 0; min-height: 160px; display: flex; align-items: center; justify-content: center;">
                 <img id="previewPackImg" src="" style="height: 160px; object-fit: contain;">
@@ -212,7 +210,7 @@
     <div id="viewOpen" class="view-section">
         <div class="open-container">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;">💡 1~4번째 카드를 드래그해서 치우면 **마지막에 좋은 카드**가 나타납니다!</p>
+                <p style="color:#aaa; font-size:0.85rem;">💡 상단 카드를 바깥으로 드래그해 옆으로 치우면 아래 카드가 나타납니다!</p>
                 <div>
                     <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
                 </div>
@@ -220,7 +218,7 @@
 
             <div class="desk-area" id="deskArea">
                 <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
-                    💡 카드를 치우면 아래 <b>개봉 테이블</b>로 자동 세팅되며 내 마음대로 배치할 수 있습니다!
+                    💡 치운 카드는 아래 <b>개봉 테이블</b>로 자동 배치됩니다!
                 </p>
             </div>
 
@@ -252,46 +250,159 @@
         let tableCards = [];
         let globalZIndex = 100;
 
-        let apiSets = [];
-        const cardCache = {}; // 팩별 카드 불러온 데이터 저장
+        // 대표 확장팩 10종 내부 내장 데이터
+        const PACK_SETS = [
+            {
+                id: 'sv1', name: 'Scarlet & Violet Base',
+                logo: 'https://images.pokemontcg.io/sv1/logo.png',
+                common: [
+                    { name: 'Sprigatito', image: 'https://images.pokemontcg.io/sv1/12_hires.png', rarity: 'C' },
+                    { name: 'Fuecoco', image: 'https://images.pokemontcg.io/sv1/37_hires.png', rarity: 'C' },
+                    { name: 'Quaxly', image: 'https://images.pokemontcg.io/sv1/52_hires.png', rarity: 'C' },
+                    { name: 'Pawmi', image: 'https://images.pokemontcg.io/sv1/73_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Gardevoir ex', image: 'https://images.pokemontcg.io/sv1/86_hires.png', rarity: 'RR' },
+                    { name: 'Miraidon ex SAR', image: 'https://images.pokemontcg.io/sv1/244_hires.png', rarity: 'SAR' },
+                    { name: 'Koraidon ex SAR', image: 'https://images.pokemontcg.io/sv1/247_hires.png', rarity: 'SAR' },
+                    { name: 'Miriam SR', image: 'https://images.pokemontcg.io/sv1/251_hires.png', rarity: 'SR' }
+                ]
+            },
+            {
+                id: 'sv2', name: 'Paldea Evolved',
+                logo: 'https://images.pokemontcg.io/sv2/logo.png',
+                common: [
+                    { name: 'Pikachu', image: 'https://images.pokemontcg.io/sv2/62_hires.png', rarity: 'C' },
+                    { name: 'Marill', image: 'https://images.pokemontcg.io/sv2/43_hires.png', rarity: 'C' },
+                    { name: 'Tinkatink', image: 'https://images.pokemontcg.io/sv2/103_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Iono SAR', image: 'https://images.pokemontcg.io/sv2/269_hires.png', rarity: 'SAR' },
+                    { name: 'Chien-Pao ex SAR', image: 'https://images.pokemontcg.io/sv2/261_hires.png', rarity: 'SAR' },
+                    { name: 'Tinkaton ex', image: 'https://images.pokemontcg.io/sv2/105_hires.png', rarity: 'RR' }
+                ]
+            },
+            {
+                id: 'sv3', name: 'Obsidian Flames',
+                logo: 'https://images.pokemontcg.io/sv3/logo.png',
+                common: [
+                    { name: 'Charmander', image: 'https://images.pokemontcg.io/sv3/26_hires.png', rarity: 'C' },
+                    { name: 'Vulpix', image: 'https://images.pokemontcg.io/sv3/28_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Charizard ex SAR', image: 'https://images.pokemontcg.io/sv3/223_hires.png', rarity: 'SAR' },
+                    { name: 'Tyranitar ex', image: 'https://images.pokemontcg.io/sv3/66_hires.png', rarity: 'RR' },
+                    { name: 'Pidgeot ex', image: 'https://images.pokemontcg.io/sv3/164_hires.png', rarity: 'RR' }
+                ]
+            },
+            {
+                id: 'sv3pt5', name: '151 (Special Set)',
+                logo: 'https://images.pokemontcg.io/sv3pt5/logo.png',
+                common: [
+                    { name: 'Bulbasaur', image: 'https://images.pokemontcg.io/sv3pt5/1_hires.png', rarity: 'C' },
+                    { name: 'Squirtle', image: 'https://images.pokemontcg.io/sv3pt5/7_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Charizard ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/199_hires.png', rarity: 'SAR' },
+                    { name: 'Mew ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/205_hires.png', rarity: 'SAR' },
+                    { name: 'Alakazam ex', image: 'https://images.pokemontcg.io/sv3pt5/65_hires.png', rarity: 'RR' }
+                ]
+            },
+            {
+                id: 'swsh12', name: 'Silver Tempest',
+                logo: 'https://images.pokemontcg.io/swsh12/logo.png',
+                common: [
+                    { name: 'Pikachu', image: 'https://images.pokemontcg.io/swsh12/46_hires.png', rarity: 'C' },
+                    { name: 'Dratini', image: 'https://images.pokemontcg.io/swsh12/130_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Lugia VSTAR Alt Art', image: 'https://images.pokemontcg.io/swsh12/211_hires.png', rarity: 'UR' },
+                    { name: 'Regidrago VSTAR', image: 'https://images.pokemontcg.io/swsh12/136_hires.png', rarity: 'RRR' }
+                ]
+            },
+            {
+                id: 'swsh11', name: 'Lost Origin',
+                logo: 'https://images.pokemontcg.io/swsh11/logo.png',
+                common: [
+                    { name: 'Gastly', image: 'https://images.pokemontcg.io/swsh11/64_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Giratina V Alt Art', image: 'https://images.pokemontcg.io/swsh11/186_hires.png', rarity: 'SR' },
+                    { name: 'Aerodactyl VSTAR', image: 'https://images.pokemontcg.io/swsh11/93_hires.png', rarity: 'RRR' }
+                ]
+            },
+            {
+                id: 'swsh10', name: 'Astral Radiance',
+                logo: 'https://images.pokemontcg.io/swsh10/logo.png',
+                common: [
+                    { name: 'Hisuian Zorua', image: 'https://images.pokemontcg.io/swsh10/53_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Origin Forme Palkia VSTAR', image: 'https://images.pokemontcg.io/swsh10/40_hires.png', rarity: 'RRR' },
+                    { name: 'Machamp V Alt Art', image: 'https://images.pokemontcg.io/swsh10/172_hires.png', rarity: 'SR' }
+                ]
+            },
+            {
+                id: 'swsh9', name: 'Brilliant Stars',
+                logo: 'https://images.pokemontcg.io/swsh9/logo.png',
+                common: [
+                    { name: 'Chimchar', image: 'https://images.pokemontcg.io/swsh9/26_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Charizard VSTAR', image: 'https://images.pokemontcg.io/swsh9/18_hires.png', rarity: 'RRR' },
+                    { name: 'Arceus VSTAR', image: 'https://images.pokemontcg.io/swsh9/123_hires.png', rarity: 'RRR' }
+                ]
+            },
+            {
+                id: 'swsh7', name: 'Evolving Skies',
+                logo: 'https://images.pokemontcg.io/swsh7/logo.png',
+                common: [
+                    { name: 'Eevee', image: 'https://images.pokemontcg.io/swsh7/125_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Umbreon VMAX Alt Art', image: 'https://images.pokemontcg.io/swsh7/215_hires.png', rarity: 'HR' },
+                    { name: 'Rayquaza VMAX Alt Art', image: 'https://images.pokemontcg.io/swsh7/218_hires.png', rarity: 'HR' }
+                ]
+            },
+            {
+                id: 'base1', name: 'Classic Base Set',
+                logo: 'https://images.pokemontcg.io/base1/logo.png',
+                common: [
+                    { name: 'Charmander', image: 'https://images.pokemontcg.io/base1/46_hires.png', rarity: 'C' },
+                    { name: 'Pikachu', image: 'https://images.pokemontcg.io/base1/58_hires.png', rarity: 'C' }
+                ],
+                hit: [
+                    { name: 'Charizard Shadowless', image: 'https://images.pokemontcg.io/base1/4_hires.png', rarity: 'UR' },
+                    { name: 'Blastoise', image: 'https://images.pokemontcg.io/base1/2_hires.png', rarity: 'RR' }
+                ]
+            }
+        ];
 
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
                 const count = Math.max(1, parseInt(e.target.value) || 1);
                 document.getElementById('totalCost').textContent = (count * 1000).toLocaleString();
             });
-            fetchApiSets();
+            initShop();
         };
 
-        // 공식 API를 통해 200여개의 포켓몬 카드 확장팩 정보를 로드
-        async function fetchApiSets() {
-            try {
-                const res = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate');
-                const data = await res.json();
-                apiSets = data.data;
-
-                const select = document.getElementById('seriesSelect');
-                select.innerHTML = '';
-
-                apiSets.forEach(set => {
-                    const opt = document.createElement('option');
-                    opt.value = set.id;
-                    opt.textContent = `[${set.series}] ${set.name} (${set.total}장)`;
-                    select.appendChild(opt);
-                });
-
-                if(apiSets.length > 0) updatePackPreview();
-            } catch (e) {
-                console.error("API 로딩 실패:", e);
-                alert("포켓몬 카드 API를 불러오는데 실패했습니다.");
-            }
+        function initShop() {
+            const select = document.getElementById('seriesSelect');
+            select.innerHTML = '';
+            PACK_SETS.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.name}`;
+                select.appendChild(opt);
+            });
+            updatePackPreview();
         }
 
         function updatePackPreview() {
             const setId = document.getElementById('seriesSelect').value;
-            selectedSet = apiSets.find(s => s.id === setId);
+            selectedSet = PACK_SETS.find(s => s.id === setId);
             if(selectedSet) {
-                document.getElementById('previewPackImg').src = selectedSet.images.logo;
+                document.getElementById('previewPackImg').src = selectedSet.logo;
             }
         }
 
@@ -374,65 +485,42 @@
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
                     <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.85rem;">${selectedSet.name}</div>
-                    <img src="${selectedSet.images.logo}" class="pack-art" alt="Pack Art">
+                    <img src="${selectedSet.logo}" class="pack-art" alt="Pack Art">
                     <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN PACK</div>
                 </div>
             `;
         }
 
-        async function openPack() {
+        function openPack() {
             if (packInventory <= 0 || !selectedSet) return;
 
             const packZone = document.getElementById('packZone');
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">⏳ [${selectedSet.name}] 팩 카드를 불러오는 중입니다...</p>`;
-
-            // 해당 팩의 카드 불러오기 (캐싱 활용)
-            let cards = cardCache[selectedSet.id];
-            if(!cards) {
-                try {
-                    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${selectedSet.id}`);
-                    const data = await res.json();
-                    cards = data.data;
-                    cardCache[selectedSet.id] = cards;
-                } catch(e) {
-                    alert("카드 데이터를 불러오지 못했습니다.");
-                    renderPackToOpen();
-                    return;
-                }
-            }
-
             packInventory--;
             saveUserData();
             updateUI();
 
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] 개봉! 1~4번을 드래그해서 치우고 히트 카드를 확인하세요.</p>`;
-
-            // 일반 카드 및 히트 카드(좋은 카드) 분리
-            const commons = cards.filter(c => !c.rarity || c.rarity.includes('Common') || c.rarity.includes('Uncommon'));
-            const hits = cards.filter(c => c.rarity && !c.rarity.includes('Common') && !c.rarity.includes('Uncommon'));
-
-            const poolCommon = commons.length > 0 ? commons : cards;
-            const poolHit = hits.length > 0 ? hits : cards;
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] 개봉! 1~4번 카드를 옆으로 치우고 마지막 5번 히트 카드를 확인하세요.</p>`;
 
             currentPackCards = [];
+            
             // 1~4번: 일반 카드
             for(let i = 0; i < 4; i++) {
-                const picked = poolCommon[Math.floor(Math.random() * poolCommon.length)];
-                currentPackCards.push(formatCardData(picked));
+                currentPackCards.push(pickRandom(selectedSet.common));
             }
-            // 5번: 좋은 카드
-            const pickedHit = poolHit[Math.floor(Math.random() * poolHit.length)];
-            currentPackCards.push(formatCardData(pickedHit));
+
+            // 5번: 히트(좋은) 카드
+            currentPackCards.push(pickRandom(selectedSet.hit));
 
             renderCardStack();
         }
 
-        function formatCardData(c) {
+        function pickRandom(arr) {
+            const item = arr[Math.floor(Math.random() * arr.length)];
             return {
                 id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                name: c.name,
-                image: c.images.large || c.images.small,
-                rarity: c.rarity || 'C'
+                name: item.name,
+                image: item.image,
+                rarity: item.rarity
             };
         }
 
@@ -457,46 +545,47 @@
             });
         }
 
-        // 드래그 제스처 수정 (글로벌 마우스/터치 이벤트 연동)
+        // 완벽하게 드래그되는 카드 분리 로직
         function makeDraggableStackCard(el, cardData, initialIdx) {
             let startX = 0, startY = 0;
             let currentX = 0, currentY = 0;
-            let isDragging = false;
+            let dragging = false;
 
-            const onStart = (e) => {
-                isDragging = true;
-                const point = e.touches ? e.touches[0] : e;
-                startX = point.clientX;
-                startY = point.clientY;
+            const startDrag = (e) => {
+                dragging = true;
+                const pt = e.touches ? e.touches[0] : e;
+                startX = pt.clientX;
+                startY = pt.clientY;
 
-                window.addEventListener('mousemove', onMove);
-                window.addEventListener('touchmove', onMove, { passive: false });
-                window.addEventListener('mouseup', onEnd);
-                window.addEventListener('touchend', onEnd);
+                window.addEventListener('mousemove', moveDrag);
+                window.addEventListener('touchmove', moveDrag, { passive: false });
+                window.addEventListener('mouseup', endDrag);
+                window.addEventListener('touchend', endDrag);
             };
 
-            const onMove = (e) => {
-                if (!isDragging) return;
-                const point = e.touches ? e.touches[0] : e;
-                currentX = point.clientX - startX;
-                currentY = point.clientY - startY;
+            const moveDrag = (e) => {
+                if (!dragging) return;
+                const pt = e.touches ? e.touches[0] : e;
+                currentX = pt.clientX - startX;
+                currentY = pt.clientY - startY;
 
-                el.style.transform = `translate(${initialIdx * 2 + currentX}px, ${initialIdx * 2 + currentY}px) rotate(${currentX * 0.05}deg)`;
+                el.style.transform = `translate(${initialIdx * 2 + currentX}px, ${initialIdx * 2 + currentY}px) rotate(${currentX * 0.08}deg)`;
             };
 
-            const onEnd = () => {
-                if (!isDragging) return;
-                isDragging = false;
+            const endDrag = () => {
+                if (!dragging) return;
+                dragging = false;
 
-                window.removeEventListener('mousemove', onMove);
-                window.removeEventListener('touchmove', onMove);
-                window.removeEventListener('mouseup', onEnd);
-                window.removeEventListener('touchend', onEnd);
+                window.removeEventListener('mousemove', moveDrag);
+                window.removeEventListener('touchmove', moveDrag);
+                window.removeEventListener('mouseup', endDrag);
+                window.removeEventListener('touchend', endDrag);
 
-                if (Math.abs(currentX) > 70 || Math.abs(currentY) > 70) {
-                    el.style.transition = 'opacity 0.25s, transform 0.25s';
+                // 일정 거리 이상 스와이프하면 치우기
+                if (Math.abs(currentX) > 60 || Math.abs(currentY) > 60) {
+                    el.style.transition = 'all 0.25s ease-out';
                     el.style.opacity = '0';
-                    el.style.transform += ' scale(0.8)';
+                    el.style.transform += ' scale(0.7)';
                     
                     setTimeout(() => {
                         el.remove();
@@ -510,8 +599,8 @@
                 }
             };
 
-            el.addEventListener('mousedown', onStart);
-            el.addEventListener('touchstart', onStart, { passive: false });
+            el.addEventListener('mousedown', startDrag);
+            el.addEventListener('touchstart', startDrag, { passive: false });
         }
 
         function checkStackEmpty() {
@@ -556,7 +645,6 @@
             openPack();
         }
 
-        // 개봉 테이블 드래그 로직 수정
         function renderDesk() {
             const desk = document.getElementById('deskArea');
             document.querySelectorAll('.table-card').forEach(el => el.remove());
@@ -598,54 +686,52 @@
                     el.appendChild(badge);
                 }
 
-                // 테이블 내부 카드 이동
-                let isDragging = false;
+                let dragging = false;
                 let shiftX = 0, shiftY = 0;
 
-                const onStart = (e) => {
+                const startMove = (e) => {
                     if(e.target.tagName === 'BUTTON') return;
-                    isDragging = true;
+                    dragging = true;
                     c.zIndex = ++globalZIndex;
                     el.style.zIndex = c.zIndex;
 
-                    const point = e.touches ? e.touches[0] : e;
+                    const pt = e.touches ? e.touches[0] : e;
                     const rect = el.getBoundingClientRect();
-                    shiftX = point.clientX - rect.left;
-                    shiftY = point.clientY - rect.top;
+                    shiftX = pt.clientX - rect.left;
+                    shiftY = pt.clientY - rect.top;
 
-                    window.addEventListener('mousemove', onMove);
-                    window.addEventListener('touchmove', onMove, { passive: false });
-                    window.addEventListener('mouseup', onEnd);
-                    window.addEventListener('touchend', onEnd);
+                    window.addEventListener('mousemove', moveCard);
+                    window.addEventListener('touchmove', moveCard, { passive: false });
+                    window.addEventListener('mouseup', stopMove);
+                    window.addEventListener('touchend', stopMove);
                 };
 
-                const onMove = (e) => {
-                    if (!isDragging) return;
-                    const point = e.touches ? e.touches[0] : e;
+                const moveCard = (e) => {
+                    if (!dragging) return;
+                    const pt = e.touches ? e.touches[0] : e;
                     const deskRect = desk.getBoundingClientRect();
 
-                    let newX = point.clientX - shiftX - deskRect.left;
-                    let newY = point.clientY - shiftY - deskRect.top;
+                    let newX = pt.clientX - shiftX - deskRect.left;
+                    let newY = pt.clientY - shiftY - deskRect.top;
 
                     newX = Math.max(0, Math.min(newX, desk.clientWidth - 110));
                     newY = Math.max(0, Math.min(newY, desk.clientHeight - 154));
 
                     el.style.left = newX + 'px';
                     el.style.top = newY + 'px';
-                    c.x = newX; 
-                    c.y = newY;
+                    c.x = newX; c.y = newY;
                 };
 
-                const onEnd = () => {
-                    isDragging = false;
-                    window.removeEventListener('mousemove', onMove);
-                    window.removeEventListener('touchmove', onMove);
-                    window.removeEventListener('mouseup', onEnd);
-                    window.removeEventListener('touchend', onEnd);
+                const stopMove = () => {
+                    dragging = false;
+                    window.removeEventListener('mousemove', moveCard);
+                    window.removeEventListener('touchmove', moveCard);
+                    window.removeEventListener('mouseup', stopMove);
+                    window.removeEventListener('touchend', stopMove);
                 };
 
-                el.addEventListener('mousedown', onStart);
-                el.addEventListener('touchstart', onStart, { passive: false });
+                el.addEventListener('mousedown', startMove);
+                el.addEventListener('touchstart', startMove, { passive: false });
 
                 el.ondblclick = () => {
                     binder.push({ ...c.data, sleeve: c.sleeve, toploader: c.toploader, psa: c.psa });
