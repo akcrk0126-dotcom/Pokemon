@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Simulator - Multi-Lang Fixed</title>
+    <title>Pokémon TCG Simulator - Fixed Rarity & Images</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -163,10 +163,19 @@
             position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white;
             font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 8px; border: 1px solid white; z-index: 20;
         }
+        
+        /* 실제 희귀도 태그 스타일 */
         .rarity-badge {
             position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.85); color: #ffcb05;
-            font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 4px; border: 1px solid #ffcb05;
-            max-width: 95px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffcb05;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.8); letter-spacing: 0.5px;
+        }
+        .rarity-badge.rare-sar, .rarity-badge.rare-ur, .rarity-badge.rare-sr {
+            background: linear-gradient(45deg, #ff007f, #7928ca, #00dfd8);
+            color: #fff; border-color: #fff; text-shadow: 0 1px 2px #000;
+        }
+        .rarity-badge.rare-ar, .rarity-badge.rare-rr {
+            background: #1e90ff; color: #fff; border-color: #70a1ff;
         }
 
         .binder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px; }
@@ -184,7 +193,7 @@
             <h2 style="color:var(--accent); margin-bottom:15px;">🎮 Pokémon TCG Simulator</h2>
             <input type="text" id="authId" placeholder="아이디 입력" value="Master">
             <input type="password" id="authPw" placeholder="비밀번호" value="1234">
-            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">✨ 일판/한판 100% 개봉 지원 패치 완료</p>
+            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">✨ 실제 카드 등급(SAR/AR/SR/RR 등) 파싱 완료</p>
             <button onclick="handleAuth()">게임 시작하기</button>
         </div>
     </div>
@@ -341,6 +350,32 @@
             }
         }
 
+        // 포켓몬 카드 희귀도 파싱 및 분류 함수 (SAR, SR, AR, UR, RR, R, C 등 지원)
+        function parseCardRarity(rawRarity, localId) {
+            if (!rawRarity || rawRarity === 'None') {
+                if (localId && typeof localId === 'string') {
+                    if (localId.includes('SAR')) return 'SAR';
+                    if (localId.includes('SR')) return 'SR';
+                    if (localId.includes('AR')) return 'AR';
+                    if (localId.includes('UR')) return 'UR';
+                    if (localId.includes('RR')) return 'RR';
+                }
+                return 'C';
+            }
+
+            const str = String(rawRarity).trim().toUpperCase();
+            
+            if (str.includes('SPECIAL ILLUSTRATION') || str.includes('SAR')) return 'SAR';
+            if (str.includes('ILLUSTRATION RARE') || str === 'AR') return 'AR';
+            if (str.includes('HYPER') || str.includes('SECRET') || str === 'UR') return 'UR';
+            if (str.includes('ULTRA') || str === 'SR') return 'SR';
+            if (str.includes('DOUBLE') || str === 'RR') return 'RR';
+            if (str.includes('RARE') || str === 'R' || str.includes('HOLO')) return 'R';
+            if (str.includes('UNCOMMON') || str === 'U' || str === 'UC') return 'UC';
+            
+            return 'C';
+        }
+
         async function loadSetData() {
             const selectEl = document.getElementById('seriesSelect');
             if(!selectEl.value) return;
@@ -352,7 +387,6 @@
 
             currentSetInfo = availableSets.find(s => s.id === setId) || availableSets[0];
             
-            // 이미지 폴백 로직 (로고 없으면 기본 포켓몬 심볼 처리)
             const logoUrl = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : 'https://assets.tcgdex.net/univ/symbol.png';
             document.getElementById('previewPackImg').src = logoUrl;
             document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
@@ -374,16 +408,20 @@
                 const data = await res.json();
                 const rawCards = data.cards || [];
 
-                if(rawCards.length === 0) throw new Error("카드 데이터가 비어 있습니다.");
+                if(rawCards.length === 0) throw new Error("카드 데이터가 없습니다.");
 
-                // 한판/일판 카드 이미지 누락 대응 (Fallback 이미지 주소 자동 구성)
                 const validCards = rawCards.map(c => {
-                    let imgPath = c.image ? `${c.image}/high.png` : `https://assets.tcgdex.net/${currentLang}/${currentSetInfo.id}/${c.localId || c.id}/high.png`;
+                    let cardId = c.localId || c.id;
+                    let parsedRarity = parseCardRarity(c.rarity, cardId);
+
+                    // 이미지 URL 2단계 Fallback 적용 (로딩 문제 해결)
+                    let imgPath = c.image ? `${c.image}/high.png` : `https://assets.tcgdex.net/${currentLang}/${setId}/${cardId}/high.png`;
+
                     return {
                         id: c.id,
                         name: c.name || 'Pokémon Card',
                         image: imgPath,
-                        rarity: c.rarity || 'Common'
+                        rarity: parsedRarity
                     };
                 });
 
@@ -392,10 +430,10 @@
                 const ultraList = [];
 
                 validCards.forEach(c => {
-                    const r = (c.rarity || '').toLowerCase();
-                    if (r.includes('ultra') || r.includes('secret') || r.includes('special') || r.includes('hyper') || r.includes('illustration') || r.includes('rr') || r.includes('sr') || r.includes('sar')) {
+                    const r = c.rarity;
+                    if (['SAR', 'SR', 'AR', 'UR', 'HR', 'CSR'].includes(r)) {
                         ultraList.push(c);
-                    } else if (r.includes('rare') || r.includes('holo') || r.includes('r')) {
+                    } else if (['RR', 'R'].includes(r)) {
                         rareList.push(c);
                     } else {
                         commonList.push(c);
@@ -409,11 +447,11 @@
                 };
                 currentSetCards = setCardsCache[setId];
 
-                statusEl.textContent = `✅ [${currentSetInfo.name}] 카드 세팅 완료!`;
+                statusEl.textContent = `✅ [${currentSetInfo.name}] 로딩 완료! (C/UC: ${commonList.length}장, R/RR: ${rareList.length}장, SAR/SR/AR/UR: ${ultraList.length}장)`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
             } catch (err) {
                 console.error("카드 로드 실패:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 해당 확장팩은 아직 서버에 데이터가 완전하지 않습니다. 다른 확장팩을 선택해 주세요.</span>`;
+                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 카드 정보가 부족한 세트입니다. 다른 세트를 선택해 주세요.</span>`;
             }
         }
 
@@ -549,19 +587,21 @@
         function generatePackCards() {
             currentPackCards = [];
             
+            // 1~4번 카드: C/UC 중심 (85% C/UC, 15% R/RR)
             for(let i = 0; i < 4; i++) {
                 const rand = Math.random();
                 let picked = (rand < 0.85) ? getRandomFrom(currentSetCards.common) : getRandomFrom(currentSetCards.rare);
                 currentPackCards.push(createCardInstance(picked));
             }
 
+            // 5번 카드 (히트 확정 슬롯): 70% R/RR, 30% SAR/SR/AR/UR
             const hitRand = Math.random();
             let hitCard = (hitRand < 0.70) ? getRandomFrom(currentSetCards.rare) : getRandomFrom(currentSetCards.ultra);
             currentPackCards.push(createCardInstance(hitCard));
         }
 
         function getRandomFrom(arr) {
-            if(!arr || arr.length === 0) return { name: 'Pokémon Card', image: 'https://assets.tcgdex.net/univ/symbol.png', rarity: 'Common' };
+            if(!arr || arr.length === 0) return { name: 'Pokémon Card', image: 'https://assets.tcgdex.net/univ/symbol.png', rarity: 'C' };
             return arr[Math.floor(Math.random() * arr.length)];
         }
 
@@ -572,6 +612,13 @@
                 image: card.image,
                 rarity: card.rarity
             };
+        }
+
+        function getRarityBadgeClass(rarity) {
+            const r = String(rarity).toUpperCase();
+            if (['SAR', 'SR', 'UR', 'HR'].includes(r)) return 'rare-sar';
+            if (['AR', 'RR', 'CSR', 'CHR'].includes(r)) return 'rare-ar';
+            return '';
         }
 
         function renderCardStack() {
@@ -586,7 +633,7 @@
                 cardEl.style.transform = `translate(${idx * 2}px, ${idx * 2}px)`;
 
                 const rBadge = document.createElement('div');
-                rBadge.className = 'rarity-badge';
+                rBadge.className = `rarity-badge ${getRarityBadgeClass(card.rarity)}`;
                 rBadge.textContent = card.rarity;
                 cardEl.appendChild(rBadge);
 
@@ -715,7 +762,7 @@
                 imgDiv.style.backgroundImage = `url('${c.data.image}')`;
                 
                 const rBadge = document.createElement('div');
-                rBadge.className = 'rarity-badge';
+                rBadge.className = `rarity-badge ${getRarityBadgeClass(c.data.rarity)}`;
                 rBadge.textContent = c.data.rarity;
                 imgDiv.appendChild(rBadge);
 
@@ -837,7 +884,7 @@
                 imgDiv.style.backgroundSize = 'cover';
 
                 const rBadge = document.createElement('div');
-                rBadge.className = 'rarity-badge';
+                rBadge.className = `rarity-badge ${getRarityBadgeClass(card.rarity)}`;
                 rBadge.textContent = card.rarity;
                 imgDiv.appendChild(rBadge);
 
