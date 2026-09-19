@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Simulator (100% Free & No API Key)</title>
+    <title>Pokémon TCG Ultimate Simulator</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -24,6 +24,7 @@
             flex-direction: column;
             align-items: center;
             padding: 15px;
+            overflow-x: hidden;
         }
 
         .auth-overlay {
@@ -65,9 +66,19 @@
             background: var(--panel); width: 100%; padding: 25px; border-radius: 15px; text-align: center;
             display: flex; flex-direction: column; align-items: center;
         }
+
+        .lang-selector {
+            display: flex; gap: 10px; margin-bottom: 15px;
+        }
+        .lang-btn {
+            padding: 6px 14px; background: #0b0d19; border: 1px solid #444; color: #fff;
+            border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: bold;
+        }
+        .lang-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
         .series-select {
             width: 100%; max-width: 650px; padding: 12px; background: #0b0d19;
-            color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; margin: 15px 0; font-weight: bold;
+            color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; margin-bottom: 15px; font-weight: bold;
         }
         
         .buy-options { display: flex; gap: 20px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
@@ -85,19 +96,75 @@
             border-radius: 15px; position: relative; overflow: hidden; margin-top: 10px;
         }
 
+        /* 팩 연출 스테이지 */
         .pack-open-stage {
-            width: 100%; background: var(--panel); border-radius: 15px; padding: 20px;
-            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 380px;
+            width: 100%; background: var(--panel); border-radius: 15px; padding: 25px;
+            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 420px;
+            position: relative;
         }
-        .pack-wrapper {
-            width: 170px; height: 250px; background: #111;
-            border: 3px solid var(--accent); border-radius: 12px; display: flex; flex-direction: column;
-            justify-content: space-between; align-items: center; cursor: pointer; padding: 12px;
-            box-shadow: 0 10px 25px rgba(255,203,5,0.3); transition: transform 0.2s;
-        }
-        .pack-wrapper:hover { transform: scale(1.05); }
-        .pack-art { width: 100%; height: 140px; object-fit: contain; }
 
+        /* 부스터 팩 커스텀 디자인 */
+        .pack-container {
+            position: relative;
+            width: 180px;
+            height: 290px;
+            cursor: pointer;
+            perspective: 1000px;
+        }
+
+        .pack-body {
+            position: absolute;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e2540 0%, #0a0d1a 100%);
+            border: 2px solid var(--accent);
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.8), 0 0 15px rgba(255,203,5,0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            transition: transform 0.2s;
+        }
+        .pack-container:hover .pack-body { transform: scale(1.03); }
+
+        .pack-top-crimp {
+            width: 100%; height: 16px;
+            background: repeating-linear-gradient(90deg, #333, #333 3px, #111 3px, #111 6px);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .pack-bottom-crimp {
+            width: 100%; height: 16px;
+            background: repeating-linear-gradient(90deg, #333, #333 3px, #111 3px, #111 6px);
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .pack-art-img {
+            width: 85%; height: 180px; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+        }
+
+        /* 팩 뜯는 애니메이션 효과 */
+        .pack-tearing {
+            animation: packShake 0.4s ease-in-out infinite;
+        }
+        .pack-top-tear {
+            animation: tearOff 0.6s forwards ease-in;
+        }
+
+        @keyframes packShake {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-3deg) scale(1.02); }
+            75% { transform: rotate(3deg) scale(1.02); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes tearOff {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-120px) rotate(-20deg); opacity: 0; }
+        }
+
+        /* 카드 스택 */
         .stack-container {
             position: relative;
             width: 180px;
@@ -117,6 +184,7 @@
             touch-action: none;
             border: 2px solid rgba(255,255,255,0.2);
             background-color: #1a2744;
+            transition: transform 0.15s;
         }
         .stacked-card:active { cursor: grabbing; }
 
@@ -169,7 +237,7 @@
             <h2 style="color:var(--accent); margin-bottom:15px;">🎮 Pokémon TCG Simulator</h2>
             <input type="text" id="authId" placeholder="아이디 입력" value="Master">
             <input type="password" id="authPw" placeholder="비밀번호" value="1234">
-            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">✅ API Key가 필요없는 100% 무료 서버입니다.</p>
+            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">✨ 일판/한판 지원 & 100% 무료 서버</p>
             <button onclick="handleAuth()">게임 시작하기</button>
         </div>
     </div>
@@ -195,14 +263,27 @@
 
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>⚡ Open-Source Free Booster Shop</h2>
-            <p style="color:#2ed573; font-size:0.85rem; margin-top:5px;">✨ TCGdex 오픈소스 API 연동 완료 (제한 없이 무제한 이용 가능)</p>
+            <h2>⚡ Official Booster Shop</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px; margin-bottom: 15px;">원하는 언어와 확장팩을 선택해 팩을 구매하세요!</p>
+
+            <div class="lang-selector">
+                <button class="lang-btn" onclick="changeLanguage('ko')" id="lang-ko">🇰🇷 한국어</button>
+                <button class="lang-btn active" onclick="changeLanguage('en')" id="lang-en">🇺🇸 영어</button>
+                <button class="lang-btn" onclick="changeLanguage('ja')" id="lang-ja">🇯🇵 일본어</button>
+            </div>
 
             <select id="seriesSelect" class="series-select" onchange="loadSetData()"></select>
             <div id="loadStatus" class="status-loading">대기 중...</div>
 
-            <div id="shopPackPreview" style="margin: 10px 0; min-height: 160px; display: flex; align-items: center; justify-content: center;">
-                <img id="previewPackImg" src="" style="height: 160px; object-fit: contain;">
+            <div id="shopPackPreview" style="margin: 15px 0; min-height: 220px; display: flex; align-items: center; justify-content: center;">
+                <div class="pack-container" style="cursor:default;">
+                    <div class="pack-body">
+                        <div class="pack-top-crimp"></div>
+                        <img id="previewPackImg" src="" class="pack-art-img">
+                        <div id="previewPackTitle" style="font-size:0.8rem; font-weight:bold; color:var(--accent); text-align:center;">Booster Pack</div>
+                        <div class="pack-bottom-crimp"></div>
+                    </div>
+                </div>
             </div>
 
             <div class="buy-options">
@@ -227,7 +308,7 @@
     <div id="viewOpen" class="view-section">
         <div class="open-container" style="width:100%;">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 드래그해서 치우면 책상으로 이동합니다!</p>
+                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 더블클릭하면 바인더로 들어갑니다!</p>
                 <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
             </div>
 
@@ -263,9 +344,10 @@
         let tableCards = [];
         let globalZIndex = 100;
 
+        let currentLang = 'en'; 
         let availableSets = [];
         let setCardsCache = {}; 
-        let currentSetCards = { common: [], hit: [] };
+        let currentSetCards = { common: [], rare: [], ultra: [] };
         let currentSetInfo = null;
 
         window.onload = function() {
@@ -275,13 +357,20 @@
             });
         };
 
-        // TCGdex 무료 오픈소스 API 활용
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`lang-${lang}`).classList.add('active');
+            setCardsCache = {}; // 언어 변경시 캐시 초기화
+            fetchSetsFromAPI();
+        }
+
         async function fetchSetsFromAPI() {
             const statusEl = document.getElementById('loadStatus');
-            statusEl.textContent = '🚀 무료 TCGdex API에서 확장팩 불러오는 중...';
+            statusEl.textContent = `🚀 [${currentLang.toUpperCase()}] 세트 목록을 받아오는 중...`;
             
             try {
-                const res = await fetch('https://api.tcgdex.net/v2/en/sets');
+                const res = await fetch(`https://api.tcgdex.net/v2/${currentLang}/sets`);
                 if(!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 
                 const data = await res.json();
@@ -296,11 +385,11 @@
                     select.appendChild(opt);
                 });
 
-                statusEl.textContent = `✅ 총 ${availableSets.length}개 세트 준비 완료! (API Key 없음)`;
+                statusEl.textContent = `✅ 총 ${availableSets.length}개 세트 준비 완료!`;
                 loadSetData();
             } catch (err) {
                 console.error("세트 로드 에러:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">❌ 서버 네트워크 통신 오류가 발생했습니다.</span>`;
+                statusEl.innerHTML = `<span style="color:#ff4757;">❌ 네트워크 통신 오류가 발생했습니다.</span>`;
             }
         }
 
@@ -314,6 +403,7 @@
             
             const logoUrl = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : '';
             document.getElementById('previewPackImg').src = logoUrl;
+            document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
 
             if (setCardsCache[setId]) {
                 currentSetCards = setCardsCache[setId];
@@ -326,7 +416,7 @@
             buyBtn.disabled = true; buyBoxBtn.disabled = true;
 
             try {
-                const res = await fetch(`https://api.tcgdex.net/v2/en/sets/${setId}`);
+                const res = await fetch(`https://api.tcgdex.net/v2/${currentLang}/sets/${setId}`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
@@ -341,20 +431,34 @@
 
                 if(validCards.length === 0) throw new Error("이미지가 제공되는 카드가 없습니다.");
 
-                const commonList = validCards.filter(c => !c.rarity.toLowerCase().includes('rare') && !c.rarity.toLowerCase().includes('ultra'));
-                const hitList = validCards.filter(c => c.rarity.toLowerCase().includes('rare') || c.rarity.toLowerCase().includes('ultra') || c.rarity.toLowerCase().includes('secret'));
+                // 실제 팩 가챠 밸런스 분류 (Common/Uncommon, Rare, Ultra Rare 이상)
+                const commonList = [];
+                const rareList = [];
+                const ultraList = [];
+
+                validCards.forEach(c => {
+                    const r = c.rarity.toLowerCase();
+                    if (r.includes('ultra') || r.includes('secret') || r.includes('special') || r.includes('hyper') || r.includes('illustration') || r.includes('rainbow')) {
+                        ultraList.push(c);
+                    } else if (r.includes('rare') || r.includes('holo')) {
+                        rareList.push(c);
+                    } else {
+                        commonList.push(c);
+                    }
+                });
 
                 setCardsCache[setId] = {
                     common: commonList.length ? commonList : validCards,
-                    hit: hitList.length ? hitList : validCards
+                    rare: rareList.length ? rareList : validCards,
+                    ultra: ultraList.length ? ultraList : (rareList.length ? rareList : validCards)
                 };
                 currentSetCards = setCardsCache[setId];
 
-                statusEl.textContent = `✅ [${currentSetInfo.name}] 카드 준비 완료!`;
+                statusEl.textContent = `✅ [${currentSetInfo.name}] 카드 세팅 완료!`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
             } catch (err) {
                 console.error("카드 로드 실패:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 카드 세트 로딩 실패. 다른 세트를 선택해 주세요.</span>`;
+                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 카드 로딩 실패. 다른 세트를 선택해 주세요.</span>`;
             }
         }
 
@@ -366,7 +470,7 @@
             document.getElementById('displayUserId').textContent = id;
             document.getElementById('authOverlay').style.display = 'none';
 
-            const users = JSON.parse(localStorage.getItem('tcg_free_v1') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_free_v2') || '{}');
             if(!users[id]) users[id] = { gold: 100000, packInventory: 0, binder: [] };
             gold = users[id].gold || 100000;
             packInventory = users[id].packInventory || 0;
@@ -380,9 +484,9 @@
 
         function saveUserData() {
             if(!currentUser) return;
-            const users = JSON.parse(localStorage.getItem('tcg_free_v1') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_free_v2') || '{}');
             users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
-            localStorage.setItem('tcg_free_v1', JSON.stringify(users));
+            localStorage.setItem('tcg_free_v2', JSON.stringify(users));
         }
 
         function updateUI() {
@@ -454,36 +558,69 @@
             const logoImg = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : '';
 
             packZone.innerHTML = `
-                <div class="pack-wrapper" onclick="openPack()">
-                    <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.85rem;">${currentSetInfo ? currentSetInfo.name : 'Booster Pack'}</div>
-                    <img src="${logoImg}" class="pack-art">
-                    <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN PACK</div>
+                <div class="pack-container" id="interactivePack" onclick="triggerTearPack()">
+                    <div class="pack-body" id="packBody">
+                        <div class="pack-top-crimp" id="packTopCrimp"></div>
+                        <img src="${logoImg}" class="pack-art-img">
+                        <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 CLICK TO OPEN</div>
+                        <div class="pack-bottom-crimp"></div>
+                    </div>
                 </div>
             `;
         }
 
-        function openPack() {
+        function triggerTearPack() {
             if (packInventory <= 0) return;
 
-            const packZone = document.getElementById('packZone');
-            packInventory--;
-            saveUserData();
-            updateUI();
+            const packContainer = document.getElementById('interactivePack');
+            const packBody = document.getElementById('packBody');
+            const packTop = document.getElementById('packTopCrimp');
 
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 개봉 완료! 카드를 옆으로 드래그해 보세요.</p>`;
+            // 클릭 및 뜯는 연출 애니메이션 실행
+            packContainer.onclick = null; // 중복 클릭 방지
+            packBody.classList.add('pack-tearing');
+            packTop.classList.add('pack-top-tear');
 
+            setTimeout(() => {
+                packInventory--;
+                saveUserData();
+                updateUI();
+
+                document.getElementById('packZone').innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 개봉 완료! 카드를 옆으로 드래그해 보세요.</p>`;
+                generatePackCards();
+                renderCardStack();
+            }, 600);
+        }
+
+        // 실제 확률 가챠 밸런스 로직
+        function generatePackCards() {
             currentPackCards = [];
-            const pool = currentSetCards.common;
-            const hitPool = currentSetCards.hit;
-
+            
+            // 1~4번째 카드: 커먼/언커먼 중심 (85% 커먼, 15% 레어)
             for(let i = 0; i < 4; i++) {
-                const picked = pool[Math.floor(Math.random() * pool.length)];
+                const rand = Math.random();
+                let picked;
+                if(rand < 0.85) {
+                    picked = getRandomFrom(currentSetCards.common);
+                } else {
+                    picked = getRandomFrom(currentSetCards.rare);
+                }
                 currentPackCards.push(createCardInstance(picked));
             }
-            const randHit = hitPool[Math.floor(Math.random() * hitPool.length)];
-            currentPackCards.push(createCardInstance(randHit));
 
-            renderCardStack();
+            // 5번째 카드 (확정 히트 슬롯): 레어 이상 확정 (70% Rare, 30% Ultra Rare/SR/SAR)
+            const hitRand = Math.random();
+            let hitCard;
+            if (hitRand < 0.70) {
+                hitCard = getRandomFrom(currentSetCards.rare);
+            } else {
+                hitCard = getRandomFrom(currentSetCards.ultra);
+            }
+            currentPackCards.push(createCardInstance(hitCard));
+        }
+
+        function getRandomFrom(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
         }
 
         function createCardInstance(card) {
@@ -608,7 +745,7 @@
                 switchView('shop');
                 return;
             }
-            openPack();
+            renderPackToOpen();
         }
 
         function renderDesk() {
