@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Live API Master Simulator</title>
+    <title>Pokémon TCG Master Simulator</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -131,8 +131,6 @@
 
         .btn-action { padding: 10px 20px; background: var(--accent); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: black; }
         .action-controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
-        .loading-spinner { border: 3px solid #333; border-top: 3px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -168,25 +166,20 @@
     <!-- 상점 뷰 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>🌐 Live Pokémon TCG API Booster Shop</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">Pokémon TCG API에서 실시간으로 세트 및 카드를 불러옵니다!</p>
-            
-            <div id="shopLoading" style="margin: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                <div class="loading-spinner"></div>
-                <span style="color:var(--accent);">Pokémon TCG API에서 최신 세트 목록을 가져오는 중...</span>
-            </div>
+            <h2>⚡ Offline Master Booster Shop</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">통신 에러 없는 로컬 초고속 부스터 상점입니다!</p>
 
-            <select id="seriesSelect" class="series-select" style="display:none;" onchange="updatePackPreview()">
+            <select id="seriesSelect" class="series-select" onchange="updatePackPreview()">
             </select>
 
             <div id="shopPackPreview" style="margin: 10px 0; min-height: 160px; display: flex; align-items: center; justify-content: center;">
-                <img id="previewPackImg" src="" style="height: 160px; object-fit: contain; display:none;">
+                <img id="previewPackImg" src="" style="height: 160px; object-fit: contain;">
             </div>
 
             <div class="shop-buy-box">
                 <label for="buyPackCount">수량: </label>
                 <input type="number" id="buyPackCount" value="1" min="1" max="99">
-                <button class="btn-action" id="btnBuyPack" disabled onclick="buyPacks()">팩 구매 (<span id="totalCost">1,000</span>G)</button>
+                <button class="btn-action" id="btnBuyPack" onclick="buyPacks()">팩 구매 (<span id="totalCost">1,000</span>G)</button>
             </div>
         </div>
     </div>
@@ -230,18 +223,51 @@
         let currentUser = null;
         let gold = 100000;
         let packInventory = 0;
-        let apiSets = [];
         let selectedSet = null;
-        let setCardsCache = {}; 
         let binder = [];
         let currentPackCards = [];
         let tableCards = [];
         let globalZIndex = 100;
 
-        // 안정적인 API 키 헤더 옵션
-        const API_HEADERS = {
-            'X-Api-Key': 'c15b13b4-4b57-4148-912b-3e5fa3ff6383'
-        };
+        // 로컬 카드 데이터 세트
+        const LOCAL_SETS = [
+            {
+                id: 'sv1',
+                name: 'Scarlet & Violet Base',
+                logo: 'https://images.pokemontcg.io/sv1/logo.png',
+                cards: [
+                    { name: 'Miradon ex', image: 'https://images.pokemontcg.io/sv1/81_hires.png' },
+                    { name: 'Koraidon ex', image: 'https://images.pokemontcg.io/sv1/125_hires.png' },
+                    { name: 'Gardevoir ex', image: 'https://images.pokemontcg.io/sv1/86_hires.png' },
+                    { name: 'Arcanine ex', image: 'https://images.pokemontcg.io/sv1/32_hires.png' },
+                    { name: 'Gyarados ex', image: 'https://images.pokemontcg.io/sv1/45_hires.png' }
+                ]
+            },
+            {
+                id: 'swsh12',
+                name: 'Silver Tempest',
+                logo: 'https://images.pokemontcg.io/swsh12/logo.png',
+                cards: [
+                    { name: 'Lugia VSTAR', image: 'https://images.pokemontcg.io/swsh12/139_hires.png' },
+                    { name: 'Regidrago VSTAR', image: 'https://images.pokemontcg.io/swsh12/136_hires.png' },
+                    { name: 'Unown VSTAR', image: 'https://images.pokemontcg.io/swsh12/66_hires.png' },
+                    { name: 'Alolan Vulpix VSTAR', image: 'https://images.pokemontcg.io/swsh12/34_hires.png' },
+                    { name: 'Mawile VSTAR', image: 'https://images.pokemontcg.io/swsh12/71_hires.png' }
+                ]
+            },
+            {
+                id: 'swsh11',
+                name: 'Lost Origin',
+                logo: 'https://images.pokemontcg.io/swsh11/logo.png',
+                cards: [
+                    { name: 'Giratina VSTAR', image: 'https://images.pokemontcg.io/swsh11/131_hires.png' },
+                    { name: 'Kyurem VMAX', image: 'https://images.pokemontcg.io/swsh11/49_hires.png' },
+                    { name: 'Aerodactyl VSTAR', image: 'https://images.pokemontcg.io/swsh11/93_hires.png' },
+                    { name: 'Pidgeot V', image: 'https://images.pokemontcg.io/swsh11/137_hires.png' },
+                    { name: 'Rotom V', image: 'https://images.pokemontcg.io/swsh11/58_hires.png' }
+                ]
+            }
+        ];
 
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
@@ -249,42 +275,28 @@
                 document.getElementById('totalCost').textContent = (count * 1000).toLocaleString();
             });
 
-            fetchApiSets();
+            initShop();
         };
 
-        async function fetchApiSets() {
-            try {
-                const response = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate&select=id,name,series,images,total', { headers: API_HEADERS });
-                const data = await response.json();
-                apiSets = data.data;
+        function initShop() {
+            const select = document.getElementById('seriesSelect');
+            select.innerHTML = '';
 
-                const select = document.getElementById('seriesSelect');
-                select.innerHTML = '';
+            LOCAL_SETS.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.name} - (내장 보장 세트)`;
+                select.appendChild(opt);
+            });
 
-                apiSets.forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.textContent = `${s.name} (${s.series}) - ${s.total} Cards`;
-                    select.appendChild(opt);
-                });
-
-                document.getElementById('shopLoading').style.display = 'none';
-                select.style.display = 'inline-block';
-                document.getElementById('previewPackImg').style.display = 'inline-block';
-                document.getElementById('btnBuyPack').disabled = false;
-
-                updatePackPreview();
-            } catch (err) {
-                console.error("API Fetch Error:", err);
-                document.getElementById('shopLoading').innerHTML = `<span style="color:#e74c3c;">⚠️ API 서버 통신 실패. 네트워크 연결 상태를 확인해 주세요.</span>`;
-            }
+            updatePackPreview();
         }
 
         function updatePackPreview() {
             const setId = document.getElementById('seriesSelect').value;
-            selectedSet = apiSets.find(s => s.id === setId);
-            if(selectedSet && selectedSet.images) {
-                document.getElementById('previewPackImg').src = selectedSet.images.logo;
+            selectedSet = LOCAL_SETS.find(s => s.id === setId);
+            if(selectedSet) {
+                document.getElementById('previewPackImg').src = selectedSet.logo;
             }
         }
 
@@ -368,95 +380,70 @@
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
                     <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.85rem;">${selectedSet.name}</div>
-                    <img src="${selectedSet.images.logo}" class="pack-art" alt="Pack Art">
+                    <img src="${selectedSet.logo}" class="pack-art" alt="Pack Art">
                     <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN PACK</div>
                 </div>
             `;
         }
 
-        async function openPack() {
+        function openPack() {
             if (packInventory <= 0 || !selectedSet) return;
 
             const packZone = document.getElementById('packZone');
             const grid = document.getElementById('packCardsGrid');
-            
-            packZone.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
-                    <div class="loading-spinner"></div>
-                    <p style="color:var(--accent); font-weight:bold;">🌐 API에서 [${selectedSet.name}] 카드 팩을 불러오는 중...</p>
-                </div>
-            `;
 
-            try {
-                // 필드를 경량화(select=id,name,images)하여 빠르게 요청
-                if(!setCardsCache[selectedSet.id]) {
-                    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${selectedSet.id}&select=id,name,images`, { headers: API_HEADERS });
-                    const data = await res.json();
-                    setCardsCache[selectedSet.id] = data.data;
-                }
+            packInventory--;
+            saveUserData();
+            updateUI();
 
-                const availableCards = setCardsCache[selectedSet.id];
-                if(!availableCards || availableCards.length === 0) {
-                    throw new Error("카드 데이터를 불러올 수 없습니다.");
-                }
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] Booster Pack Unboxed!</p>`;
+            document.getElementById('btnFlipAll').disabled = false;
 
-                packInventory--;
-                saveUserData();
-                updateUI();
+            currentPackCards = [];
+            const availableCards = selectedSet.cards;
 
-                packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] Booster Pack Unboxed!</p>`;
-                document.getElementById('btnFlipAll').disabled = false;
-
-                currentPackCards = [];
-
-                for(let i = 0; i < 5; i++) {
-                    const randomPick = availableCards[Math.floor(Math.random() * availableCards.length)];
-                    currentPackCards.push({
-                        id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                        name: randomPick.name,
-                        image: randomPick.images.large || randomPick.images.small
-                    });
-                }
-
-                grid.innerHTML = '';
-                currentPackCards.forEach((card, idx) => {
-                    const cardEl = document.createElement('div');
-                    cardEl.className = 'card-flip-container';
-                    cardEl.id = `packCard_${idx}`;
-
-                    cardEl.innerHTML = `
-                        <div class="card-inner">
-                            <div class="card-back"></div>
-                            <div class="card-front" style="background-image: url('${card.image}');"></div>
-                        </div>
-                    `;
-
-                    cardEl.onclick = () => {
-                        if(!cardEl.classList.contains('flipped')) {
-                            cardEl.classList.add('flipped');
-                        } else {
-                            sendCardToDesk(card);
-                            cardEl.style.opacity = '0.3';
-                            cardEl.style.pointerEvents = 'none';
-                        }
-                    };
-
-                    grid.appendChild(cardEl);
+            for(let i = 0; i < 5; i++) {
+                const randomPick = availableCards[Math.floor(Math.random() * availableCards.length)];
+                currentPackCards.push({
+                    id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                    name: randomPick.name,
+                    image: randomPick.image
                 });
+            }
 
-                const nextBtn = document.getElementById('btnNextPack');
-                document.getElementById('nextActionZone').style.display = 'flex';
+            grid.innerHTML = '';
+            currentPackCards.forEach((card, idx) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card-flip-container';
+                cardEl.id = `packCard_${idx}`;
 
-                if(packInventory > 0) {
-                    nextBtn.innerText = `⚡ 바로 다음 팩 개봉 (남은 팩: ${packInventory}개)`;
-                } else {
-                    nextBtn.innerText = `모든 팩 개봉 완료!`;
-                }
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-back"></div>
+                        <div class="card-front" style="background-image: url('${card.image}');"></div>
+                    </div>
+                `;
 
-            } catch (err) {
-                console.error("Pack Open API Error:", err);
-                alert("카드 API 통신 제한으로 카드 로딩에 실패했습니다.");
-                renderPackToOpen();
+                cardEl.onclick = () => {
+                    if(!cardEl.classList.contains('flipped')) {
+                        cardEl.classList.add('flipped');
+                    } else {
+                        sendCardToDesk(card);
+                        cardEl.style.opacity = '0.3';
+                        cardEl.style.pointerEvents = 'none';
+                    }
+                };
+
+                grid.appendChild(cardEl);
+            });
+
+            const nextBtn = document.getElementById('btnNextPack');
+            document.getElementById('nextActionZone').style.display = 'flex';
+
+            if(packInventory > 0) {
+                nextBtn.innerText = `⚡ 바로 다음 팩 개봉 (남은 팩: ${packInventory}개)`;
+            } else {
+                nextBtn.innerText = `모든 팩 개봉 완료!`;
             }
         }
 
