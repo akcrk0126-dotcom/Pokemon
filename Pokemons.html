@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Master Simulator</title>
+    <title>Pokémon TCG Unboxing Simulator</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -84,7 +84,7 @@
 
         .pack-open-stage {
             width: 100%; background: var(--panel); border-radius: 15px; padding: 20px;
-            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 250px;
+            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 380px;
         }
         .pack-wrapper {
             width: 170px; height: 250px; background: #111;
@@ -95,16 +95,35 @@
         .pack-wrapper:hover { transform: scale(1.05); }
         .pack-art { width: 100%; height: 140px; object-fit: contain; }
 
-        .cards-pack-grid { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 15px; width: 100%; }
-        .card-flip-container { width: 110px; height: 154px; perspective: 1000px; cursor: pointer; position: relative; }
-        .card-inner { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; transition: transform 0.5s; border-radius: 8px; }
-        .card-flip-container.flipped .card-inner { transform: rotateY(180deg); }
-        .card-front, .card-back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 8px; overflow: hidden; }
-        .card-back { background: linear-gradient(135deg, #1b2755, #0a0f24); border: 2px solid var(--accent); display: flex; justify-content: center; align-items: center; }
-        .card-back::after { content: '🌀'; font-size: 2rem; }
-        .card-front { transform: rotateY(180deg); background-size: cover; background-position: center; }
+        .stack-container {
+            position: relative;
+            width: 180px;
+            height: 250px;
+            margin-top: 10px;
+        }
 
-        .table-card { position: absolute; width: 110px; height: 154px; cursor: grab; border-radius: 8px; transition: box-shadow 0.2s; }
+        .stacked-card {
+            position: absolute;
+            top: 0; left: 0;
+            width: 180px; height: 250px;
+            border-radius: 12px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            cursor: grab;
+            touch-action: none;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .stacked-card:active { cursor: grabbing; }
+
+        .table-card { 
+            position: absolute; 
+            width: 110px; 
+            height: 154px; 
+            cursor: grab; 
+            border-radius: 8px; 
+            touch-action: none;
+        }
         .table-card:active { cursor: grabbing; }
         .table-card .card-ui { width: 100%; height: 100%; border-radius: 8px; background-size: cover; background-position: center; pointer-events: none; }
 
@@ -124,6 +143,10 @@
         .psa-badge {
             position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white;
             font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 8px; border: 1px solid white; z-index: 20;
+        }
+        .rarity-badge {
+            position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.75); color: #ffcb05;
+            font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffcb05;
         }
 
         .binder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px; }
@@ -166,10 +189,11 @@
     <!-- 상점 뷰 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>⚡ Offline Master Booster Shop</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">통신 에러 없는 로컬 초고속 부스터 상점입니다!</p>
+            <h2>⚡ Master Booster Shop</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">전 세계 약 200여 개의 모든 공식 포켓몬 카드 확장팩 데이터베이스를 로드합니다!</p>
 
             <select id="seriesSelect" class="series-select" onchange="updatePackPreview()">
+                <option value="">팩 목록 불러오는 중...</option>
             </select>
 
             <div id="shopPackPreview" style="margin: 10px 0; min-height: 160px; display: flex; align-items: center; justify-content: center;">
@@ -188,22 +212,21 @@
     <div id="viewOpen" class="view-section">
         <div class="open-container">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 클릭하면 개봉 테이블로 이동합니다. (더블클릭 시 바인더 저장)</p>
+                <p style="color:#aaa; font-size:0.85rem;">💡 1~4번째 카드를 드래그해서 치우면 **마지막에 좋은 카드**가 나타납니다!</p>
                 <div>
-                    <button class="btn-action" id="btnFlipAll" onclick="flipAllCards()" disabled style="background:#4bcffa; color:black; padding:6px 12px; font-size:0.85rem;">🔄 모두 뒤집기</button>
                     <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
                 </div>
             </div>
 
             <div class="desk-area" id="deskArea">
                 <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
-                    💡 개봉된 카드를 <b>클릭</b>하여 테이블 위로 배치하세요!
+                    💡 카드를 치우면 아래 <b>개봉 테이블</b>로 자동 세팅되며 내 마음대로 배치할 수 있습니다!
                 </p>
             </div>
 
             <div class="pack-open-stage">
                 <div id="packZone"></div>
-                <div class="cards-pack-grid" id="packCardsGrid"></div>
+                <div class="stack-container" id="stackContainer"></div>
                 
                 <div class="action-controls" id="nextActionZone" style="display:none;">
                     <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ 바로 다음 팩 개봉</button>
@@ -229,74 +252,46 @@
         let tableCards = [];
         let globalZIndex = 100;
 
-        // 로컬 카드 데이터 세트
-        const LOCAL_SETS = [
-            {
-                id: 'sv1',
-                name: 'Scarlet & Violet Base',
-                logo: 'https://images.pokemontcg.io/sv1/logo.png',
-                cards: [
-                    { name: 'Miradon ex', image: 'https://images.pokemontcg.io/sv1/81_hires.png' },
-                    { name: 'Koraidon ex', image: 'https://images.pokemontcg.io/sv1/125_hires.png' },
-                    { name: 'Gardevoir ex', image: 'https://images.pokemontcg.io/sv1/86_hires.png' },
-                    { name: 'Arcanine ex', image: 'https://images.pokemontcg.io/sv1/32_hires.png' },
-                    { name: 'Gyarados ex', image: 'https://images.pokemontcg.io/sv1/45_hires.png' }
-                ]
-            },
-            {
-                id: 'swsh12',
-                name: 'Silver Tempest',
-                logo: 'https://images.pokemontcg.io/swsh12/logo.png',
-                cards: [
-                    { name: 'Lugia VSTAR', image: 'https://images.pokemontcg.io/swsh12/139_hires.png' },
-                    { name: 'Regidrago VSTAR', image: 'https://images.pokemontcg.io/swsh12/136_hires.png' },
-                    { name: 'Unown VSTAR', image: 'https://images.pokemontcg.io/swsh12/66_hires.png' },
-                    { name: 'Alolan Vulpix VSTAR', image: 'https://images.pokemontcg.io/swsh12/34_hires.png' },
-                    { name: 'Mawile VSTAR', image: 'https://images.pokemontcg.io/swsh12/71_hires.png' }
-                ]
-            },
-            {
-                id: 'swsh11',
-                name: 'Lost Origin',
-                logo: 'https://images.pokemontcg.io/swsh11/logo.png',
-                cards: [
-                    { name: 'Giratina VSTAR', image: 'https://images.pokemontcg.io/swsh11/131_hires.png' },
-                    { name: 'Kyurem VMAX', image: 'https://images.pokemontcg.io/swsh11/49_hires.png' },
-                    { name: 'Aerodactyl VSTAR', image: 'https://images.pokemontcg.io/swsh11/93_hires.png' },
-                    { name: 'Pidgeot V', image: 'https://images.pokemontcg.io/swsh11/137_hires.png' },
-                    { name: 'Rotom V', image: 'https://images.pokemontcg.io/swsh11/58_hires.png' }
-                ]
-            }
-        ];
+        let apiSets = [];
+        const cardCache = {}; // 팩별 카드 불러온 데이터 저장
 
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
                 const count = Math.max(1, parseInt(e.target.value) || 1);
                 document.getElementById('totalCost').textContent = (count * 1000).toLocaleString();
             });
-
-            initShop();
+            fetchApiSets();
         };
 
-        function initShop() {
-            const select = document.getElementById('seriesSelect');
-            select.innerHTML = '';
+        // 공식 API를 통해 200여개의 포켓몬 카드 확장팩 정보를 로드
+        async function fetchApiSets() {
+            try {
+                const res = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate');
+                const data = await res.json();
+                apiSets = data.data;
 
-            LOCAL_SETS.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = `${s.name} - (내장 보장 세트)`;
-                select.appendChild(opt);
-            });
+                const select = document.getElementById('seriesSelect');
+                select.innerHTML = '';
 
-            updatePackPreview();
+                apiSets.forEach(set => {
+                    const opt = document.createElement('option');
+                    opt.value = set.id;
+                    opt.textContent = `[${set.series}] ${set.name} (${set.total}장)`;
+                    select.appendChild(opt);
+                });
+
+                if(apiSets.length > 0) updatePackPreview();
+            } catch (e) {
+                console.error("API 로딩 실패:", e);
+                alert("포켓몬 카드 API를 불러오는데 실패했습니다.");
+            }
         }
 
         function updatePackPreview() {
             const setId = document.getElementById('seriesSelect').value;
-            selectedSet = LOCAL_SETS.find(s => s.id === setId);
+            selectedSet = apiSets.find(s => s.id === setId);
             if(selectedSet) {
-                document.getElementById('previewPackImg').src = selectedSet.logo;
+                document.getElementById('previewPackImg').src = selectedSet.images.logo;
             }
         }
 
@@ -367,10 +362,9 @@
 
         function renderPackToOpen() {
             const packZone = document.getElementById('packZone');
-            const grid = document.getElementById('packCardsGrid');
+            const stack = document.getElementById('stackContainer');
             document.getElementById('nextActionZone').style.display = 'none';
-            grid.innerHTML = '';
-            document.getElementById('btnFlipAll').disabled = true;
+            stack.innerHTML = '';
 
             if (packInventory <= 0) {
                 packZone.innerHTML = `<p style="color:#aaa;">보유한 Booster Pack이 없습니다. 상점에서 구매해 주세요.</p>`;
@@ -380,79 +374,162 @@
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
                     <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.85rem;">${selectedSet.name}</div>
-                    <img src="${selectedSet.logo}" class="pack-art" alt="Pack Art">
+                    <img src="${selectedSet.images.logo}" class="pack-art" alt="Pack Art">
                     <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN PACK</div>
                 </div>
             `;
         }
 
-        function openPack() {
+        async function openPack() {
             if (packInventory <= 0 || !selectedSet) return;
 
             const packZone = document.getElementById('packZone');
-            const grid = document.getElementById('packCardsGrid');
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">⏳ [${selectedSet.name}] 팩 카드를 불러오는 중입니다...</p>`;
+
+            // 해당 팩의 카드 불러오기 (캐싱 활용)
+            let cards = cardCache[selectedSet.id];
+            if(!cards) {
+                try {
+                    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${selectedSet.id}`);
+                    const data = await res.json();
+                    cards = data.data;
+                    cardCache[selectedSet.id] = cards;
+                } catch(e) {
+                    alert("카드 데이터를 불러오지 못했습니다.");
+                    renderPackToOpen();
+                    return;
+                }
+            }
 
             packInventory--;
             saveUserData();
             updateUI();
 
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] Booster Pack Unboxed!</p>`;
-            document.getElementById('btnFlipAll').disabled = false;
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] 개봉! 1~4번을 드래그해서 치우고 히트 카드를 확인하세요.</p>`;
+
+            // 일반 카드 및 히트 카드(좋은 카드) 분리
+            const commons = cards.filter(c => !c.rarity || c.rarity.includes('Common') || c.rarity.includes('Uncommon'));
+            const hits = cards.filter(c => c.rarity && !c.rarity.includes('Common') && !c.rarity.includes('Uncommon'));
+
+            const poolCommon = commons.length > 0 ? commons : cards;
+            const poolHit = hits.length > 0 ? hits : cards;
 
             currentPackCards = [];
-            const availableCards = selectedSet.cards;
-
-            for(let i = 0; i < 5; i++) {
-                const randomPick = availableCards[Math.floor(Math.random() * availableCards.length)];
-                currentPackCards.push({
-                    id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                    name: randomPick.name,
-                    image: randomPick.image
-                });
+            // 1~4번: 일반 카드
+            for(let i = 0; i < 4; i++) {
+                const picked = poolCommon[Math.floor(Math.random() * poolCommon.length)];
+                currentPackCards.push(formatCardData(picked));
             }
+            // 5번: 좋은 카드
+            const pickedHit = poolHit[Math.floor(Math.random() * poolHit.length)];
+            currentPackCards.push(formatCardData(pickedHit));
 
-            grid.innerHTML = '';
+            renderCardStack();
+        }
+
+        function formatCardData(c) {
+            return {
+                id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                name: c.name,
+                image: c.images.large || c.images.small,
+                rarity: c.rarity || 'C'
+            };
+        }
+
+        function renderCardStack() {
+            const container = document.getElementById('stackContainer');
+            container.innerHTML = '';
+
             currentPackCards.forEach((card, idx) => {
                 const cardEl = document.createElement('div');
-                cardEl.className = 'card-flip-container';
-                cardEl.id = `packCard_${idx}`;
+                cardEl.className = 'stacked-card';
+                cardEl.style.backgroundImage = `url('${card.image}')`;
+                cardEl.style.zIndex = 50 - idx;
+                cardEl.style.transform = `translate(${idx * 2}px, ${idx * 2}px)`;
 
-                cardEl.innerHTML = `
-                    <div class="card-inner">
-                        <div class="card-back"></div>
-                        <div class="card-front" style="background-image: url('${card.image}');"></div>
-                    </div>
-                `;
+                const rBadge = document.createElement('div');
+                rBadge.className = 'rarity-badge';
+                rBadge.textContent = card.rarity;
+                cardEl.appendChild(rBadge);
 
-                cardEl.onclick = () => {
-                    if(!cardEl.classList.contains('flipped')) {
-                        cardEl.classList.add('flipped');
-                    } else {
-                        sendCardToDesk(card);
-                        cardEl.style.opacity = '0.3';
-                        cardEl.style.pointerEvents = 'none';
-                    }
-                };
-
-                grid.appendChild(cardEl);
+                makeDraggableStackCard(cardEl, card, idx);
+                container.appendChild(cardEl);
             });
+        }
 
-            const nextBtn = document.getElementById('btnNextPack');
-            document.getElementById('nextActionZone').style.display = 'flex';
+        // 드래그 제스처 수정 (글로벌 마우스/터치 이벤트 연동)
+        function makeDraggableStackCard(el, cardData, initialIdx) {
+            let startX = 0, startY = 0;
+            let currentX = 0, currentY = 0;
+            let isDragging = false;
 
-            if(packInventory > 0) {
-                nextBtn.innerText = `⚡ 바로 다음 팩 개봉 (남은 팩: ${packInventory}개)`;
-            } else {
-                nextBtn.innerText = `모든 팩 개봉 완료!`;
+            const onStart = (e) => {
+                isDragging = true;
+                const point = e.touches ? e.touches[0] : e;
+                startX = point.clientX;
+                startY = point.clientY;
+
+                window.addEventListener('mousemove', onMove);
+                window.addEventListener('touchmove', onMove, { passive: false });
+                window.addEventListener('mouseup', onEnd);
+                window.addEventListener('touchend', onEnd);
+            };
+
+            const onMove = (e) => {
+                if (!isDragging) return;
+                const point = e.touches ? e.touches[0] : e;
+                currentX = point.clientX - startX;
+                currentY = point.clientY - startY;
+
+                el.style.transform = `translate(${initialIdx * 2 + currentX}px, ${initialIdx * 2 + currentY}px) rotate(${currentX * 0.05}deg)`;
+            };
+
+            const onEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('touchmove', onMove);
+                window.removeEventListener('mouseup', onEnd);
+                window.removeEventListener('touchend', onEnd);
+
+                if (Math.abs(currentX) > 70 || Math.abs(currentY) > 70) {
+                    el.style.transition = 'opacity 0.25s, transform 0.25s';
+                    el.style.opacity = '0';
+                    el.style.transform += ' scale(0.8)';
+                    
+                    setTimeout(() => {
+                        el.remove();
+                        sendCardToDesk(cardData);
+                        checkStackEmpty();
+                    }, 200);
+                } else {
+                    el.style.transition = 'transform 0.2s';
+                    el.style.transform = `translate(${initialIdx * 2}px, ${initialIdx * 2}px)`;
+                    setTimeout(() => el.style.transition = '', 200);
+                }
+            };
+
+            el.addEventListener('mousedown', onStart);
+            el.addEventListener('touchstart', onStart, { passive: false });
+        }
+
+        function checkStackEmpty() {
+            const container = document.getElementById('stackContainer');
+            if (container.children.length === 0) {
+                const nextBtn = document.getElementById('btnNextPack');
+                document.getElementById('nextActionZone').style.display = 'flex';
+
+                if(packInventory > 0) {
+                    nextBtn.innerText = `⚡ 바로 다음 팩 개봉 (남은 팩: ${packInventory}개)`;
+                } else {
+                    nextBtn.innerText = `모든 팩 개봉 완료!`;
+                }
             }
         }
 
         function sendCardToDesk(cardData) {
             document.getElementById('deskNotice').style.display = 'none';
-            
-            const existing = tableCards.find(c => c.instanceId === cardData.id);
-            if(existing) return;
-
             const offset = (tableCards.length * 25) % 250;
 
             const cardObj = {
@@ -479,13 +556,7 @@
             openPack();
         }
 
-        function flipAllCards() {
-            currentPackCards.forEach((_, idx) => {
-                const el = document.getElementById(`packCard_${idx}`);
-                if(el) el.classList.add('flipped');
-            });
-        }
-
+        // 개봉 테이블 드래그 로직 수정
         function renderDesk() {
             const desk = document.getElementById('deskArea');
             document.querySelectorAll('.table-card').forEach(el => el.remove());
@@ -512,6 +583,12 @@
                 const imgDiv = document.createElement('div');
                 imgDiv.className = 'card-ui';
                 imgDiv.style.backgroundImage = `url('${c.data.image}')`;
+                
+                const rBadge = document.createElement('div');
+                rBadge.className = 'rarity-badge';
+                rBadge.textContent = c.data.rarity;
+                imgDiv.appendChild(rBadge);
+
                 el.appendChild(imgDiv);
 
                 if(c.psa) {
@@ -521,36 +598,54 @@
                     el.appendChild(badge);
                 }
 
-                el.onmousedown = (e) => {
+                // 테이블 내부 카드 이동
+                let isDragging = false;
+                let shiftX = 0, shiftY = 0;
+
+                const onStart = (e) => {
                     if(e.target.tagName === 'BUTTON') return;
-                    
+                    isDragging = true;
                     c.zIndex = ++globalZIndex;
                     el.style.zIndex = c.zIndex;
 
-                    let shiftX = e.clientX - el.getBoundingClientRect().left;
-                    let shiftY = e.clientY - el.getBoundingClientRect().top;
+                    const point = e.touches ? e.touches[0] : e;
+                    const rect = el.getBoundingClientRect();
+                    shiftX = point.clientX - rect.left;
+                    shiftY = point.clientY - rect.top;
 
-                    function moveAt(pageX, pageY) {
-                        let newX = pageX - shiftX - desk.getBoundingClientRect().left;
-                        let newY = pageY - shiftY - desk.getBoundingClientRect().top;
-
-                        newX = Math.max(0, Math.min(newX, desk.clientWidth - 110));
-                        newY = Math.max(0, Math.min(newY, desk.clientHeight - 154));
-
-                        el.style.left = newX + 'px';
-                        el.style.top = newY + 'px';
-                        c.x = newX; c.y = newY;
-                    }
-
-                    function onMouseMove(e) { moveAt(e.pageX, e.pageY); }
-
-                    document.addEventListener('mousemove', onMouseMove);
-
-                    document.onmouseup = function() {
-                        document.removeEventListener('mousemove', onMouseMove);
-                        document.onmouseup = null;
-                    };
+                    window.addEventListener('mousemove', onMove);
+                    window.addEventListener('touchmove', onMove, { passive: false });
+                    window.addEventListener('mouseup', onEnd);
+                    window.addEventListener('touchend', onEnd);
                 };
+
+                const onMove = (e) => {
+                    if (!isDragging) return;
+                    const point = e.touches ? e.touches[0] : e;
+                    const deskRect = desk.getBoundingClientRect();
+
+                    let newX = point.clientX - shiftX - deskRect.left;
+                    let newY = point.clientY - shiftY - deskRect.top;
+
+                    newX = Math.max(0, Math.min(newX, desk.clientWidth - 110));
+                    newY = Math.max(0, Math.min(newY, desk.clientHeight - 154));
+
+                    el.style.left = newX + 'px';
+                    el.style.top = newY + 'px';
+                    c.x = newX; 
+                    c.y = newY;
+                };
+
+                const onEnd = () => {
+                    isDragging = false;
+                    window.removeEventListener('mousemove', onMove);
+                    window.removeEventListener('touchmove', onMove);
+                    window.removeEventListener('mouseup', onEnd);
+                    window.removeEventListener('touchend', onEnd);
+                };
+
+                el.addEventListener('mousedown', onStart);
+                el.addEventListener('touchstart', onStart, { passive: false });
 
                 el.ondblclick = () => {
                     binder.push({ ...c.data, sleeve: c.sleeve, toploader: c.toploader, psa: c.psa });
@@ -612,6 +707,12 @@
                 imgDiv.style.width = '100%'; imgDiv.style.height = '100%';
                 imgDiv.style.borderRadius = '8px';
                 imgDiv.style.backgroundSize = 'cover';
+
+                const rBadge = document.createElement('div');
+                rBadge.className = 'rarity-badge';
+                rBadge.textContent = card.rarity;
+                imgDiv.appendChild(rBadge);
+
                 item.appendChild(imgDiv);
 
                 if(card.psa) {
