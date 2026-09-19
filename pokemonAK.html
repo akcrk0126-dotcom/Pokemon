@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Simulator - Fixed Rarity & Images</title>
+    <title>Pokémon TCG Simulator - English Only</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -16,7 +16,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
         body {
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Pretendard', -apple-system, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             min-height: 100vh;
@@ -66,13 +66,6 @@
             background: var(--panel); width: 100%; padding: 25px; border-radius: 15px; text-align: center;
             display: flex; flex-direction: column; align-items: center;
         }
-
-        .lang-selector { display: flex; gap: 10px; margin-bottom: 15px; }
-        .lang-btn {
-            padding: 6px 14px; background: #0b0d19; border: 1px solid #444; color: #fff;
-            border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: bold;
-        }
-        .lang-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
         .series-select {
             width: 100%; max-width: 650px; padding: 12px; background: #0b0d19;
@@ -164,7 +157,6 @@
             font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 8px; border: 1px solid white; z-index: 20;
         }
         
-        /* 실제 희귀도 태그 스타일 */
         .rarity-badge {
             position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.85); color: #ffcb05;
             font-size: 0.7rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffcb05;
@@ -191,10 +183,10 @@
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-box">
             <h2 style="color:var(--accent); margin-bottom:15px;">🎮 Pokémon TCG Simulator</h2>
-            <input type="text" id="authId" placeholder="아이디 입력" value="Master">
-            <input type="password" id="authPw" placeholder="비밀번호" value="1234">
-            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">✨ 실제 카드 등급(SAR/AR/SR/RR 등) 파싱 완료</p>
-            <button onclick="handleAuth()">게임 시작하기</button>
+            <input type="text" id="authId" placeholder="User ID" value="Master">
+            <input type="password" id="authPw" placeholder="Password" value="1234">
+            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">🇺🇸 English Sets Only / Fixed Pack Art</p>
+            <button onclick="handleAuth()">Start Game</button>
         </div>
     </div>
 
@@ -219,17 +211,11 @@
 
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>⚡ Official Booster Shop</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px; margin-bottom: 15px;">원하는 언어와 확장팩을 선택해 팩을 구매하세요!</p>
-
-            <div class="lang-selector">
-                <button class="lang-btn" onclick="changeLanguage('ko')" id="lang-ko">🇰🇷 한국어</button>
-                <button class="lang-btn active" onclick="changeLanguage('en')" id="lang-en">🇺🇸 영어</button>
-                <button class="lang-btn" onclick="changeLanguage('ja')" id="lang-ja">🇯🇵 일본어</button>
-            </div>
+            <h2>⚡ Official Booster Shop (English)</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px; margin-bottom: 15px;">Select an English booster set to purchase!</p>
 
             <select id="seriesSelect" class="series-select" onchange="loadSetData()"></select>
-            <div id="loadStatus" class="status-loading">대기 중...</div>
+            <div id="loadStatus" class="status-loading">Loading sets...</div>
 
             <div id="shopPackPreview" style="margin: 15px 0; min-height: 220px; display: flex; align-items: center; justify-content: center;">
                 <div class="pack-container" style="cursor:default;">
@@ -244,18 +230,18 @@
 
             <div class="buy-options">
                 <div class="shop-buy-box">
-                    <div style="font-weight:bold; color:#4bcffa;">🎈 팩 개별 구매</div>
+                    <div style="font-weight:bold; color:#4bcffa;">🎈 Buy Single Packs</div>
                     <div>
-                        <label>수량: </label>
+                        <label>Qty: </label>
                         <input type="number" id="buyPackCount" value="1" min="1" max="99">
                     </div>
-                    <button class="btn-action" id="btnBuyPack" onclick="buyPacks()">팩 구매 (<span id="totalCost">1,000</span>G)</button>
+                    <button class="btn-action" id="btnBuyPack" onclick="buyPacks()">Buy (<span id="totalCost">1,000</span>G)</button>
                 </div>
 
                 <div class="shop-buy-box" style="border-color: var(--accent);">
-                    <div style="font-weight:bold; color:var(--accent);">📦 부스터 박스 (30팩)</div>
-                    <div style="font-size:0.8rem; color:#aaa;">10% 특별 할인 혜택!</div>
-                    <button class="btn-action" id="btnBuyBox" onclick="buyBoosterBox()" style="background:#ff9f1a; color:white;">박스 구매 (27,000G)</button>
+                    <div style="font-weight:bold; color:var(--accent);">📦 Booster Box (30 Packs)</div>
+                    <div style="font-size:0.8rem; color:#aaa;">10% Special Discount!</div>
+                    <button class="btn-action" id="btnBuyBox" onclick="buyBoosterBox()" style="background:#ff9f1a; color:white;">Buy Box (27,000G)</button>
                 </div>
             </div>
         </div>
@@ -264,13 +250,13 @@
     <div id="viewOpen" class="view-section">
         <div class="open-container" style="width:100%;">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 더블클릭하면 바인더로 들어갑니다!</p>
-                <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
+                <p style="color:#aaa; font-size:0.85rem;">💡 Double-click a card on desk to send it to Binder!</p>
+                <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 Clear Desk</button>
             </div>
 
             <div class="desk-area" id="deskArea">
                 <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
-                    💡 카드를 더블클릭하면 <b>Collection Binder</b>에 저장됩니다.
+                    💡 Double click cards to save into <b>Collection Binder</b>.
                 </p>
             </div>
 
@@ -279,8 +265,8 @@
                 <div class="stack-container" id="stackContainer"></div>
                 
                 <div class="action-controls" id="nextActionZone" style="display:none;">
-                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ 바로 다음 팩 개봉</button>
-                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 팩 선택 화면으로</button>
+                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ Open Next Pack</button>
+                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 Back to Shop</button>
                 </div>
             </div>
         </div>
@@ -300,11 +286,11 @@
         let tableCards = [];
         let globalZIndex = 100;
 
-        let currentLang = 'en'; 
         let availableSets = [];
         let setCardsCache = {}; 
         let currentSetCards = { common: [], rare: [], ultra: [] };
         let currentSetInfo = null;
+        let fixedPackArt = '';
 
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
@@ -313,20 +299,12 @@
             });
         };
 
-        function changeLanguage(lang) {
-            currentLang = lang;
-            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`lang-${lang}`).classList.add('active');
-            setCardsCache = {}; 
-            fetchSetsFromAPI();
-        }
-
         async function fetchSetsFromAPI() {
             const statusEl = document.getElementById('loadStatus');
-            statusEl.textContent = `🚀 [${currentLang.toUpperCase()}] 세트 목록을 받아오는 중...`;
+            statusEl.textContent = `🚀 Loading English Sets from API...`;
             
             try {
-                const res = await fetch(`https://api.tcgdex.net/v2/${currentLang}/sets`);
+                const res = await fetch(`https://api.tcgdex.net/v2/en/sets`);
                 if(!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 
                 const data = await res.json();
@@ -338,33 +316,22 @@
                     const count = s.cardCount.official || s.cardCount.total || 0;
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${count}장)`;
+                    opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${count} cards)`;
                     select.appendChild(opt);
                 });
 
-                statusEl.textContent = `✅ 총 ${availableSets.length}개 세트 준비 완료!`;
+                statusEl.textContent = `✅ Ready! ${availableSets.length} English sets loaded.`;
                 loadSetData();
             } catch (err) {
-                console.error("세트 로드 에러:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">❌ 네트워크 통신 오류가 발생했습니다.</span>`;
+                console.error("Set loading error:", err);
+                statusEl.innerHTML = `<span style="color:#ff4757;">❌ Network error occurred.</span>`;
             }
         }
 
-        // 포켓몬 카드 희귀도 파싱 및 분류 함수 (SAR, SR, AR, UR, RR, R, C 등 지원)
         function parseCardRarity(rawRarity, localId) {
-            if (!rawRarity || rawRarity === 'None') {
-                if (localId && typeof localId === 'string') {
-                    if (localId.includes('SAR')) return 'SAR';
-                    if (localId.includes('SR')) return 'SR';
-                    if (localId.includes('AR')) return 'AR';
-                    if (localId.includes('UR')) return 'UR';
-                    if (localId.includes('RR')) return 'RR';
-                }
-                return 'C';
-            }
-
+            if (!rawRarity || rawRarity === 'None') return 'C';
             const str = String(rawRarity).trim().toUpperCase();
-            
+
             if (str.includes('SPECIAL ILLUSTRATION') || str.includes('SAR')) return 'SAR';
             if (str.includes('ILLUSTRATION RARE') || str === 'AR') return 'AR';
             if (str.includes('HYPER') || str.includes('SECRET') || str === 'UR') return 'UR';
@@ -386,36 +353,33 @@
             const buyBoxBtn = document.getElementById('btnBuyBox');
 
             currentSetInfo = availableSets.find(s => s.id === setId) || availableSets[0];
-            
-            const logoUrl = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : 'https://assets.tcgdex.net/univ/symbol.png';
-            document.getElementById('previewPackImg').src = logoUrl;
-            document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
 
             if (setCardsCache[setId]) {
-                currentSetCards = setCardsCache[setId];
-                statusEl.textContent = `⚡ [준비 완료] ${currentSetInfo.name}`;
+                currentSetCards = setCardsCache[setId].cards;
+                fixedPackArt = setCardsCache[setId].packArt;
+                document.getElementById('previewPackImg').src = fixedPackArt;
+                document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
+                statusEl.textContent = `⚡ [Ready] ${currentSetInfo.name}`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
                 return;
             }
 
-            statusEl.textContent = `⏳ [${currentSetInfo.name}] 카드 세트 불러오는 중...`;
+            statusEl.textContent = `⏳ Loading cards for [${currentSetInfo.name}]...`;
             buyBtn.disabled = true; buyBoxBtn.disabled = true;
 
             try {
-                const res = await fetch(`https://api.tcgdex.net/v2/${currentLang}/sets/${setId}`);
+                const res = await fetch(`https://api.tcgdex.net/v2/en/sets/${setId}`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
                 const rawCards = data.cards || [];
 
-                if(rawCards.length === 0) throw new Error("카드 데이터가 없습니다.");
+                if(rawCards.length === 0) throw new Error("No card data in set.");
 
                 const validCards = rawCards.map(c => {
                     let cardId = c.localId || c.id;
                     let parsedRarity = parseCardRarity(c.rarity, cardId);
-
-                    // 이미지 URL 2단계 Fallback 적용 (로딩 문제 해결)
-                    let imgPath = c.image ? `${c.image}/high.png` : `https://assets.tcgdex.net/${currentLang}/${setId}/${cardId}/high.png`;
+                    let imgPath = c.image ? `${c.image}/high.png` : `https://assets.tcgdex.net/en/${setId}/${cardId}/high.png`;
 
                     return {
                         id: c.id,
@@ -431,7 +395,7 @@
 
                 validCards.forEach(c => {
                     const r = c.rarity;
-                    if (['SAR', 'SR', 'AR', 'UR', 'HR', 'CSR'].includes(r)) {
+                    if (['SAR', 'SR', 'AR', 'UR', 'HR'].includes(r)) {
                         ultraList.push(c);
                     } else if (['RR', 'R'].includes(r)) {
                         rareList.push(c);
@@ -440,30 +404,47 @@
                     }
                 });
 
-                setCardsCache[setId] = {
-                    common: commonList.length ? commonList : validCards,
-                    rare: rareList.length ? rareList : validCards,
-                    ultra: ultraList.length ? ultraList : (rareList.length ? rareList : validCards)
-                };
-                currentSetCards = setCardsCache[setId];
+                // 고정 팩 일러스트 설정: 세트 로고 우선 -> 없으면 첫 희귀 카드 일러스트 -> 기본 심볼
+                if (currentSetInfo.logo) {
+                    fixedPackArt = `${currentSetInfo.logo}.png`;
+                } else if (ultraList.length > 0) {
+                    fixedPackArt = ultraList[0].image;
+                } else if (rareList.length > 0) {
+                    fixedPackArt = rareList[0].image;
+                } else {
+                    fixedPackArt = validCards[0].image;
+                }
 
-                statusEl.textContent = `✅ [${currentSetInfo.name}] 로딩 완료! (C/UC: ${commonList.length}장, R/RR: ${rareList.length}장, SAR/SR/AR/UR: ${ultraList.length}장)`;
+                document.getElementById('previewPackImg').src = fixedPackArt;
+                document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
+
+                setCardsCache[setId] = {
+                    cards: {
+                        common: commonList.length ? commonList : validCards,
+                        rare: rareList.length ? rareList : validCards,
+                        ultra: ultraList.length ? ultraList : (rareList.length ? rareList : validCards)
+                    },
+                    packArt: fixedPackArt
+                };
+                currentSetCards = setCardsCache[setId].cards;
+
+                statusEl.textContent = `✅ [${currentSetInfo.name}] Ready! (Total ${validCards.length} Cards)`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
             } catch (err) {
-                console.error("카드 로드 실패:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 카드 정보가 부족한 세트입니다. 다른 세트를 선택해 주세요.</span>`;
+                console.error("Card loading failed:", err);
+                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ Incomplete set data. Please select another set.</span>`;
             }
         }
 
         function handleAuth() {
             const id = document.getElementById('authId').value.trim();
-            if(!id) return alert("아이디를 입력해주세요!");
+            if(!id) return alert("Please enter User ID!");
             currentUser = id;
 
             document.getElementById('displayUserId').textContent = id;
             document.getElementById('authOverlay').style.display = 'none';
 
-            const users = JSON.parse(localStorage.getItem('tcg_free_v2') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_free_en_v1') || '{}');
             if(!users[id]) users[id] = { gold: 100000, packInventory: 0, binder: [] };
             gold = users[id].gold || 100000;
             packInventory = users[id].packInventory || 0;
@@ -477,9 +458,9 @@
 
         function saveUserData() {
             if(!currentUser) return;
-            const users = JSON.parse(localStorage.getItem('tcg_free_v2') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_free_en_v1') || '{}');
             users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
-            localStorage.setItem('tcg_free_v2', JSON.stringify(users));
+            localStorage.setItem('tcg_free_en_v1', JSON.stringify(users));
         }
 
         function updateUI() {
@@ -511,28 +492,28 @@
             const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
             const totalCost = count * 1000;
 
-            if(gold < totalCost) return alert("Gold가 부족합니다!");
+            if(gold < totalCost) return alert("Not enough Gold!");
             
             gold -= totalCost;
             packInventory += count;
             saveUserData();
             updateUI();
             
-            alert(`Booster Pack ${count}개 구매 완료!`);
+            alert(`Purchased ${count} Booster Pack(s)!`);
             switchView('open');
             renderPackToOpen();
         }
 
         function buyBoosterBox() {
             const boxCost = 27000;
-            if(gold < boxCost) return alert("Gold가 부족합니다!");
+            if(gold < boxCost) return alert("Not enough Gold!");
 
             gold -= boxCost;
             packInventory += 30;
             saveUserData();
             updateUI();
 
-            alert(`📦 Booster Box (30팩) 구매 완료!`);
+            alert(`📦 Purchased Booster Box (30 Packs)!`);
             switchView('open');
             renderPackToOpen();
         }
@@ -544,17 +525,15 @@
             stack.innerHTML = '';
 
             if (packInventory <= 0) {
-                packZone.innerHTML = `<p style="color:#aaa;">보유한 Booster Pack이 없습니다. 상점에서 구매해 주세요.</p>`;
+                packZone.innerHTML = `<p style="color:#aaa;">No Booster Packs left. Please buy more from the Shop.</p>`;
                 return;
             }
-
-            const logoImg = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : 'https://assets.tcgdex.net/univ/symbol.png';
 
             packZone.innerHTML = `
                 <div class="pack-container" id="interactivePack" onclick="triggerTearPack()">
                     <div class="pack-body" id="packBody">
                         <div class="pack-top-crimp" id="packTopCrimp"></div>
-                        <img src="${logoImg}" class="pack-art-img">
+                        <img src="${fixedPackArt}" class="pack-art-img">
                         <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 CLICK TO OPEN</div>
                         <div class="pack-bottom-crimp"></div>
                     </div>
@@ -578,7 +557,7 @@
                 saveUserData();
                 updateUI();
 
-                document.getElementById('packZone').innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 개봉 완료! 카드를 옆으로 드래그해 보세요.</p>`;
+                document.getElementById('packZone').innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ Opened! Drag cards sideways to inspect.</p>`;
                 generatePackCards();
                 renderCardStack();
             }, 600);
@@ -587,14 +566,12 @@
         function generatePackCards() {
             currentPackCards = [];
             
-            // 1~4번 카드: C/UC 중심 (85% C/UC, 15% R/RR)
             for(let i = 0; i < 4; i++) {
                 const rand = Math.random();
                 let picked = (rand < 0.85) ? getRandomFrom(currentSetCards.common) : getRandomFrom(currentSetCards.rare);
                 currentPackCards.push(createCardInstance(picked));
             }
 
-            // 5번 카드 (히트 확정 슬롯): 70% R/RR, 30% SAR/SR/AR/UR
             const hitRand = Math.random();
             let hitCard = (hitRand < 0.70) ? getRandomFrom(currentSetCards.rare) : getRandomFrom(currentSetCards.ultra);
             currentPackCards.push(createCardInstance(hitCard));
@@ -617,7 +594,7 @@
         function getRarityBadgeClass(rarity) {
             const r = String(rarity).toUpperCase();
             if (['SAR', 'SR', 'UR', 'HR'].includes(r)) return 'rare-sar';
-            if (['AR', 'RR', 'CSR', 'CHR'].includes(r)) return 'rare-ar';
+            if (['AR', 'RR'].includes(r)) return 'rare-ar';
             return '';
         }
 
@@ -699,9 +676,9 @@
                 const nextBtn = document.getElementById('btnNextPack');
                 document.getElementById('nextActionZone').style.display = 'flex';
                 if(packInventory > 0) {
-                    nextBtn.innerText = `⚡ 바로 다음 팩 개봉 (남은 팩: ${packInventory}개)`;
+                    nextBtn.innerText = `⚡ Open Next Pack (${packInventory} left)`;
                 } else {
-                    nextBtn.innerText = `모든 팩 개봉 완료!`;
+                    nextBtn.innerText = `All packs opened!`;
                 }
             }
         }
@@ -727,7 +704,7 @@
 
         function openNextPack() {
             if(packInventory <= 0) {
-                alert("보유한 팩이 없습니다!");
+                alert("No packs left!");
                 switchView('shop');
                 return;
             }
@@ -751,8 +728,8 @@
                 const menu = document.createElement('div');
                 menu.className = 'card-menu';
                 menu.innerHTML = `
-                    <button onclick="toggleSleeve('${c.instanceId}')">✨슬리브</button>
-                    <button onclick="toggleToploader('${c.instanceId}')">🛡️탑로더</button>
+                    <button onclick="toggleSleeve('${c.instanceId}')">✨Sleeve</button>
+                    <button onclick="toggleToploader('${c.instanceId}')">🛡️Toploader</button>
                     <button onclick="gradePSA('${c.instanceId}')">🔍PSA</button>
                 `;
                 el.appendChild(menu);
@@ -828,7 +805,7 @@
                     saveUserData();
                     updateUI();
                     renderDesk();
-                    alert("📘 카드가 바인더에 추가되었습니다!");
+                    alert("📘 Saved to Binder!");
                 };
 
                 desk.appendChild(el);
@@ -848,13 +825,13 @@
             if(card) {
                 const grades = [8, 9, 9, 10, 10];
                 card.psa = grades[Math.floor(Math.random() * grades.length)];
-                alert(`🔍 PSA 등급 평가 완료: [PSA ${card.psa}]`);
+                alert(`🔍 PSA Graded: [PSA ${card.psa}]`);
                 renderDesk();
             }
         }
 
         function refreshTable() {
-            if(confirm("테이블 위 카드를 정리하시겠습니까?")) {
+            if(confirm("Clear all cards from desk?")) {
                 tableCards = [];
                 renderDesk();
                 document.getElementById('deskNotice').style.display = 'block';
@@ -866,7 +843,7 @@
             grid.innerHTML = '';
 
             if(binder.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #aaa;">바인더가 비어있습니다.</p>`;
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #aaa;">Binder is empty.</p>`;
                 return;
             }
 
