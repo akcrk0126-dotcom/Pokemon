@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Dynamic Simulator</title>
+    <title>Pokémon TCG API Master Simulator</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -76,7 +76,7 @@
             width: 70px; padding: 8px; text-align: center; background: #16192b; color: #fff; border: 1px solid var(--accent); border-radius: 6px; font-weight: bold; font-size: 1rem;
         }
 
-        .status-loading { font-size: 0.9rem; color: #4bcffa; margin-top: 8px; }
+        .status-loading { font-size: 0.9rem; color: #4bcffa; margin-top: 8px; font-weight: bold; }
 
         .desk-area {
             width: 100%; height: 480px; background: var(--desk); border: 2px dashed #38426b;
@@ -147,9 +147,9 @@
             font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 8px; border: 1px solid white; z-index: 20;
         }
         .rarity-badge {
-            position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.75); color: #ffcb05;
+            position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.8); color: #ffcb05;
             font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 4px; border: 1px solid #ffcb05;
-            max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            max-width: 95px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
         .binder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px; }
@@ -163,7 +163,7 @@
 
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-box">
-            <h2 style="color:var(--accent); margin-bottom:15px;">🔑 Pokémon TCG Login</h2>
+            <h2 style="color:var(--accent); margin-bottom:15px;">🔑 API Master Login</h2>
             <input type="text" id="authId" placeholder="아이디" value="Master">
             <input type="password" id="authPw" placeholder="비밀번호" value="1234">
             <button onclick="handleAuth()">Start Game</button>
@@ -191,8 +191,8 @@
 
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>⚡ API Live Booster Shop</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">선택한 확장팩의 전체 카드 데이터를 API에서 실시간으로 로드해 무제한 랜덤 개봉합니다!</p>
+            <h2>⚡ Official All-Pack Live Shop (200+ Sets)</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">공식 포켓몬 TCG의 모든 200여 개 확장팩 데이터입니다. 캐싱 시스템으로 API 호출을 극대화하여 아껴 씁니다.</p>
 
             <select id="seriesSelect" class="series-select" onchange="loadSetData()"></select>
             <div id="loadStatus" class="status-loading">데이터 불러오는 중...</div>
@@ -212,7 +212,7 @@
     <div id="viewOpen" class="view-section">
         <div class="open-container" style="width:100%;">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 바깥으로 드래그해 치우면 다음 카드가 나타납니다!</p>
+                <p style="color:#aaa; font-size:0.85rem;">💡 1~4번은 일반 카드, 5번째는 항상 하이 레어 카드가 등장합니다!</p>
                 <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
             </div>
 
@@ -249,7 +249,8 @@
         let globalZIndex = 100;
 
         let availableSets = [];
-        let currentSetCards = [];
+        let setCardsCache = {}; // API 캐시 객체: 한번 로드한 팩 데이터는 저장하여 API 재호출 방지
+        let currentSetCards = { common: [], hit: [] };
         let currentSetInfo = null;
 
         window.onload = function() {
@@ -260,34 +261,35 @@
             fetchSetsFromAPI();
         };
 
-        // 1. API에서 주요 확장팩 목록 가져오기
+        // 1. 전체 200여 개 확장팩 목록 단 1회 API 호출
         async function fetchSetsFromAPI() {
             const statusEl = document.getElementById('loadStatus');
-            statusEl.textContent = '🚀 확장팩 세트 목록 로딩 중...';
+            statusEl.textContent = '🚀 공식 확장팩 200여 개 세트 목록 데이터 가져오는 중...';
             
             try {
                 const res = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate');
                 const data = await res.json();
                 
-                // 인기 주요 확장팩 위주 추출 (이미지 존재하는 세트)
+                // 공식 이미지가 등록된 전체 팩 추출
                 availableSets = data.data.filter(s => s.images && s.images.logo);
                 
                 const select = document.getElementById('seriesSelect');
                 select.innerHTML = '';
-                availableSets.slice(0, 30).forEach(s => {
+                availableSets.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = `[${s.series}] ${s.name} (${s.total} cards)`;
+                    opt.textContent = `[${s.series}] ${s.name} (${s.total}장) - ${s.releaseDate}`;
                     select.appendChild(opt);
                 });
 
+                statusEl.textContent = `✅ 총 ${availableSets.length}개 공식 확장팩 로드 완료!`;
                 loadSetData();
             } catch (err) {
-                statusEl.textContent = '❌ 세트 목록 로딩 실패. 다시 시도해 주세요.';
+                statusEl.textContent = '❌ 세트 목록 로딩 실패. 네트워크 상태를 확인해 주세요.';
             }
         }
 
-        // 2. 선택한 확장팩의 전체 카드 가져오기
+        // 2. 선택된 팩의 카드만 가져오기 (메모리 캐싱으로 API 크레딧 최소화)
         async function loadSetData() {
             const setId = document.getElementById('seriesSelect').value;
             const statusEl = document.getElementById('loadStatus');
@@ -298,25 +300,55 @@
                 document.getElementById('previewPackImg').src = currentSetInfo.images.logo;
             }
 
-            statusEl.textContent = '⏳ 카드를 API에서 대량 로딩 중입니다...';
+            // 이미 로드된 적 있는 팩이라면 API 호출 없이 바로 캐시 데이터 사용
+            if (setCardsCache[setId]) {
+                currentSetCards = setCardsCache[setId];
+                statusEl.textContent = `⚡ [캐시 적용] ${currentSetInfo.name} 데이터 준비 완료 (일반: ${currentSetCards.common.length}장 / 히트: ${currentSetCards.hit.length}장)`;
+                buyBtn.disabled = false;
+                return;
+            }
+
+            statusEl.textContent = `⏳ [${currentSetInfo.name}] 카드 로딩 중...`;
             buyBtn.disabled = true;
 
             try {
-                // 해당 세트의 카드 250장까지 한 번에 로드
+                // 특정 팩 1개의 전체 카드 데이터 1회 호출
                 const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=250`);
                 const data = await res.json();
                 
-                currentSetCards = data.data.map(c => ({
+                const allCards = data.data.map(c => ({
                     id: c.id,
                     name: c.name,
                     image: c.images.large || c.images.small,
                     rarity: c.rarity || 'Common'
                 }));
 
-                statusEl.textContent = `✅ 총 ${currentSetCards.length}장의 카드가 준비되었습니다!`;
+                // 3. 레어리티 밸런스 정밀 분류
+                const commonList = [];
+                const hitList = [];
+
+                allCards.forEach(c => {
+                    const r = c.rarity.toLowerCase();
+                    // 레어, 더블레어, 울트라레어, SAR, UR, RRR 등은 히트 슬롯으로 배치
+                    if (r.includes('rare') || r.includes('promo') === false && (r.includes('double') || r.includes('ultra') || r.includes('secret') || r.includes('hyper') || r.includes('illustration') || r.includes('holo'))) {
+                        hitList.push(c);
+                    } else {
+                        commonList.push(c);
+                    }
+                });
+
+                // 데이터 안전성 가드: 만약 분류가 한쪽으로 쏠렸을 경우 보정
+                const finalCommon = commonList.length > 0 ? commonList : allCards;
+                const finalHit = hitList.length > 0 ? hitList : allCards;
+
+                // 캐시에 저장하여 다시 호출되지 않도록 방지
+                setCardsCache[setId] = { common: finalCommon, hit: finalHit };
+                currentSetCards = setCardsCache[setId];
+
+                statusEl.textContent = `✅ [${currentSetInfo.name}] 준비 완료! (일반 pool: ${finalCommon.length}장, 레어 pool: ${finalHit.length}장)`;
                 buyBtn.disabled = false;
             } catch (err) {
-                statusEl.textContent = '❌ 카드 로딩 중 오류가 발생했습니다.';
+                statusEl.textContent = '❌ 카드 로딩 중 오류 발생. 다시 시도해 주세요.';
             }
         }
 
@@ -327,7 +359,7 @@
             document.getElementById('displayUserId').textContent = id;
             document.getElementById('authOverlay').style.display = 'none';
 
-            const users = JSON.parse(localStorage.getItem('tcg_api_users') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_master_v3') || '{}');
             if(!users[id]) users[id] = { gold: 100000, packInventory: 0, binder: [] };
             gold = users[id].gold || 100000;
             packInventory = users[id].packInventory || 0;
@@ -339,9 +371,9 @@
 
         function saveUserData() {
             if(!currentUser) return;
-            const users = JSON.parse(localStorage.getItem('tcg_api_users') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_master_v3') || '{}');
             users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
-            localStorage.setItem('tcg_api_users', JSON.stringify(users));
+            localStorage.setItem('tcg_master_v3', JSON.stringify(users));
         }
 
         function updateUI() {
@@ -370,7 +402,7 @@
         }
 
         function buyPacks() {
-            if(currentSetCards.length === 0) return alert("카드 로딩이 완료될 때까지 기다려주세요!");
+            if(!currentSetCards.common.length) return alert("카드 데이터 로드가 아직 안 끝났습니다!");
 
             const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
             const totalCost = count * 1000;
@@ -407,33 +439,26 @@
             `;
         }
 
-        // 3. 팩 개봉 확률 시스템 (Common/Uncommon vs Rare/Ultra Rare 구분)
+        // 4. 개봉 알고리즘: 1~4장 (일반) + 5장 (하이 레어)
         function openPack() {
-            if (packInventory <= 0 || currentSetCards.length === 0) return;
+            if (packInventory <= 0 || !currentSetCards.common.length) return;
 
             const packZone = document.getElementById('packZone');
             packInventory--;
             saveUserData();
             updateUI();
 
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${currentSetInfo.name}] 개봉 중! 카드를 옆으로 치워보세요.</p>`;
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${currentSetInfo.name}] 개봉 중! 카드를 드래그해서 넘기세요.</p>`;
 
             currentPackCards = [];
             
-            // Common / Uncommon 카드 분류
-            const commons = currentSetCards.filter(c => c.rarity.includes('Common') || c.rarity.includes('Uncommon'));
-            const hits = currentSetCards.filter(c => !c.rarity.includes('Common') && !c.rarity.includes('Uncommon'));
-
-            const commonPool = commons.length > 0 ? commons : currentSetCards;
-            const hitPool = hits.length > 0 ? hits : currentSetCards;
-
-            // 1~4번 슬롯: 일반 카드 pool에서 추출
+            // 1~4번 슬롯: 일반 pool
             for(let i = 0; i < 4; i++) {
-                currentPackCards.push(getRandomCard(commonPool));
+                currentPackCards.push(getRandomCard(currentSetCards.common));
             }
 
-            // 5번 슬롯: 레어/히트 카드 등장
-            currentPackCards.push(getRandomCard(hitPool));
+            // 5번 슬롯: 무조건 레어/히트 pool
+            currentPackCards.push(getRandomCard(currentSetCards.hit));
 
             renderCardStack();
         }
