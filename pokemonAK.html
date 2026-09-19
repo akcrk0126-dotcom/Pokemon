@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Simulator - English Only</title>
+    <title>포켓몬 TCG 시뮬레이터 - 100만원 실거래 시세 버전</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -34,7 +34,7 @@
         }
         .auth-box {
             background: var(--panel); padding: 30px; border-radius: 15px;
-            border: 2px solid var(--accent); width: 340px; text-align: center;
+            border: 2px solid var(--accent); width: 350px; text-align: center;
         }
         .auth-box input {
             width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px;
@@ -50,8 +50,8 @@
             align-items: center; background: var(--panel); padding: 15px 25px; border-radius: 15px;
             margin-bottom: 15px; flex-wrap: wrap; gap: 10px;
         }
-        .gold-display { font-size: 1.1rem; font-weight: bold; color: var(--accent); display: flex; gap: 15px; align-items: center;}
-        .pack-badge { font-size: 0.95rem; color: #4bcffa; background: #1a2744; padding: 4px 10px; border-radius: 20px; border: 1px solid #4bcffa; }
+        .gold-display { font-size: 1.15rem; font-weight: bold; color: var(--accent); display: flex; gap: 15px; align-items: center;}
+        .pack-badge { font-size: 0.9rem; color: #4bcffa; background: #1a2744; padding: 4px 10px; border-radius: 20px; border: 1px solid #4bcffa; }
 
         .nav-btns button {
             padding: 8px 14px; margin-left: 3px; border-radius: 8px; border: none;
@@ -74,7 +74,7 @@
         
         .buy-options { display: flex; gap: 20px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
         .shop-buy-box {
-            display: flex; flex-direction: column; align-items: center; gap: 10px; background: #0b0d19; padding: 15px 20px; border-radius: 12px; border: 1px solid #333; min-width: 200px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px; background: #0b0d19; padding: 15px 20px; border-radius: 12px; border: 1px solid #333; min-width: 220px;
         }
         .shop-buy-box input {
             width: 70px; padding: 6px; text-align: center; background: #16192b; color: #fff; border: 1px solid var(--accent); border-radius: 6px; font-weight: bold;
@@ -101,16 +101,21 @@
             border: 2px solid var(--accent); border-radius: 12px;
             box-shadow: 0 12px 30px rgba(0,0,0,0.8), 0 0 15px rgba(255,203,5,0.2);
             overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center;
-            padding: 10px; transition: transform 0.2s;
+            padding: 8px; transition: transform 0.2s;
         }
         .pack-container:hover .pack-body { transform: scale(1.03); }
 
         .pack-top-crimp, .pack-bottom-crimp {
             width: 100%; height: 16px;
             background: repeating-linear-gradient(90deg, #333, #333 3px, #111 3px, #111 6px);
+            z-index: 5;
         }
 
-        .pack-art-img { width: 85%; height: 180px; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
+        .pack-art-img {
+            width: 90%; height: 200px; object-fit: contain;
+            filter: drop-shadow(0 5px 12px rgba(0,0,0,0.7));
+            margin: auto 0;
+        }
 
         .pack-tearing { animation: packShake 0.4s ease-in-out infinite; }
         .pack-top-tear { animation: tearOff 0.6s forwards ease-in; }
@@ -147,8 +152,12 @@
             display: none; gap: 4px; z-index: 99999; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         .table-card:hover .card-menu { display: flex; }
-        .card-menu button { background: #222; color: #fff; border: none; padding: 3px 6px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; }
-        .card-menu button:hover { background: var(--accent); color: #000; }
+        .card-menu button, .binder-btn-group button { 
+            background: #222; color: #fff; border: none; padding: 3px 6px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; 
+        }
+        .card-menu button:hover, .binder-btn-group button:hover { background: var(--accent); color: #000; }
+        .card-menu button.sell-btn, .binder-btn-group button.sell-btn { background: #e74c3c; font-weight: bold; color: white; }
+        .card-menu button.sell-btn:hover, .binder-btn-group button.sell-btn:hover { background: #ff4757; }
 
         .sleeve-effect { box-shadow: 0 0 12px rgba(255, 255, 255, 0.9) !important; border: 2px solid #fff !important; }
         .toploader-effect { border: 4px solid #7ec8ff !important; box-shadow: 0 0 15px #0088ff !important; }
@@ -170,8 +179,18 @@
             background: #1e90ff; color: #fff; border-color: #70a1ff;
         }
 
-        .binder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px; }
+        .market-price-tag {
+            font-size: 0.75rem; font-weight: bold; text-align: center; margin-top: 4px; color: #2ed573;
+        }
+
+        .binder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 35px 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px; }
+        .binder-card-wrapper { display: flex; flex-direction: column; align-items: center; }
         .binder-card { position: relative; border-radius: 8px; width: 110px; height: 154px; }
+        
+        .binder-btn-group {
+            display: flex; flex-direction: column; gap: 3px; width: 110px; margin-top: 6px;
+        }
+        .binder-btn-group button { width: 100%; font-size: 0.68rem; padding: 3px 0; }
 
         .btn-action { padding: 8px 16px; background: var(--accent); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: black; }
         .btn-action:disabled { background: #555 !important; color: #888 !important; cursor: not-allowed; }
@@ -182,47 +201,48 @@
 
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-box">
-            <h2 style="color:var(--accent); margin-bottom:15px;">🎮 Pokémon TCG Simulator</h2>
-            <input type="text" id="authId" placeholder="User ID" value="Master">
-            <input type="password" id="authPw" placeholder="Password" value="1234">
-            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">🇺🇸 English Sets Only / Fixed Pack Art</p>
-            <button onclick="handleAuth()">Start Game</button>
+            <h2 style="color:var(--accent); margin-bottom:10px;">🎮 Pokémon TCG Simulator</h2>
+            <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">실체 시세 & 100만원 예산 연동</p>
+            <input type="text" id="authId" placeholder="유저 ID" value="Master">
+            <input type="password" id="authPw" placeholder="비밀번호" value="1234">
+            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">💰 시작 자본: 1,000,000원</p>
+            <button onclick="handleAuth()">시작하기</button>
         </div>
     </div>
 
     <div class="header-bar">
         <div>
-            <span class="user-info">User: <b id="displayUserId" style="color:#fff;">-</b></span>
+            <span class="user-info">트레이너: <b id="displayUserId" style="color:#fff;">-</b></span>
             <div class="gold-display">
-                <span>💰 <span id="goldCount">100000</span> Gold</span>
-                <span class="pack-badge">📦 Booster Packs: <b id="packInventoryCount">0</b></span>
+                <span>💰 소지금: <span id="goldCount">1,000,000</span>원</span>
+                <span class="pack-badge">📦 보유 팩: <b id="packInventoryCount">0</b>개</span>
             </div>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px;">
             <div class="nav-btns">
-                <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 Booster Shop</button>
-                <button id="btnNavOpen" onclick="switchView('open')">🎴 Unboxing Desk</button>
-                <button id="btnNavBinder" onclick="switchView('binder')">📘 Collection Binder (<span id="binderCount">0</span>)</button>
-                <button onclick="logout()" style="background:#e74c3c; color:white;">Logout</button>
+                <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 부스터 샵</button>
+                <button id="btnNavOpen" onclick="switchView('open')">🎴 개봉 책상</button>
+                <button id="btnNavBinder" onclick="switchView('binder')">📘 수집 바인더 (<span id="binderCount">0</span>)</button>
+                <button onclick="logout()" style="background:#e74c3c; color:white;">로그아웃</button>
             </div>
         </div>
     </div>
 
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>⚡ Official Booster Shop (English)</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px; margin-bottom: 15px;">Select an English booster set to purchase!</p>
+            <h2>⚡ 공식 확장팩 상점 (실제 시세 연동)</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px; margin-bottom: 15px;">원하는 공식 확장팩 시리즈를 선택해 팩 또는 박스로 구입하세요!</p>
 
             <select id="seriesSelect" class="series-select" onchange="loadSetData()"></select>
-            <div id="loadStatus" class="status-loading">Loading sets...</div>
+            <div id="loadStatus" class="status-loading">시리즈 불러오는 중...</div>
 
             <div id="shopPackPreview" style="margin: 15px 0; min-height: 220px; display: flex; align-items: center; justify-content: center;">
                 <div class="pack-container" style="cursor:default;">
                     <div class="pack-body">
                         <div class="pack-top-crimp"></div>
                         <img id="previewPackImg" src="" class="pack-art-img">
-                        <div id="previewPackTitle" style="font-size:0.8rem; font-weight:bold; color:var(--accent); text-align:center;">Booster Pack</div>
+                        <div id="previewPackTitle" style="font-size:0.8rem; font-weight:bold; color:var(--accent); text-align:center;">부스터 팩</div>
                         <div class="pack-bottom-crimp"></div>
                     </div>
                 </div>
@@ -230,18 +250,19 @@
 
             <div class="buy-options">
                 <div class="shop-buy-box">
-                    <div style="font-weight:bold; color:#4bcffa;">🎈 Buy Single Packs</div>
+                    <div style="font-weight:bold; color:#4bcffa;">🎈 개별 팩 구매</div>
+                    <div style="font-size:0.8rem; color:#aaa;">팩당 단가: <span id="singlePackPrice">1,700</span>원</div>
                     <div>
-                        <label>Qty: </label>
+                        <label>수량: </label>
                         <input type="number" id="buyPackCount" value="1" min="1" max="99">
                     </div>
-                    <button class="btn-action" id="btnBuyPack" onclick="buyPacks()">Buy (<span id="totalCost">1,000</span>G)</button>
+                    <button class="btn-action" id="btnBuyPack" onclick="buyPacks()">구입 (<span id="totalCost">1,700</span>원)</button>
                 </div>
 
                 <div class="shop-buy-box" style="border-color: var(--accent);">
-                    <div style="font-weight:bold; color:var(--accent);">📦 Booster Box (30 Packs)</div>
-                    <div style="font-size:0.8rem; color:#aaa;">10% Special Discount!</div>
-                    <button class="btn-action" id="btnBuyBox" onclick="buyBoosterBox()" style="background:#ff9f1a; color:white;">Buy Box (27,000G)</button>
+                    <div style="font-weight:bold; color:var(--accent);">📦 1보스 박스 (30팩)</div>
+                    <div style="font-size:0.8rem; color:#aaa;">박스 시세: <span id="boxPriceDisplay">50,000</span>원</div>
+                    <button class="btn-action" id="btnBuyBox" onclick="buyBoosterBox()" style="background:#ff9f1a; color:white;">박스 구입하기</button>
                 </div>
             </div>
         </div>
@@ -250,13 +271,13 @@
     <div id="viewOpen" class="view-section">
         <div class="open-container" style="width:100%;">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;">💡 Double-click a card on desk to send it to Binder!</p>
-                <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 Clear Desk</button>
+                <p style="color:#aaa; font-size:0.85rem;">💡 책상의 카드를 더블클릭하면 <b>수집 바인더</b>로 저장됩니다.</p>
+                <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 책상 정리</button>
             </div>
 
             <div class="desk-area" id="deskArea">
                 <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
-                    💡 Double click cards to save into <b>Collection Binder</b>.
+                    💡 카드를 더블 클릭하여 바인더에 보관해 보세요.
                 </p>
             </div>
 
@@ -265,24 +286,23 @@
                 <div class="stack-container" id="stackContainer"></div>
                 
                 <div class="action-controls" id="nextActionZone" style="display:none;">
-                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ Open Next Pack</button>
-                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 Back to Shop</button>
+                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ 다음 팩 뜯기</button>
+                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 상점으로 돌아가기</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="viewBinder" class="view-section">
-        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 Collection Binder</h2>
+        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 수집 바인더</h2>
         <div class="binder-grid" id="binderGrid"></div>
     </div>
 
     <script>
         let currentUser = null;
-        let gold = 100000;
+        let gold = 1000000; // 💰 시작 소지금 1,000,000원
         let packInventory = 0;
         let binder = [];
-        let currentPackCards = [];
         let tableCards = [];
         let globalZIndex = 100;
 
@@ -291,17 +311,21 @@
         let currentSetCards = { common: [], rare: [], ultra: [] };
         let currentSetInfo = null;
         let fixedPackArt = '';
+        let currentBoxPrice = 50000;
+        let currentPackPrice = 1700;
+
+        const USD_TO_KRW = 1000; // 1 USD = 1,000 KRW 환율 계산
 
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
                 const count = Math.max(1, parseInt(e.target.value) || 1);
-                document.getElementById('totalCost').textContent = (count * 1000).toLocaleString();
+                document.getElementById('totalCost').textContent = (count * currentPackPrice).toLocaleString();
             });
         };
 
         async function fetchSetsFromAPI() {
             const statusEl = document.getElementById('loadStatus');
-            statusEl.textContent = `🚀 Loading English Sets from API...`;
+            statusEl.textContent = `🚀 TCGdex 공식 카드 데이터 연동 중...`;
             
             try {
                 const res = await fetch(`https://api.tcgdex.net/v2/en/sets`);
@@ -316,19 +340,19 @@
                     const count = s.cardCount.official || s.cardCount.total || 0;
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${count} cards)`;
+                    opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${count}장 포함)`;
                     select.appendChild(opt);
                 });
 
-                statusEl.textContent = `✅ Ready! ${availableSets.length} English sets loaded.`;
+                statusEl.textContent = `✅ 준비 완료! ${availableSets.length}개 정식 시리즈 불러옴.`;
                 loadSetData();
             } catch (err) {
                 console.error("Set loading error:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">❌ Network error occurred.</span>`;
+                statusEl.innerHTML = `<span style="color:#ff4757;">❌ 네트워크 통신 오류가 발생했습니다.</span>`;
             }
         }
 
-        function parseCardRarity(rawRarity, localId) {
+        function parseCardRarity(rawRarity) {
             if (!rawRarity || rawRarity === 'None') return 'C';
             const str = String(rawRarity).trim().toUpperCase();
 
@@ -343,6 +367,38 @@
             return 'C';
         }
 
+        // 📈 실제 카드 시장 가격(TCGplayer Market Price) 연동 함수
+        function getLiveMarketPrice(card) {
+            let baseKrwPrice = 100;
+
+            // API에서 실제 tcgplayer marketPrice 가격이 존재하면 이를 우선 사용
+            if (card.rawMarketPriceUsd && card.rawMarketPriceUsd > 0) {
+                baseKrwPrice = card.rawMarketPriceUsd * USD_TO_KRW;
+            } else {
+                // 없을 경우 실제 카테고리별 시세 가이드라인 적용
+                const r = String(card.rarity).toUpperCase();
+                switch(r) {
+                    case 'UR': case 'HR': baseKrwPrice = 120000; break;
+                    case 'SAR': baseKrwPrice = 95000; break;
+                    case 'SR': baseKrwPrice = 35000; break;
+                    case 'AR': baseKrwPrice = 18000; break;
+                    case 'RR': baseKrwPrice = 5000; break;
+                    case 'R': baseKrwPrice = 1500; break;
+                    case 'UC': case 'C': default: baseKrwPrice = 300; break;
+                }
+            }
+
+            // 개체별 변동폭 (-10% ~ +20%) + PSA 등급에 따른 프리미엄 배율 적용
+            const trendMult = 1 + (card.marketTrend || 0);
+            let finalPrice = baseKrwPrice * trendMult;
+
+            if (card.psa === 10) finalPrice *= 2.5; // PSA 10 프리미엄
+            else if (card.psa === 9) finalPrice *= 1.6;
+            else if (card.psa === 8) finalPrice *= 1.2;
+
+            return Math.floor(finalPrice);
+        }
+
         async function loadSetData() {
             const selectEl = document.getElementById('seriesSelect');
             if(!selectEl.value) return;
@@ -354,17 +410,32 @@
 
             currentSetInfo = availableSets.find(s => s.id === setId) || availableSets[0];
 
+            // 특수/프리미엄 세트(151, 하이클래스 등) 실거래 박스 시세 자동 조정
+            const setNameUpper = currentSetInfo.name.toUpperCase();
+            if (setNameUpper.includes("151") || setNameUpper.includes("CROWN") || setNameUpper.includes("SHINY") || setNameUpper.includes("DESTINIES")) {
+                currentBoxPrice = 95000;
+                currentPackPrice = 3200;
+            } else {
+                currentBoxPrice = 50000;
+                currentPackPrice = 1700;
+            }
+
+            document.getElementById('boxPriceDisplay').textContent = currentBoxPrice.toLocaleString();
+            document.getElementById('singlePackPrice').textContent = currentPackPrice.toLocaleString();
+            const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
+            document.getElementById('totalCost').textContent = (count * currentPackPrice).toLocaleString();
+
             if (setCardsCache[setId]) {
                 currentSetCards = setCardsCache[setId].cards;
                 fixedPackArt = setCardsCache[setId].packArt;
                 document.getElementById('previewPackImg').src = fixedPackArt;
                 document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
-                statusEl.textContent = `⚡ [Ready] ${currentSetInfo.name}`;
+                statusEl.textContent = `⚡ [준비완료] ${currentSetInfo.name}`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
                 return;
             }
 
-            statusEl.textContent = `⏳ Loading cards for [${currentSetInfo.name}]...`;
+            statusEl.textContent = `⏳ [${currentSetInfo.name}] 카드 및 실거래 시세 정보 로딩 중...`;
             buyBtn.disabled = true; buyBoxBtn.disabled = true;
 
             try {
@@ -374,18 +445,25 @@
                 const data = await res.json();
                 const rawCards = data.cards || [];
 
-                if(rawCards.length === 0) throw new Error("No card data in set.");
+                if(rawCards.length === 0) throw new Error("카드 데이터가 없습니다.");
 
                 const validCards = rawCards.map(c => {
                     let cardId = c.localId || c.id;
-                    let parsedRarity = parseCardRarity(c.rarity, cardId);
+                    let parsedRarity = parseCardRarity(c.rarity);
                     let imgPath = c.image ? `${c.image}/high.png` : `https://assets.tcgdex.net/en/${setId}/${cardId}/high.png`;
+
+                    // API pricing 데이터 파싱 (TCGplayer Market Price)
+                    let marketUsd = 0;
+                    if (c.pricing && c.pricing.tcgplayer) {
+                        marketUsd = c.pricing.tcgplayer.marketPrice || c.pricing.tcgplayer.midPrice || 0;
+                    }
 
                     return {
                         id: c.id,
-                        name: c.name || 'Pokémon Card',
+                        name: c.name || '포켓몬 카드',
                         image: imgPath,
-                        rarity: parsedRarity
+                        rarity: parsedRarity,
+                        rawMarketPriceUsd: marketUsd
                     };
                 });
 
@@ -404,16 +482,9 @@
                     }
                 });
 
-                // 고정 팩 일러스트 설정: 세트 로고 우선 -> 없으면 첫 희귀 카드 일러스트 -> 기본 심볼
-                if (currentSetInfo.logo) {
-                    fixedPackArt = `${currentSetInfo.logo}.png`;
-                } else if (ultraList.length > 0) {
-                    fixedPackArt = ultraList[0].image;
-                } else if (rareList.length > 0) {
-                    fixedPackArt = rareList[0].image;
-                } else {
-                    fixedPackArt = validCards[0].image;
-                }
+                if (ultraList.length > 0) fixedPackArt = ultraList[0].image;
+                else if (rareList.length > 0) fixedPackArt = rareList[0].image;
+                else fixedPackArt = validCards[0].image;
 
                 document.getElementById('previewPackImg').src = fixedPackArt;
                 document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
@@ -428,25 +499,25 @@
                 };
                 currentSetCards = setCardsCache[setId].cards;
 
-                statusEl.textContent = `✅ [${currentSetInfo.name}] Ready! (Total ${validCards.length} Cards)`;
+                statusEl.textContent = `✅ [${currentSetInfo.name}] 준비 완료! (총 ${validCards.length}종 수록)`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
             } catch (err) {
                 console.error("Card loading failed:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ Incomplete set data. Please select another set.</span>`;
+                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 데이터 불러오기 실패. 다른 시리즈를 선택하세요.</span>`;
             }
         }
 
         function handleAuth() {
             const id = document.getElementById('authId').value.trim();
-            if(!id) return alert("Please enter User ID!");
+            if(!id) return alert("유저 ID를 입력하세요!");
             currentUser = id;
 
             document.getElementById('displayUserId').textContent = id;
             document.getElementById('authOverlay').style.display = 'none';
 
-            const users = JSON.parse(localStorage.getItem('tcg_free_en_v1') || '{}');
-            if(!users[id]) users[id] = { gold: 100000, packInventory: 0, binder: [] };
-            gold = users[id].gold || 100000;
+            const users = JSON.parse(localStorage.getItem('tcg_free_en_v2') || '{}');
+            if(!users[id]) users[id] = { gold: 1000000, packInventory: 0, binder: [] };
+            gold = users[id].gold !== undefined ? users[id].gold : 1000000;
             packInventory = users[id].packInventory || 0;
             binder = users[id].binder || [];
             updateUI();
@@ -458,9 +529,9 @@
 
         function saveUserData() {
             if(!currentUser) return;
-            const users = JSON.parse(localStorage.getItem('tcg_free_en_v1') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_free_en_v2') || '{}');
             users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
-            localStorage.setItem('tcg_free_en_v1', JSON.stringify(users));
+            localStorage.setItem('tcg_free_en_v2', JSON.stringify(users));
         }
 
         function updateUI() {
@@ -490,30 +561,29 @@
 
         function buyPacks() {
             const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
-            const totalCost = count * 1000;
+            const totalCost = count * currentPackPrice;
 
-            if(gold < totalCost) return alert("Not enough Gold!");
+            if(gold < totalCost) return alert("잔액이 부족합니다!");
             
             gold -= totalCost;
             packInventory += count;
             saveUserData();
             updateUI();
             
-            alert(`Purchased ${count} Booster Pack(s)!`);
+            alert(`부스터 팩 ${count}개를 구매했습니다! (-${totalCost.toLocaleString()}원)`);
             switchView('open');
             renderPackToOpen();
         }
 
         function buyBoosterBox() {
-            const boxCost = 27000;
-            if(gold < boxCost) return alert("Not enough Gold!");
+            if(gold < currentBoxPrice) return alert("잔액이 부족합니다!");
 
-            gold -= boxCost;
+            gold -= currentBoxPrice;
             packInventory += 30;
             saveUserData();
             updateUI();
 
-            alert(`📦 Purchased Booster Box (30 Packs)!`);
+            alert(`📦 1보스 박스(30팩)를 구매했습니다! (-${currentBoxPrice.toLocaleString()}원)`);
             switchView('open');
             renderPackToOpen();
         }
@@ -525,7 +595,7 @@
             stack.innerHTML = '';
 
             if (packInventory <= 0) {
-                packZone.innerHTML = `<p style="color:#aaa;">No Booster Packs left. Please buy more from the Shop.</p>`;
+                packZone.innerHTML = `<p style="color:#aaa;">개봉할 팩이 없습니다. 상점에서 팩을 구매해 보세요.</p>`;
                 return;
             }
 
@@ -534,7 +604,7 @@
                     <div class="pack-body" id="packBody">
                         <div class="pack-top-crimp" id="packTopCrimp"></div>
                         <img src="${fixedPackArt}" class="pack-art-img">
-                        <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 CLICK TO OPEN</div>
+                        <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 클릭하여 팩 개봉</div>
                         <div class="pack-bottom-crimp"></div>
                     </div>
                 </div>
@@ -557,7 +627,7 @@
                 saveUserData();
                 updateUI();
 
-                document.getElementById('packZone').innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ Opened! Drag cards sideways to inspect.</p>`;
+                document.getElementById('packZone').innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 개봉 완료! 카드를 드래그하여 넘겨보세요.</p>`;
                 generatePackCards();
                 renderCardStack();
             }, 600);
@@ -573,21 +643,24 @@
             }
 
             const hitRand = Math.random();
-            let hitCard = (hitRand < 0.70) ? getRandomFrom(currentSetCards.rare) : getRandomFrom(currentSetCards.ultra);
+            let hitCard = (hitRand < 0.75) ? getRandomFrom(currentSetCards.rare) : getRandomFrom(currentSetCards.ultra);
             currentPackCards.push(createCardInstance(hitCard));
         }
 
         function getRandomFrom(arr) {
-            if(!arr || arr.length === 0) return { name: 'Pokémon Card', image: 'https://assets.tcgdex.net/univ/symbol.png', rarity: 'C' };
+            if(!arr || arr.length === 0) return { name: '포켓몬 카드', image: 'https://assets.tcgdex.net/univ/symbol.png', rarity: 'C', rawMarketPriceUsd: 0.1 };
             return arr[Math.floor(Math.random() * arr.length)];
         }
 
         function createCardInstance(card) {
+            const randomTrend = (Math.random() * 0.3 - 0.1).toFixed(2); // -10% ~ +20% 실시간 시장 변동
             return {
                 instanceId: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
                 name: card.name,
                 image: card.image,
-                rarity: card.rarity
+                rarity: card.rarity,
+                rawMarketPriceUsd: card.rawMarketPriceUsd,
+                marketTrend: parseFloat(randomTrend)
             };
         }
 
@@ -676,9 +749,9 @@
                 const nextBtn = document.getElementById('btnNextPack');
                 document.getElementById('nextActionZone').style.display = 'flex';
                 if(packInventory > 0) {
-                    nextBtn.innerText = `⚡ Open Next Pack (${packInventory} left)`;
+                    nextBtn.innerText = `⚡ 다음 팩 뜯기 (남은 팩: ${packInventory}개)`;
                 } else {
-                    nextBtn.innerText = `All packs opened!`;
+                    nextBtn.innerText = `모든 팩을 다 뜯었습니다!`;
                 }
             }
         }
@@ -704,7 +777,7 @@
 
         function openNextPack() {
             if(packInventory <= 0) {
-                alert("No packs left!");
+                alert("남은 팩이 없습니다!");
                 switchView('shop');
                 return;
             }
@@ -725,12 +798,15 @@
                 el.style.top = c.y + 'px';
                 el.style.zIndex = c.zIndex;
 
+                const val = getLiveMarketPrice({ ...c.data, psa: c.psa });
+
                 const menu = document.createElement('div');
                 menu.className = 'card-menu';
                 menu.innerHTML = `
-                    <button onclick="toggleSleeve('${c.instanceId}')">✨Sleeve</button>
-                    <button onclick="toggleToploader('${c.instanceId}')">🛡️Toploader</button>
-                    <button onclick="gradePSA('${c.instanceId}')">🔍PSA</button>
+                    <button onclick="toggleSleeve('${c.instanceId}')">✨슬리브</button>
+                    <button onclick="toggleToploader('${c.instanceId}')">🛡️탑로더</button>
+                    <button onclick="gradePSA('${c.instanceId}')">🔍PSA감정</button>
+                    <button class="sell-btn" onclick="sellDeskCard('${c.instanceId}')">💰 판매 (${val.toLocaleString()}원)</button>
                 `;
                 el.appendChild(menu);
 
@@ -800,16 +876,45 @@
                 el.addEventListener('touchstart', startMove, { passive: false });
 
                 el.ondblclick = () => {
-                    binder.push({ ...c.data, sleeve: c.sleeve, toploader: c.toploader, psa: c.psa });
+                    binder.push({ ...c.data, sleeve: c.sleeve, toploader: c.toploader, psa: c.psa, instanceId: c.instanceId });
                     tableCards = tableCards.filter(tc => tc.instanceId !== c.instanceId);
                     saveUserData();
                     updateUI();
                     renderDesk();
-                    alert("📘 Saved to Binder!");
+                    alert("📘 바인더에 저장되었습니다!");
                 };
 
                 desk.appendChild(el);
             });
+        }
+
+        function sellDeskCard(id) {
+            const cardIndex = tableCards.findIndex(c => c.instanceId === id);
+            if(cardIndex !== -1) {
+                const card = tableCards[cardIndex];
+                const price = getLiveMarketPrice({ ...card.data, psa: card.psa });
+                
+                gold += price;
+                tableCards.splice(cardIndex, 1);
+                saveUserData();
+                updateUI();
+                renderDesk();
+                alert(`💰 카드를 실거래 시세인 ${price.toLocaleString()}원에 판매했습니다!`);
+            }
+        }
+
+        function sellBinderCard(index) {
+            if(index >= 0 && index < binder.length) {
+                const card = binder[index];
+                const price = getLiveMarketPrice(card);
+
+                gold += price;
+                binder.splice(index, 1);
+                saveUserData();
+                updateUI();
+                renderBinder();
+                alert(`💰 카드를 실거래 시세인 ${price.toLocaleString()}원에 판매했습니다!`);
+            }
         }
 
         function toggleSleeve(id) {
@@ -825,13 +930,31 @@
             if(card) {
                 const grades = [8, 9, 9, 10, 10];
                 card.psa = grades[Math.floor(Math.random() * grades.length)];
-                alert(`🔍 PSA Graded: [PSA ${card.psa}]`);
+                alert(`🔍 PSA 감정 결과: [PSA ${card.psa}] 등급을 받았습니다!`);
                 renderDesk();
             }
         }
 
+        function toggleBinderSleeve(idx) {
+            binder[idx].sleeve = !binder[idx].sleeve;
+            saveUserData();
+            renderBinder();
+        }
+        function toggleBinderToploader(idx) {
+            binder[idx].toploader = !binder[idx].toploader;
+            saveUserData();
+            renderBinder();
+        }
+        function gradeBinderPSA(idx) {
+            const grades = [8, 9, 9, 10, 10];
+            binder[idx].psa = grades[Math.floor(Math.random() * grades.length)];
+            saveUserData();
+            renderBinder();
+            alert(`🔍 PSA 감정 결과: [PSA ${binder[idx].psa}] 등급을 받았습니다!`);
+        }
+
         function refreshTable() {
-            if(confirm("Clear all cards from desk?")) {
+            if(confirm("책상의 모든 카드를 정리하시겠습니까?")) {
                 tableCards = [];
                 renderDesk();
                 document.getElementById('deskNotice').style.display = 'block';
@@ -843,11 +966,14 @@
             grid.innerHTML = '';
 
             if(binder.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #aaa;">Binder is empty.</p>`;
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #aaa;">바인더가 비어있습니다.</p>`;
                 return;
             }
 
-            binder.forEach((card) => {
+            binder.forEach((card, idx) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'binder-card-wrapper';
+
                 const item = document.createElement('div');
                 item.className = 'binder-card';
                 if(card.sleeve) item.classList.add('sleeve-effect');
@@ -873,7 +999,27 @@
                     badge.textContent = `PSA ${card.psa}`;
                     item.appendChild(badge);
                 }
-                grid.appendChild(item);
+
+                wrapper.appendChild(item);
+
+                const price = getLiveMarketPrice(card);
+
+                const priceTag = document.createElement('div');
+                priceTag.className = 'market-price-tag';
+                priceTag.innerHTML = `시세: ${price.toLocaleString()}원`;
+                wrapper.appendChild(priceTag);
+
+                const btnGroup = document.createElement('div');
+                btnGroup.className = 'binder-btn-group';
+                btnGroup.innerHTML = `
+                    <button onclick="toggleBinderSleeve(${idx})">${card.sleeve ? '✨ 슬리브 해제' : '✨ 슬리브 착용'}</button>
+                    <button onclick="toggleBinderToploader(${idx})">${card.toploader ? '🛡️ 탑로더 해제' : '🛡️ 탑로더 착용'}</button>
+                    <button onclick="gradeBinderPSA(${idx})">🔍 PSA 감정</button>
+                    <button class="sell-btn" onclick="sellBinderCard(${idx})">💰 판매 (${price.toLocaleString()}원)</button>
+                `;
+
+                wrapper.appendChild(btnGroup);
+                grid.appendChild(wrapper);
             });
         }
     </script>
