@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon TCG Live API Master Simulator</title>
+    <style>
+        :root {
+            --bg: #0b0d19;
+            --panel: #16192b;
+            --accent: #ffcb05;
+            --text: #ffffff;
+            --desk: #1e243d;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .auth-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+        }
+        .auth-box {
+            background: var(--panel); padding: 30px; border-radius: 15px;
+            border: 2px solid var(--accent); width: 320px; text-align: center;
+        }
+        .auth-box input {
+            width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px;
+            border: 1px solid #333; background: #0b0d19; color: #fff;
+        }
+        .auth-box button {
+            width: 100%; padding: 10px; margin-top: 10px; background: var(--accent);
+            border: none; font-weight: bold; border-radius: 6px; cursor: pointer;
+        }
+
+        .header-bar {
+            width: 100%; max-width: 1100px; display: flex; justify-content: space-between;
+            align-items: center; background: var(--panel); padding: 15px 25px; border-radius: 15px;
+            margin-bottom: 15px; flex-wrap: wrap; gap: 10px;
+        }
+        .gold-display { font-size: 1.1rem; font-weight: bold; color: var(--accent); display: flex; gap: 15px; align-items: center;}
+        .pack-badge { font-size: 0.95rem; color: #4bcffa; background: #1a2744; padding: 4px 10px; border-radius: 20px; border: 1px solid #4bcffa; }
+
+        .nav-btns button {
+            padding: 8px 14px; margin-left: 3px; border-radius: 8px; border: none;
+            background: #232740; color: white; font-weight: bold; cursor: pointer;
+        }
+        .nav-btns button.active { background: var(--accent); color: black; }
+
+        .view-section { display: none; width: 100%; max-width: 1100px; }
+        .view-section.active { display: flex; flex-direction: column; align-items: center; }
+
+        .shop-panel {
+            background: var(--panel); width: 100%; padding: 25px; border-radius: 15px; text-align: center;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .series-select {
+            width: 100%; max-width: 650px; padding: 12px; background: #0b0d19;
+            color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; margin: 15px 0; font-weight: bold;
+        }
+        .shop-buy-box {
+            display: flex; align-items: center; gap: 10px; margin-top: 15px; background: #0b0d19; padding: 15px 25px; border-radius: 12px; border: 1px solid #333;
+        }
+        .shop-buy-box input {
+            width: 70px; padding: 8px; text-align: center; background: #16192b; color: #fff; border: 1px solid var(--accent); border-radius: 6px; font-weight: bold; font-size: 1rem;
+        }
+
+        .open-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .desk-area {
+            width: 100%; height: 480px; background: var(--desk); border: 2px dashed #38426b;
+            border-radius: 15px; position: relative; overflow: hidden; margin-top: 10px;
+        }
+
+        .pack-open-stage {
+            width: 100%; background: var(--panel); border-radius: 15px; padding: 20px;
+            margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 250px;
+        }
+        .pack-wrapper {
+            width: 170px; height: 250px; background: #111;
+            border: 3px solid var(--accent); border-radius: 12px; display: flex; flex-direction: column;
+            justify-content: space-between; align-items: center; cursor: pointer; padding: 12px;
+            box-shadow: 0 10px 25px rgba(255,203,5,0.3); transition: transform 0.2s;
+        }
+        .pack-wrapper:hover { transform: scale(1.05); }
+        .pack-art { width: 100%; height: 140px; object-fit: contain; }
+
+        .cards-pack-grid { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin-top: 15px; width: 100%; }
+        .card-flip-container { width: 110px; height: 154px; perspective: 1000px; cursor: pointer; position: relative; }
+        .card-inner { width: 100%; height: 100%; position: absolute; transform-style: preserve-3d; transition: transform 0.5s; border-radius: 8px; }
+        .card-flip-container.flipped .card-inner { transform: rotateY(180deg); }
+        .card-front, .card-back { width: 100%; height: 100%; position: absolute; backface-visibility: hidden; border-radius: 8px; overflow: hidden; }
+        .card-back { background: linear-gradient(135deg, #1b2755, #0a0f24); border: 2px solid var(--accent); display: flex; justify-content: center; align-items: center; }
+        .card-back::after { content: '🌀'; font-size: 2rem; }
+        .card-front { transform: rotateY(180deg); background-size: cover; background-position: center; }
+
+        .table-card { position: absolute; width: 110px; height: 154px; cursor: grab; border-radius: 8px; transition: box-shadow 0.2s; }
+        .table-card:active { cursor: grabbing; }
+        .table-card .card-ui { width: 100%; height: 100%; border-radius: 8px; background-size: cover; background-position: center; pointer-events: none; }
+
+        .card-menu {
+            position: absolute; top: -38px; left: 50%; transform: translateX(-50%);
+            background: rgba(17,17,17,0.95); border: 1px solid var(--accent); border-radius: 6px; padding: 3px;
+            display: none; gap: 4px; z-index: 99999; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .table-card:hover .card-menu { display: flex; }
+        .card-menu button {
+            background: #222; color: #fff; border: none; padding: 3px 6px; font-size: 0.75rem; border-radius: 4px; cursor: pointer;
+        }
+        .card-menu button:hover { background: var(--accent); color: #000; }
+
+        .sleeve-effect { box-shadow: 0 0 12px rgba(255, 255, 255, 0.9) !important; border: 2px solid #fff !important; }
+        .toploader-effect { border: 4px solid #7ec8ff !important; box-shadow: 0 0 15px #0088ff !important; }
+        .psa-badge {
+            position: absolute; top: -8px; right: -8px; background: #e74c3c; color: white;
+            font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 8px; border: 1px solid white; z-index: 20;
+        }
+
+        .binder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px; }
+        .binder-card { position: relative; border-radius: 8px; width: 110px; height: 154px; }
+
+        .btn-action { padding: 10px 20px; background: var(--accent); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: black; }
+        .action-controls { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; justify-content: center; }
+        .loading-spinner { border: 3px solid #333; border-top: 3px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-box">
+            <h2 style="color:var(--accent); margin-bottom:15px;">🔑 Pokémon TCG Login</h2>
+            <input type="text" id="authId" placeholder="아이디" value="Master">
+            <input type="password" id="authPw" placeholder="비밀번호" value="1234">
+            <button onclick="handleAuth()">Start Game</button>
+        </div>
+    </div>
+
+    <div class="header-bar">
+        <div>
+            <span class="user-info">User: <b id="displayUserId" style="color:#fff;">-</b></span>
+            <div class="gold-display">
+                <span>💰 <span id="goldCount">100000</span> Gold</span>
+                <span class="pack-badge">📦 Booster Packs: <b id="packInventoryCount">0</b></span>
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div class="nav-btns">
+                <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 Booster Shop</button>
+                <button id="btnNavOpen" onclick="switchView('open')">🎴 Unboxing Desk</button>
+                <button id="btnNavBinder" onclick="switchView('binder')">📘 Collection Binder (<span id="binderCount">0</span>)</button>
+                <button onclick="logout()" style="background:#e74c3c; color:white;">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 상점 뷰 -->
+    <div id="viewShop" class="view-section active">
+        <div class="shop-panel">
+            <h2>🌐 Live Pokémon TCG API Booster Shop</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">Pokémon TCG API에서 실시간으로 세트 및 카드를 불러옵니다!</p>
+            
+            <div id="shopLoading" style="margin: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                <div class="loading-spinner"></div>
+                <span style="color:var(--accent);">Pokémon TCG API에서 최신 세트 목록을 가져오는 중...</span>
+            </div>
+
+            <select id="seriesSelect" class="series-select" style="display:none;" onchange="updatePackPreview()">
+            </select>
+
+            <div id="shopPackPreview" style="margin: 10px 0; min-height: 160px; display: flex; align-items: center; justify-content: center;">
+                <img id="previewPackImg" src="" style="height: 160px; object-fit: contain; display:none;">
+            </div>
+
+            <div class="shop-buy-box">
+                <label for="buyPackCount">수량: </label>
+                <input type="number" id="buyPackCount" value="1" min="1" max="99">
+                <button class="btn-action" id="btnBuyPack" disabled onclick="buyPacks()">팩 구매 (<span id="totalCost">1,000</span>G)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 개봉 및 테이블 뷰 -->
+    <div id="viewOpen" class="view-section">
+        <div class="open-container">
+            <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
+                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 클릭하면 개봉 테이블로 이동합니다. (더블클릭 시 바인더 저장)</p>
+                <div>
+                    <button class="btn-action" id="btnFlipAll" onclick="flipAllCards()" disabled style="background:#4bcffa; color:black; padding:6px 12px; font-size:0.85rem;">🔄 모두 뒤집기</button>
+                    <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
+                </div>
+            </div>
+
+            <div class="desk-area" id="deskArea">
+                <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
+                    💡 개봉된 카드를 <b>클릭</b>하여 테이블 위로 배치하세요!
+                </p>
+            </div>
+
+            <div class="pack-open-stage">
+                <div id="packZone"></div>
+                <div class="cards-pack-grid" id="packCardsGrid"></div>
+                
+                <div class="action-controls" id="nextActionZone" style="display:none;">
+                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ 바로 다음 팩 개봉</button>
+                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 팩 선택 화면으로</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 바인더 뷰 -->
+    <div id="viewBinder" class="view-section">
+        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 Collection Binder</h2>
+        <div class="binder-grid" id="binderGrid"></div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let gold = 100000;
+        let packInventory = 0;
+        let apiSets = [];
+        let selectedSet = null;
+        let setCardsCache = {}; 
+        let binder = [];
+        let currentPackCards = [];
+        let tableCards = [];
+        let globalZIndex = 100;
+
+        // 안정적인 API 키 헤더 옵션
+        const API_HEADERS = {
+            'X-Api-Key': 'c15b13b4-4b57-4148-912b-3e5fa3ff6383'
+        };
+
+        window.onload = function() {
+            document.getElementById('buyPackCount').addEventListener('input', (e) => {
+                const count = Math.max(1, parseInt(e.target.value) || 1);
+                document.getElementById('totalCost').textContent = (count * 1000).toLocaleString();
+            });
+
+            fetchApiSets();
+        };
+
+        async function fetchApiSets() {
+            try {
+                const response = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate&select=id,name,series,images,total', { headers: API_HEADERS });
+                const data = await response.json();
+                apiSets = data.data;
+
+                const select = document.getElementById('seriesSelect');
+                select.innerHTML = '';
+
+                apiSets.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = `${s.name} (${s.series}) - ${s.total} Cards`;
+                    select.appendChild(opt);
+                });
+
+                document.getElementById('shopLoading').style.display = 'none';
+                select.style.display = 'inline-block';
+                document.getElementById('previewPackImg').style.display = 'inline-block';
+                document.getElementById('btnBuyPack').disabled = false;
+
+                updatePackPreview();
+            } catch (err) {
+                console.error("API Fetch Error:", err);
+                document.getElementById('shopLoading').innerHTML = `<span style="color:#e74c3c;">⚠️ API 서버 통신 실패. 네트워크 연결 상태를 확인해 주세요.</span>`;
+            }
+        }
+
+        function updatePackPreview() {
+            const setId = document.getElementById('seriesSelect').value;
+            selectedSet = apiSets.find(s => s.id === setId);
+            if(selectedSet && selectedSet.images) {
+                document.getElementById('previewPackImg').src = selectedSet.images.logo;
+            }
+        }
+
+        function handleAuth() {
+            const id = document.getElementById('authId').value.trim();
+            if(!id) return alert("아이디를 입력해주세요!");
+            currentUser = id;
+            document.getElementById('displayUserId').textContent = id;
+            document.getElementById('authOverlay').style.display = 'none';
+
+            const users = JSON.parse(localStorage.getItem('tcg_master_users') || '{}');
+            if(!users[id]) users[id] = { gold: 100000, packInventory: 0, binder: [] };
+            gold = users[id].gold || 100000;
+            packInventory = users[id].packInventory || 0;
+            binder = users[id].binder || [];
+            updateUI();
+        }
+
+        function logout() { location.reload(); }
+
+        function saveUserData() {
+            if(!currentUser) return;
+            const users = JSON.parse(localStorage.getItem('tcg_master_users') || '{}');
+            users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
+            localStorage.setItem('tcg_master_users', JSON.stringify(users));
+        }
+
+        function updateUI() {
+            document.getElementById('goldCount').textContent = gold.toLocaleString();
+            document.getElementById('packInventoryCount').textContent = packInventory;
+            document.getElementById('binderCount').textContent = binder.length;
+        }
+
+        function switchView(view) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btns button').forEach(b => b.classList.remove('active'));
+            if(view === 'shop') { 
+                document.getElementById('viewShop').classList.add('active'); 
+                document.getElementById('btnNavShop').classList.add('active'); 
+            }
+            else if(view === 'open') { 
+                document.getElementById('viewOpen').classList.add('active'); 
+                document.getElementById('btnNavOpen').classList.add('active'); 
+                if(currentPackCards.length === 0) renderPackToOpen();
+            }
+            else if(view === 'binder') { 
+                document.getElementById('viewBinder').classList.add('active'); 
+                document.getElementById('btnNavBinder').classList.add('active'); 
+                renderBinder(); 
+            }
+        }
+
+        function buyPacks() {
+            const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
+            const totalCost = count * 1000;
+
+            if(gold < totalCost) return alert("Gold가 부족합니다!");
+            
+            gold -= totalCost;
+            packInventory += count;
+            saveUserData();
+            updateUI();
+            
+            alert(`${selectedSet.name} Booster Pack ${count}개를 구매했습니다!`);
+            switchView('open');
+            renderPackToOpen();
+        }
+
+        function renderPackToOpen() {
+            const packZone = document.getElementById('packZone');
+            const grid = document.getElementById('packCardsGrid');
+            document.getElementById('nextActionZone').style.display = 'none';
+            grid.innerHTML = '';
+            document.getElementById('btnFlipAll').disabled = true;
+
+            if (packInventory <= 0) {
+                packZone.innerHTML = `<p style="color:#aaa;">보유한 Booster Pack이 없습니다. 상점에서 구매해 주세요.</p>`;
+                return;
+            }
+
+            packZone.innerHTML = `
+                <div class="pack-wrapper" onclick="openPack()">
+                    <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.85rem;">${selectedSet.name}</div>
+                    <img src="${selectedSet.images.logo}" class="pack-art" alt="Pack Art">
+                    <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN PACK</div>
+                </div>
+            `;
+        }
+
+        async function openPack() {
+            if (packInventory <= 0 || !selectedSet) return;
+
+            const packZone = document.getElementById('packZone');
+            const grid = document.getElementById('packCardsGrid');
+            
+            packZone.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                    <div class="loading-spinner"></div>
+                    <p style="color:var(--accent); font-weight:bold;">🌐 API에서 [${selectedSet.name}] 카드 팩을 불러오는 중...</p>
+                </div>
+            `;
+
+            try {
+                // 필드를 경량화(select=id,name,images)하여 빠르게 요청
+                if(!setCardsCache[selectedSet.id]) {
+                    const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${selectedSet.id}&select=id,name,images`, { headers: API_HEADERS });
+                    const data = await res.json();
+                    setCardsCache[selectedSet.id] = data.data;
+                }
+
+                const availableCards = setCardsCache[selectedSet.id];
+                if(!availableCards || availableCards.length === 0) {
+                    throw new Error("카드 데이터를 불러올 수 없습니다.");
+                }
+
+                packInventory--;
+                saveUserData();
+                updateUI();
+
+                packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] Booster Pack Unboxed!</p>`;
+                document.getElementById('btnFlipAll').disabled = false;
+
+                currentPackCards = [];
+
+                for(let i = 0; i < 5; i++) {
+                    const randomPick = availableCards[Math.floor(Math.random() * availableCards.length)];
+                    currentPackCards.push({
+                        id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                        name: randomPick.name,
+                        image: randomPick.images.large || randomPick.images.small
+                    });
+                }
+
+                grid.innerHTML = '';
+                currentPackCards.forEach((card, idx) => {
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'card-flip-container';
+                    cardEl.id = `packCard_${idx}`;
+
+                    cardEl.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-back"></div>
+                            <div class="card-front" style="background-image: url('${card.image}');"></div>
+                        </div>
+                    `;
+
+                    cardEl.onclick = () => {
+                        if(!cardEl.classList.contains('flipped')) {
+                            cardEl.classList.add('flipped');
+                        } else {
+                            sendCardToDesk(card);
+                            cardEl.style.opacity = '0.3';
+                            cardEl.style.pointerEvents = 'none';
+                        }
+                    };
+
+                    grid.appendChild(cardEl);
+                });
+
+                const nextBtn = document.getElementById('btnNextPack');
+                document.getElementById('nextActionZone').style.display = 'flex';
+
+                if(packInventory > 0) {
+                    nextBtn.innerText = `⚡ 바로 다음 팩 개봉 (남은 팩: ${packInventory}개)`;
+                } else {
+                    nextBtn.innerText = `모든 팩 개봉 완료!`;
+                }
+
+            } catch (err) {
+                console.error("Pack Open API Error:", err);
+                alert("카드 API 통신 제한으로 카드 로딩에 실패했습니다.");
+                renderPackToOpen();
+            }
+        }
+
+        function sendCardToDesk(cardData) {
+            document.getElementById('deskNotice').style.display = 'none';
+            
+            const existing = tableCards.find(c => c.instanceId === cardData.id);
+            if(existing) return;
+
+            const offset = (tableCards.length * 25) % 250;
+
+            const cardObj = {
+                instanceId: cardData.id,
+                data: cardData,
+                sleeve: false,
+                toploader: false,
+                psa: null,
+                x: 30 + offset,
+                y: 30 + (offset / 2),
+                zIndex: ++globalZIndex
+            };
+
+            tableCards.push(cardObj);
+            renderDesk();
+        }
+
+        function openNextPack() {
+            if(packInventory <= 0) {
+                alert("보유한 팩을 모두 까셨습니다! 상점으로 이동합니다.");
+                switchView('shop');
+                return;
+            }
+            openPack();
+        }
+
+        function flipAllCards() {
+            currentPackCards.forEach((_, idx) => {
+                const el = document.getElementById(`packCard_${idx}`);
+                if(el) el.classList.add('flipped');
+            });
+        }
+
+        function renderDesk() {
+            const desk = document.getElementById('deskArea');
+            document.querySelectorAll('.table-card').forEach(el => el.remove());
+
+            tableCards.forEach((c) => {
+                const el = document.createElement('div');
+                el.className = 'table-card';
+                if(c.sleeve) el.classList.add('sleeve-effect');
+                if(c.toploader) el.classList.add('toploader-effect');
+
+                el.style.left = c.x + 'px';
+                el.style.top = c.y + 'px';
+                el.style.zIndex = c.zIndex;
+
+                const menu = document.createElement('div');
+                menu.className = 'card-menu';
+                menu.innerHTML = `
+                    <button onclick="toggleSleeve('${c.instanceId}')">✨슬리브</button>
+                    <button onclick="toggleToploader('${c.instanceId}')">🛡️탑로더</button>
+                    <button onclick="gradePSA('${c.instanceId}')">🔍PSA</button>
+                `;
+                el.appendChild(menu);
+
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'card-ui';
+                imgDiv.style.backgroundImage = `url('${c.data.image}')`;
+                el.appendChild(imgDiv);
+
+                if(c.psa) {
+                    const badge = document.createElement('div');
+                    badge.className = 'psa-badge';
+                    badge.textContent = `PSA ${c.psa}`;
+                    el.appendChild(badge);
+                }
+
+                el.onmousedown = (e) => {
+                    if(e.target.tagName === 'BUTTON') return;
+                    
+                    c.zIndex = ++globalZIndex;
+                    el.style.zIndex = c.zIndex;
+
+                    let shiftX = e.clientX - el.getBoundingClientRect().left;
+                    let shiftY = e.clientY - el.getBoundingClientRect().top;
+
+                    function moveAt(pageX, pageY) {
+                        let newX = pageX - shiftX - desk.getBoundingClientRect().left;
+                        let newY = pageY - shiftY - desk.getBoundingClientRect().top;
+
+                        newX = Math.max(0, Math.min(newX, desk.clientWidth - 110));
+                        newY = Math.max(0, Math.min(newY, desk.clientHeight - 154));
+
+                        el.style.left = newX + 'px';
+                        el.style.top = newY + 'px';
+                        c.x = newX; c.y = newY;
+                    }
+
+                    function onMouseMove(e) { moveAt(e.pageX, e.pageY); }
+
+                    document.addEventListener('mousemove', onMouseMove);
+
+                    document.onmouseup = function() {
+                        document.removeEventListener('mousemove', onMouseMove);
+                        document.onmouseup = null;
+                    };
+                };
+
+                el.ondblclick = () => {
+                    binder.push({ ...c.data, sleeve: c.sleeve, toploader: c.toploader, psa: c.psa });
+                    tableCards = tableCards.filter(tc => tc.instanceId !== c.instanceId);
+                    saveUserData();
+                    updateUI();
+                    renderDesk();
+                    alert("📘 카드가 Collection Binder에 저장되었습니다!");
+                };
+
+                desk.appendChild(el);
+            });
+        }
+
+        function toggleSleeve(id) {
+            const card = tableCards.find(c => c.instanceId === id);
+            if(card) { card.sleeve = !card.sleeve; renderDesk(); }
+        }
+        function toggleToploader(id) {
+            const card = tableCards.find(c => c.instanceId === id);
+            if(card) { card.toploader = !card.toploader; renderDesk(); }
+        }
+        function gradePSA(id) {
+            const card = tableCards.find(c => c.instanceId === id);
+            if(card) {
+                const grades = [8, 9, 9, 10, 10];
+                card.psa = grades[Math.floor(Math.random() * grades.length)];
+                alert(`🔍 PSA Grade: [PSA ${card.psa}]를 받았습니다!`);
+                renderDesk();
+            }
+        }
+
+        function refreshTable() {
+            if(confirm("테이블 위 카드를 모두 치우시겠습니까?")) {
+                tableCards = [];
+                renderDesk();
+                document.getElementById('deskNotice').style.display = 'block';
+            }
+        }
+
+        function renderBinder() {
+            const grid = document.getElementById('binderGrid');
+            grid.innerHTML = '';
+
+            if(binder.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #aaa;">바인더가 비어있습니다.</p>`;
+                return;
+            }
+
+            binder.forEach((card) => {
+                const item = document.createElement('div');
+                item.className = 'binder-card';
+                if(card.sleeve) item.classList.add('sleeve-effect');
+                if(card.toploader) item.classList.add('toploader-effect');
+
+                const imgDiv = document.createElement('div');
+                imgDiv.className = 'card-ui';
+                imgDiv.style.backgroundImage = `url('${card.image}')`;
+                imgDiv.style.width = '100%'; imgDiv.style.height = '100%';
+                imgDiv.style.borderRadius = '8px';
+                imgDiv.style.backgroundSize = 'cover';
+                item.appendChild(imgDiv);
+
+                if(card.psa) {
+                    const badge = document.createElement('div');
+                    badge.className = 'psa-badge';
+                    badge.textContent = `PSA ${card.psa}`;
+                    item.appendChild(badge);
+                }
+                grid.appendChild(item);
+            });
+        }
+    </script>
+</body>
+</html>
