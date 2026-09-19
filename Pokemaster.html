@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 TCG 마스터 시뮬레이터 Ultimate</title>
+    <title>Pokémon TCG Master Simulator Ultimate</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -137,28 +137,28 @@
 
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-box">
-            <h2 style="color:var(--accent); margin-bottom:15px;">🔑 포켓몬 TCG 로그인</h2>
+            <h2 style="color:var(--accent); margin-bottom:15px;">🔑 Pokémon TCG Login</h2>
             <input type="text" id="authId" placeholder="아이디" value="Master">
             <input type="password" id="authPw" placeholder="비밀번호" value="1234">
-            <button onclick="handleAuth()">게임 시작하기</button>
+            <button onclick="handleAuth()">Start Game</button>
         </div>
     </div>
 
     <div class="header-bar">
         <div>
-            <span class="user-info">유저: <b id="displayUserId" style="color:#fff;">-</b></span>
+            <span class="user-info">User: <b id="displayUserId" style="color:#fff;">-</b></span>
             <div class="gold-display">
                 <span>💰 <span id="goldCount">100000</span> Gold</span>
-                <span class="pack-badge">📦 보유 팩: <b id="packInventoryCount">0</b>개</span>
+                <span class="pack-badge">📦 Booster Packs: <b id="packInventoryCount">0</b></span>
             </div>
         </div>
 
         <div style="display:flex; align-items:center; gap:10px;">
             <div class="nav-btns">
-                <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 상점</button>
-                <button id="btnNavOpen" onclick="switchView('open')">🎴 개봉 테이블</button>
-                <button id="btnNavBinder" onclick="switchView('binder')">📘 바인더 (<span id="binderCount">0</span>)</button>
-                <button onclick="logout()" style="background:#e74c3c; color:white;">로그아웃</button>
+                <button id="btnNavShop" class="active" onclick="switchView('shop')">🏪 Booster Shop</button>
+                <button id="btnNavOpen" onclick="switchView('open')">🎴 Unboxing Desk</button>
+                <button id="btnNavBinder" onclick="switchView('binder')">📘 Collection Binder (<span id="binderCount">0</span>)</button>
+                <button onclick="logout()" style="background:#e74c3c; color:white;">Logout</button>
             </div>
         </div>
     </div>
@@ -166,11 +166,11 @@
     <!-- 상점 뷰 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>📦 Pokémon TCG Booster Pack Shop (전체 200여개 세트)</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 공식 영판 확장팩을 선택하여 구매하세요.</p>
+            <h2>📦 Official Pokémon TCG Booster Shop (200+ Sets)</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">원하는 영판 확장팩을 선택하면 해당 팩의 정식 카드만 등장합니다.</p>
             
             <select id="seriesSelect" class="series-select" onchange="updatePackPreview()">
-                <option value="">팩 목록 로딩 중...</option>
+                <option value="">팩 목록 불러오는 중 (Fetching Official Sets...)</option>
             </select>
 
             <div id="shopPackPreview" style="margin: 10px 0; min-height: 160px; display: flex; align-items: center; justify-content: center;">
@@ -178,9 +178,9 @@
             </div>
 
             <div class="shop-buy-box">
-                <label for="buyPackCount">구매 수량: </label>
+                <label for="buyPackCount">수량: </label>
                 <input type="number" id="buyPackCount" value="1" min="1" max="99">
-                <button class="btn-action" onclick="buyPacks()">팩 구매하기 (<span id="totalCost">1,000</span>G)</button>
+                <button class="btn-action" onclick="buyPacks()">팩 구매 (<span id="totalCost">1,000</span>G)</button>
             </div>
         </div>
     </div>
@@ -189,16 +189,16 @@
     <div id="viewOpen" class="view-section">
         <div class="open-container">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 클릭하면 테이블로 이동하며, 자유롭게 겹치거나 배치할 수 있습니다.</p>
+                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 클릭하면 개봉 테이블로 이동합니다. (더블클릭 시 바인더 저장)</p>
                 <div>
-                    <button class="btn-action" id="btnFlipAll" onclick="flipAllCards()" disabled style="background:#4bcffa; color:black; padding:6px 12px; font-size:0.85rem;">🔄 전체 뒤집기</button>
-                    <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 청소</button>
+                    <button class="btn-action" id="btnFlipAll" onclick="flipAllCards()" disabled style="background:#4bcffa; color:black; padding:6px 12px; font-size:0.85rem;">🔄 모두 뒤집기</button>
+                    <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
                 </div>
             </div>
 
             <div class="desk-area" id="deskArea">
                 <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
-                    💡 카드를 <b>클릭</b>하여 테이블로 보낸 후 자유롭게 이동해 보세요!<br>(테이블 위 카드를 <b>더블클릭</b>하면 바인더로 저장됩니다)
+                    💡 개봉된 카드를 <b>클릭</b>하여 테이블 위로 배치하세요!
                 </p>
             </div>
 
@@ -207,8 +207,8 @@
                 <div class="cards-pack-grid" id="packCardsGrid"></div>
                 
                 <div class="action-controls" id="nextActionZone" style="display:none;">
-                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ 바로 다음 팩 까기</button>
-                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 팩 선택 화면 복귀</button>
+                    <button class="btn-action" id="btnNextPack" onclick="openNextPack()" style="background:#2ed573; color:white;">⚡ 바로 다음 팩 개봉</button>
+                    <button class="btn-action" onclick="switchView('shop')" style="background:#57606f; color:white;">🏪 팩 선택 화면으로</button>
                 </div>
             </div>
         </div>
@@ -216,7 +216,7 @@
 
     <!-- 바인더 뷰 -->
     <div id="viewBinder" class="view-section">
-        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 내 수집 바인더</h2>
+        <h2 style="margin-bottom: 15px; color: var(--accent);">📘 Collection Binder</h2>
         <div class="binder-grid" id="binderGrid"></div>
     </div>
 
@@ -231,21 +231,25 @@
         let tableCards = [];
         let globalZIndex = 100;
 
-        // 주요 한국어 명칭 수동 매핑 디렉셔너리
-        const setKoreanNames = {
-            "sv8": "초전브레이커",
-            "sv7a": "낙원드래고나",
-            "sv7": "스텔라미라클",
-            "sv6a": "나이트원더러",
-            "sv6": "변형의 가면",
-            "sv5a": "크림슨헤이즈",
-            "sv5m": "사이버저지",
-            "sv5k": "와일드포스",
-            "sv4a": "샤이니 보물 ex",
-            "sv3pt5": "포켓몬 카드 151",
-            "swsh12pt5": "VSTAR 유니버스",
-            "swsh7": "이브이 히어로즈",
-            "base1": "베이스 세트 (초판)"
+        // 주요 영어 팩 이름에 매핑되는 한국어 명칭 목록 (병기용)
+        const koreanSetNames = {
+            "Surging Sparks": "초전브레이커",
+            "Stellar Crown": "스텔라미라클",
+            "Twilight Masquerade": "변형의 가면",
+            "Temporal Forces": "사이버저지 / 와일드포스",
+            "Paldean Fates": "샤이니 보물 ex",
+            "Paradox Rift": "고대의 포효 / 미래의 일섬",
+            "151": "포켓몬 카드 151",
+            "Obsidian Flames": "흑염의 지배자",
+            "Paldea Evolved": "클레이버스트 / 스노해저드",
+            "Scarlet & Violet": "바이올렛ex / 스칼렛ex",
+            "Crown Zenith": "VSTAR 유니버스",
+            "Silver Tempest": "파라다임트리거",
+            "Lost Origin": "로스트아비스",
+            "Astral Radiance": "타임게이저 / 스페이스저글러",
+            "Brilliant Stars": "스타버스",
+            "Evolving Skies": "이브이 히어로즈",
+            "Base Set": "베이스 세트"
         };
 
         window.onload = async function() {
@@ -257,17 +261,18 @@
             await fetchAllSetsFromAPI();
         };
 
-        // API에서 실제 정식 Pokémon TCG 세트 전체(200여 개) 로드
+        // 200여 개 정식 영판 세트 전체를 최신순으로 로드
         async function fetchAllSetsFromAPI() {
             try {
-                const res = await fetch('https://api.pokemontcg.io/v2/sets');
+                const res = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate');
                 const data = await res.json();
                 if (data && data.data) {
                     fullSetsList = data.data;
                     renderSetSelect();
                 }
             } catch (e) {
-                console.error("세트 목록을 불러오는데 실패했습니다.", e);
+                console.error("세트 목록 로드 실패:", e);
+                alert("공식 TCG API 연결 중 오류가 발생했습니다.");
             }
         }
 
@@ -279,9 +284,9 @@
                 const opt = document.createElement('option');
                 opt.value = s.id;
                 
-                // 한국어 명칭이 있는 경우 함께 표시
-                const krName = setKoreanNames[s.id] ? ` [${setKoreanNames[s.id]}]` : '';
-                opt.textContent = `${s.name}${krName} (${s.printedTotal} Cards) - ${s.series}`;
+                // 영판 타이틀 기본 유지 + 한국판 명칭 병기
+                const krMatch = koreanSetNames[s.name] ? ` (${koreanSetNames[s.name]})` : '';
+                opt.textContent = `[${s.series}] ${s.name}${krMatch} - ${s.printedTotal} Cards`;
                 select.appendChild(opt);
             });
 
@@ -296,7 +301,6 @@
             selectedSet = fullSetsList.find(s => s.id === setId) || fullSetsList[0];
             
             const previewImg = document.getElementById('previewPackImg');
-            // 영판 공식 팩 심볼/로고 이미지 설정
             if (selectedSet && selectedSet.images) {
                 previewImg.src = selectedSet.images.logo || selectedSet.images.symbol;
             }
@@ -304,7 +308,7 @@
 
         function handleAuth() {
             const id = document.getElementById('authId').value.trim();
-            if(!id) return alert("아이디를 입력하세요!");
+            if(!id) return alert("아이디를 입력해주세요!");
             currentUser = id;
             document.getElementById('displayUserId').textContent = id;
             document.getElementById('authOverlay').style.display = 'none';
@@ -355,14 +359,14 @@
             const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
             const totalCost = count * 1000;
 
-            if(gold < totalCost) return alert("골드가 부족합니다!");
+            if(gold < totalCost) return alert("Gold가 부족합니다!");
             
             gold -= totalCost;
             packInventory += count;
             saveUserData();
             updateUI();
             
-            alert(`${count}개의 [${selectedSet.name}] 팩을 구매했습니다!`);
+            alert(`${selectedSet.name} Booster Pack ${count}개를 구매했습니다!`);
             switchView('open');
             renderPackToOpen();
         }
@@ -375,7 +379,7 @@
             document.getElementById('btnFlipAll').disabled = true;
 
             if (packInventory <= 0) {
-                packZone.innerHTML = `<p style="color:#aaa;">보유한 카드팩이 없습니다.</p>`;
+                packZone.innerHTML = `<p style="color:#aaa;">보유한 Booster Pack이 없습니다. 상점에서 구매해 주세요.</p>`;
                 return;
             }
 
@@ -383,9 +387,9 @@
 
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
-                    <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.95rem;">${selectedSet.name}</div>
-                    <img src="${packLogo}" class="pack-art" alt="Pack Logo">
-                    <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN!</div>
+                    <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.9rem;">${selectedSet.name}</div>
+                    <img src="${packLogo}" class="pack-art" alt="Pack Art">
+                    <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN PACK</div>
                 </div>
             `;
         }
@@ -399,28 +403,28 @@
 
             const packZone = document.getElementById('packZone');
             const grid = document.getElementById('packCardsGrid');
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] 개봉 완료!</p>`;
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] Booster Pack Unboxed!</p>`;
             document.getElementById('btnFlipAll').disabled = false;
-            grid.innerHTML = '<p style="color:#aaa;">해당 팩의 카드 불러오는 중...</p>';
+            grid.innerHTML = '<p style="color:#aaa;">해당 팩의 정식 카드 데이터를 불러오는 중...</p>';
 
             let fetchedCards = [];
 
             try {
-                // 정확히 선택한 세트(set.id)에 일치하는 카드 30장을 조회
-                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${selectedSet.id}&pageSize=30`);
+                // 정확히 선택한 세트 아이디(set.id) 카드만 추출 (최대 250장 무작위)
+                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:"${selectedSet.id}"&pageSize=250`);
                 const data = await res.json();
                 if(data && data.data && data.data.length > 0) {
                     fetchedCards = data.data;
                 }
             } catch(e) {
-                console.error("API 카드 로드 실패:", e);
+                console.error("카드 Fetch 실패:", e);
             }
 
             currentPackCards = [];
 
-            // 5장 무작위 뽑기 (선택된 팩에서만 출현)
-            for(let i = 0; i < 5; i++) {
-                if(fetchedCards.length > 0) {
+            // 선택한 팩의 실제 카드 5장 무작위 추첨
+            if(fetchedCards.length > 0) {
+                for(let i = 0; i < 5; i++) {
                     const randomPick = fetchedCards[Math.floor(Math.random() * fetchedCards.length)];
                     currentPackCards.push({
                         id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
@@ -428,6 +432,9 @@
                         image: randomPick.images.large || randomPick.images.small
                     });
                 }
+            } else {
+                grid.innerHTML = '<p style="color:#e74c3c;">카드를 불러오지 못했습니다. 다시 시도해 주세요.</p>';
+                return;
             }
 
             grid.innerHTML = '';
@@ -439,7 +446,7 @@
                 cardEl.innerHTML = `
                     <div class="card-inner">
                         <div class="card-back"></div>
-                        <div class="card-front" style="background-image: url(&quot;${card.image}&quot;); background-size: cover; background-position: center;"></div>
+                        <div class="card-front" style="background-image: url('${card.image}');"></div>
                     </div>
                 `;
 
@@ -460,7 +467,7 @@
             document.getElementById('nextActionZone').style.display = 'flex';
 
             if(packInventory > 0) {
-                nextBtn.innerText = `⚡ 바로 다음 팩 까기 (${packInventory}개 남음)`;
+                nextBtn.innerText = `⚡ 바로 다음 팩 개봉 (남은 팩: ${packInventory}개)`;
             } else {
                 nextBtn.innerText = `모든 팩 개봉 완료!`;
             }
@@ -491,7 +498,7 @@
 
         function openNextPack() {
             if(packInventory <= 0) {
-                alert("보유한 팩을 모두 개봉했습니다!");
+                alert("보유한 팩을 모두 까셨습니다! 상점으로 이동합니다.");
                 switchView('shop');
                 return;
             }
@@ -561,9 +568,7 @@
                         c.x = newX; c.y = newY;
                     }
 
-                    function onMouseMove(e) {
-                        moveAt(e.pageX, e.pageY);
-                    }
+                    function onMouseMove(e) { moveAt(e.pageX, e.pageY); }
 
                     document.addEventListener('mousemove', onMouseMove);
 
@@ -579,7 +584,7 @@
                     saveUserData();
                     updateUI();
                     renderDesk();
-                    alert("📘 카드가 수집 바인더에 저장되었습니다!");
+                    alert("📘 카드가 Collection Binder에 저장되었습니다!");
                 };
 
                 desk.appendChild(el);
@@ -599,7 +604,7 @@
             if(card) {
                 const grades = [8, 9, 9, 10, 10];
                 card.psa = grades[Math.floor(Math.random() * grades.length)];
-                alert(`🔍 PSA 감정 완료: [PSA ${card.psa}] 등급을 획득했습니다!`);
+                alert(`🔍 PSA Grade: [PSA ${card.psa}]를 받았습니다!`);
                 renderDesk();
             }
         }
