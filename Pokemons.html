@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Unboxing Simulator</title>
+    <title>Pokémon TCG Dynamic Simulator</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -76,7 +76,8 @@
             width: 70px; padding: 8px; text-align: center; background: #16192b; color: #fff; border: 1px solid var(--accent); border-radius: 6px; font-weight: bold; font-size: 1rem;
         }
 
-        .open-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .status-loading { font-size: 0.9rem; color: #4bcffa; margin-top: 8px; }
+
         .desk-area {
             width: 100%; height: 480px; background: var(--desk); border: 2px dashed #38426b;
             border-radius: 15px; position: relative; overflow: hidden; margin-top: 10px;
@@ -113,6 +114,7 @@
             cursor: grab;
             touch-action: none;
             border: 2px solid rgba(255,255,255,0.2);
+            background-color: #1a2744;
         }
         .stacked-card:active { cursor: grabbing; }
 
@@ -146,7 +148,8 @@
         }
         .rarity-badge {
             position: absolute; bottom: 6px; left: 6px; background: rgba(0,0,0,0.75); color: #ffcb05;
-            font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffcb05;
+            font-size: 0.65rem; font-weight: bold; padding: 2px 5px; border-radius: 4px; border: 1px solid #ffcb05;
+            max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
         .binder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; width: 100%; background: #121526; padding: 20px; border-radius: 15px; }
@@ -186,13 +189,13 @@
         </div>
     </div>
 
-    <!-- 상점 뷰 -->
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>⚡ Master Booster Shop</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">1~4번 카드는 일반, 마지막 5번째 카드에서 히트(RR/SAR/SR/UR) 카드가 나옵니다!</p>
+            <h2>⚡ API Live Booster Shop</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">선택한 확장팩의 전체 카드 데이터를 API에서 실시간으로 로드해 무제한 랜덤 개봉합니다!</p>
 
-            <select id="seriesSelect" class="series-select" onchange="updatePackPreview()"></select>
+            <select id="seriesSelect" class="series-select" onchange="loadSetData()"></select>
+            <div id="loadStatus" class="status-loading">데이터 불러오는 중...</div>
 
             <div id="shopPackPreview" style="margin: 10px 0; min-height: 160px; display: flex; align-items: center; justify-content: center;">
                 <img id="previewPackImg" src="" style="height: 160px; object-fit: contain;">
@@ -206,19 +209,16 @@
         </div>
     </div>
 
-    <!-- 개봉 및 테이블 뷰 -->
     <div id="viewOpen" class="view-section">
-        <div class="open-container">
+        <div class="open-container" style="width:100%;">
             <div style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-                <p style="color:#aaa; font-size:0.85rem;">💡 상단 카드를 바깥으로 드래그해 옆으로 치우면 아래 카드가 나타납니다!</p>
-                <div>
-                    <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
-                </div>
+                <p style="color:#aaa; font-size:0.85rem;">💡 카드를 바깥으로 드래그해 치우면 다음 카드가 나타납니다!</p>
+                <button class="btn-action" style="background:#e74c3c; color:white; padding:6px 12px; font-size:0.85rem;" onclick="refreshTable()">🧹 테이블 초기화</button>
             </div>
 
             <div class="desk-area" id="deskArea">
                 <p id="deskNotice" style="position:absolute; top:45%; width:100%; text-align:center; color:#667; pointer-events:none; font-size:0.9rem;">
-                    💡 치운 카드는 아래 <b>개봉 테이블</b>로 자동 배치됩니다!
+                    💡 치운 카드는 아래 <b>개봉 테이블</b>로 자동 배치됩니다! (더블클릭시 바인더 저장)
                 </p>
             </div>
 
@@ -234,7 +234,6 @@
         </div>
     </div>
 
-    <!-- 바인더 뷰 -->
     <div id="viewBinder" class="view-section">
         <h2 style="margin-bottom: 15px; color: var(--accent);">📘 Collection Binder</h2>
         <div class="binder-grid" id="binderGrid"></div>
@@ -244,165 +243,80 @@
         let currentUser = null;
         let gold = 100000;
         let packInventory = 0;
-        let selectedSet = null;
         let binder = [];
         let currentPackCards = [];
         let tableCards = [];
         let globalZIndex = 100;
 
-        // 대표 확장팩 10종 내부 내장 데이터
-        const PACK_SETS = [
-            {
-                id: 'sv1', name: 'Scarlet & Violet Base',
-                logo: 'https://images.pokemontcg.io/sv1/logo.png',
-                common: [
-                    { name: 'Sprigatito', image: 'https://images.pokemontcg.io/sv1/12_hires.png', rarity: 'C' },
-                    { name: 'Fuecoco', image: 'https://images.pokemontcg.io/sv1/37_hires.png', rarity: 'C' },
-                    { name: 'Quaxly', image: 'https://images.pokemontcg.io/sv1/52_hires.png', rarity: 'C' },
-                    { name: 'Pawmi', image: 'https://images.pokemontcg.io/sv1/73_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Gardevoir ex', image: 'https://images.pokemontcg.io/sv1/86_hires.png', rarity: 'RR' },
-                    { name: 'Miraidon ex SAR', image: 'https://images.pokemontcg.io/sv1/244_hires.png', rarity: 'SAR' },
-                    { name: 'Koraidon ex SAR', image: 'https://images.pokemontcg.io/sv1/247_hires.png', rarity: 'SAR' },
-                    { name: 'Miriam SR', image: 'https://images.pokemontcg.io/sv1/251_hires.png', rarity: 'SR' }
-                ]
-            },
-            {
-                id: 'sv2', name: 'Paldea Evolved',
-                logo: 'https://images.pokemontcg.io/sv2/logo.png',
-                common: [
-                    { name: 'Pikachu', image: 'https://images.pokemontcg.io/sv2/62_hires.png', rarity: 'C' },
-                    { name: 'Marill', image: 'https://images.pokemontcg.io/sv2/43_hires.png', rarity: 'C' },
-                    { name: 'Tinkatink', image: 'https://images.pokemontcg.io/sv2/103_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Iono SAR', image: 'https://images.pokemontcg.io/sv2/269_hires.png', rarity: 'SAR' },
-                    { name: 'Chien-Pao ex SAR', image: 'https://images.pokemontcg.io/sv2/261_hires.png', rarity: 'SAR' },
-                    { name: 'Tinkaton ex', image: 'https://images.pokemontcg.io/sv2/105_hires.png', rarity: 'RR' }
-                ]
-            },
-            {
-                id: 'sv3', name: 'Obsidian Flames',
-                logo: 'https://images.pokemontcg.io/sv3/logo.png',
-                common: [
-                    { name: 'Charmander', image: 'https://images.pokemontcg.io/sv3/26_hires.png', rarity: 'C' },
-                    { name: 'Vulpix', image: 'https://images.pokemontcg.io/sv3/28_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Charizard ex SAR', image: 'https://images.pokemontcg.io/sv3/223_hires.png', rarity: 'SAR' },
-                    { name: 'Tyranitar ex', image: 'https://images.pokemontcg.io/sv3/66_hires.png', rarity: 'RR' },
-                    { name: 'Pidgeot ex', image: 'https://images.pokemontcg.io/sv3/164_hires.png', rarity: 'RR' }
-                ]
-            },
-            {
-                id: 'sv3pt5', name: '151 (Special Set)',
-                logo: 'https://images.pokemontcg.io/sv3pt5/logo.png',
-                common: [
-                    { name: 'Bulbasaur', image: 'https://images.pokemontcg.io/sv3pt5/1_hires.png', rarity: 'C' },
-                    { name: 'Squirtle', image: 'https://images.pokemontcg.io/sv3pt5/7_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Charizard ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/199_hires.png', rarity: 'SAR' },
-                    { name: 'Mew ex SAR', image: 'https://images.pokemontcg.io/sv3pt5/205_hires.png', rarity: 'SAR' },
-                    { name: 'Alakazam ex', image: 'https://images.pokemontcg.io/sv3pt5/65_hires.png', rarity: 'RR' }
-                ]
-            },
-            {
-                id: 'swsh12', name: 'Silver Tempest',
-                logo: 'https://images.pokemontcg.io/swsh12/logo.png',
-                common: [
-                    { name: 'Pikachu', image: 'https://images.pokemontcg.io/swsh12/46_hires.png', rarity: 'C' },
-                    { name: 'Dratini', image: 'https://images.pokemontcg.io/swsh12/130_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Lugia VSTAR Alt Art', image: 'https://images.pokemontcg.io/swsh12/211_hires.png', rarity: 'UR' },
-                    { name: 'Regidrago VSTAR', image: 'https://images.pokemontcg.io/swsh12/136_hires.png', rarity: 'RRR' }
-                ]
-            },
-            {
-                id: 'swsh11', name: 'Lost Origin',
-                logo: 'https://images.pokemontcg.io/swsh11/logo.png',
-                common: [
-                    { name: 'Gastly', image: 'https://images.pokemontcg.io/swsh11/64_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Giratina V Alt Art', image: 'https://images.pokemontcg.io/swsh11/186_hires.png', rarity: 'SR' },
-                    { name: 'Aerodactyl VSTAR', image: 'https://images.pokemontcg.io/swsh11/93_hires.png', rarity: 'RRR' }
-                ]
-            },
-            {
-                id: 'swsh10', name: 'Astral Radiance',
-                logo: 'https://images.pokemontcg.io/swsh10/logo.png',
-                common: [
-                    { name: 'Hisuian Zorua', image: 'https://images.pokemontcg.io/swsh10/53_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Origin Forme Palkia VSTAR', image: 'https://images.pokemontcg.io/swsh10/40_hires.png', rarity: 'RRR' },
-                    { name: 'Machamp V Alt Art', image: 'https://images.pokemontcg.io/swsh10/172_hires.png', rarity: 'SR' }
-                ]
-            },
-            {
-                id: 'swsh9', name: 'Brilliant Stars',
-                logo: 'https://images.pokemontcg.io/swsh9/logo.png',
-                common: [
-                    { name: 'Chimchar', image: 'https://images.pokemontcg.io/swsh9/26_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Charizard VSTAR', image: 'https://images.pokemontcg.io/swsh9/18_hires.png', rarity: 'RRR' },
-                    { name: 'Arceus VSTAR', image: 'https://images.pokemontcg.io/swsh9/123_hires.png', rarity: 'RRR' }
-                ]
-            },
-            {
-                id: 'swsh7', name: 'Evolving Skies',
-                logo: 'https://images.pokemontcg.io/swsh7/logo.png',
-                common: [
-                    { name: 'Eevee', image: 'https://images.pokemontcg.io/swsh7/125_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Umbreon VMAX Alt Art', image: 'https://images.pokemontcg.io/swsh7/215_hires.png', rarity: 'HR' },
-                    { name: 'Rayquaza VMAX Alt Art', image: 'https://images.pokemontcg.io/swsh7/218_hires.png', rarity: 'HR' }
-                ]
-            },
-            {
-                id: 'base1', name: 'Classic Base Set',
-                logo: 'https://images.pokemontcg.io/base1/logo.png',
-                common: [
-                    { name: 'Charmander', image: 'https://images.pokemontcg.io/base1/46_hires.png', rarity: 'C' },
-                    { name: 'Pikachu', image: 'https://images.pokemontcg.io/base1/58_hires.png', rarity: 'C' }
-                ],
-                hit: [
-                    { name: 'Charizard Shadowless', image: 'https://images.pokemontcg.io/base1/4_hires.png', rarity: 'UR' },
-                    { name: 'Blastoise', image: 'https://images.pokemontcg.io/base1/2_hires.png', rarity: 'RR' }
-                ]
-            }
-        ];
+        let availableSets = [];
+        let currentSetCards = [];
+        let currentSetInfo = null;
 
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
                 const count = Math.max(1, parseInt(e.target.value) || 1);
                 document.getElementById('totalCost').textContent = (count * 1000).toLocaleString();
             });
-            initShop();
+            fetchSetsFromAPI();
         };
 
-        function initShop() {
-            const select = document.getElementById('seriesSelect');
-            select.innerHTML = '';
-            PACK_SETS.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s.id;
-                opt.textContent = `${s.name}`;
-                select.appendChild(opt);
-            });
-            updatePackPreview();
+        // 1. API에서 주요 확장팩 목록 가져오기
+        async function fetchSetsFromAPI() {
+            const statusEl = document.getElementById('loadStatus');
+            statusEl.textContent = '🚀 확장팩 세트 목록 로딩 중...';
+            
+            try {
+                const res = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate');
+                const data = await res.json();
+                
+                // 인기 주요 확장팩 위주 추출 (이미지 존재하는 세트)
+                availableSets = data.data.filter(s => s.images && s.images.logo);
+                
+                const select = document.getElementById('seriesSelect');
+                select.innerHTML = '';
+                availableSets.slice(0, 30).forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = `[${s.series}] ${s.name} (${s.total} cards)`;
+                    select.appendChild(opt);
+                });
+
+                loadSetData();
+            } catch (err) {
+                statusEl.textContent = '❌ 세트 목록 로딩 실패. 다시 시도해 주세요.';
+            }
         }
 
-        function updatePackPreview() {
+        // 2. 선택한 확장팩의 전체 카드 가져오기
+        async function loadSetData() {
             const setId = document.getElementById('seriesSelect').value;
-            selectedSet = PACK_SETS.find(s => s.id === setId);
-            if(selectedSet) {
-                document.getElementById('previewPackImg').src = selectedSet.logo;
+            const statusEl = document.getElementById('loadStatus');
+            const buyBtn = document.getElementById('btnBuyPack');
+
+            currentSetInfo = availableSets.find(s => s.id === setId);
+            if(currentSetInfo) {
+                document.getElementById('previewPackImg').src = currentSetInfo.images.logo;
+            }
+
+            statusEl.textContent = '⏳ 카드를 API에서 대량 로딩 중입니다...';
+            buyBtn.disabled = true;
+
+            try {
+                // 해당 세트의 카드 250장까지 한 번에 로드
+                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=250`);
+                const data = await res.json();
+                
+                currentSetCards = data.data.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    image: c.images.large || c.images.small,
+                    rarity: c.rarity || 'Common'
+                }));
+
+                statusEl.textContent = `✅ 총 ${currentSetCards.length}장의 카드가 준비되었습니다!`;
+                buyBtn.disabled = false;
+            } catch (err) {
+                statusEl.textContent = '❌ 카드 로딩 중 오류가 발생했습니다.';
             }
         }
 
@@ -413,7 +327,7 @@
             document.getElementById('displayUserId').textContent = id;
             document.getElementById('authOverlay').style.display = 'none';
 
-            const users = JSON.parse(localStorage.getItem('tcg_master_users') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_api_users') || '{}');
             if(!users[id]) users[id] = { gold: 100000, packInventory: 0, binder: [] };
             gold = users[id].gold || 100000;
             packInventory = users[id].packInventory || 0;
@@ -425,9 +339,9 @@
 
         function saveUserData() {
             if(!currentUser) return;
-            const users = JSON.parse(localStorage.getItem('tcg_master_users') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_api_users') || '{}');
             users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
-            localStorage.setItem('tcg_master_users', JSON.stringify(users));
+            localStorage.setItem('tcg_api_users', JSON.stringify(users));
         }
 
         function updateUI() {
@@ -456,6 +370,8 @@
         }
 
         function buyPacks() {
+            if(currentSetCards.length === 0) return alert("카드 로딩이 완료될 때까지 기다려주세요!");
+
             const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
             const totalCost = count * 1000;
 
@@ -466,7 +382,7 @@
             saveUserData();
             updateUI();
             
-            alert(`${selectedSet.name} Booster Pack ${count}개를 구매했습니다!`);
+            alert(`${currentSetInfo.name} Booster Pack ${count}개를 구매했습니다!`);
             switchView('open');
             renderPackToOpen();
         }
@@ -484,43 +400,51 @@
 
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
-                    <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.85rem;">${selectedSet.name}</div>
-                    <img src="${selectedSet.logo}" class="pack-art" alt="Pack Art">
+                    <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.85rem;">${currentSetInfo ? currentSetInfo.name : 'Booster Pack'}</div>
+                    <img src="${currentSetInfo ? currentSetInfo.images.logo : ''}" class="pack-art">
                     <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN PACK</div>
                 </div>
             `;
         }
 
+        // 3. 팩 개봉 확률 시스템 (Common/Uncommon vs Rare/Ultra Rare 구분)
         function openPack() {
-            if (packInventory <= 0 || !selectedSet) return;
+            if (packInventory <= 0 || currentSetCards.length === 0) return;
 
             const packZone = document.getElementById('packZone');
             packInventory--;
             saveUserData();
             updateUI();
 
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${selectedSet.name}] 개봉! 1~4번 카드를 옆으로 치우고 마지막 5번 히트 카드를 확인하세요.</p>`;
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ [${currentSetInfo.name}] 개봉 중! 카드를 옆으로 치워보세요.</p>`;
 
             currentPackCards = [];
             
-            // 1~4번: 일반 카드
+            // Common / Uncommon 카드 분류
+            const commons = currentSetCards.filter(c => c.rarity.includes('Common') || c.rarity.includes('Uncommon'));
+            const hits = currentSetCards.filter(c => !c.rarity.includes('Common') && !c.rarity.includes('Uncommon'));
+
+            const commonPool = commons.length > 0 ? commons : currentSetCards;
+            const hitPool = hits.length > 0 ? hits : currentSetCards;
+
+            // 1~4번 슬롯: 일반 카드 pool에서 추출
             for(let i = 0; i < 4; i++) {
-                currentPackCards.push(pickRandom(selectedSet.common));
+                currentPackCards.push(getRandomCard(commonPool));
             }
 
-            // 5번: 히트(좋은) 카드
-            currentPackCards.push(pickRandom(selectedSet.hit));
+            // 5번 슬롯: 레어/히트 카드 등장
+            currentPackCards.push(getRandomCard(hitPool));
 
             renderCardStack();
         }
 
-        function pickRandom(arr) {
-            const item = arr[Math.floor(Math.random() * arr.length)];
+        function getRandomCard(pool) {
+            const card = pool[Math.floor(Math.random() * pool.length)];
             return {
-                id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                name: item.name,
-                image: item.image,
-                rarity: item.rarity
+                instanceId: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                name: card.name,
+                image: card.image,
+                rarity: card.rarity
             };
         }
 
@@ -545,7 +469,6 @@
             });
         }
 
-        // 완벽하게 드래그되는 카드 분리 로직
         function makeDraggableStackCard(el, cardData, initialIdx) {
             let startX = 0, startY = 0;
             let currentX = 0, currentY = 0;
@@ -581,7 +504,6 @@
                 window.removeEventListener('mouseup', endDrag);
                 window.removeEventListener('touchend', endDrag);
 
-                // 일정 거리 이상 스와이프하면 치우기
                 if (Math.abs(currentX) > 60 || Math.abs(currentY) > 60) {
                     el.style.transition = 'all 0.25s ease-out';
                     el.style.opacity = '0';
@@ -622,7 +544,7 @@
             const offset = (tableCards.length * 25) % 250;
 
             const cardObj = {
-                instanceId: cardData.id,
+                instanceId: cardData.instanceId,
                 data: cardData,
                 sleeve: false,
                 toploader: false,
@@ -777,7 +699,7 @@
             grid.innerHTML = '';
 
             if(binder.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #aaa;">바인더가 비어있습니다.</p>`;
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: #aaa;">바인더가 비어있습니다. 테이블의 카드를 더블클릭해 저장하세요!</p>`;
                 return;
             }
 
