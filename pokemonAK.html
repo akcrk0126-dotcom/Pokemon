@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Ultimate Simulator</title>
+    <title>Pokémon TCG Simulator - Multi-Lang Fixed</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -67,9 +67,7 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        .lang-selector {
-            display: flex; gap: 10px; margin-bottom: 15px;
-        }
+        .lang-selector { display: flex; gap: 10px; margin-bottom: 15px; }
         .lang-btn {
             padding: 6px 14px; background: #0b0d19; border: 1px solid #444; color: #fff;
             border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: bold;
@@ -96,61 +94,33 @@
             border-radius: 15px; position: relative; overflow: hidden; margin-top: 10px;
         }
 
-        /* 팩 연출 스테이지 */
         .pack-open-stage {
             width: 100%; background: var(--panel); border-radius: 15px; padding: 25px;
             margin-top: 15px; display: flex; flex-direction: column; align-items: center; min-height: 420px;
             position: relative;
         }
 
-        /* 부스터 팩 커스텀 디자인 */
-        .pack-container {
-            position: relative;
-            width: 180px;
-            height: 290px;
-            cursor: pointer;
-            perspective: 1000px;
-        }
+        .pack-container { position: relative; width: 180px; height: 290px; cursor: pointer; perspective: 1000px; }
 
         .pack-body {
-            position: absolute;
-            width: 100%; height: 100%;
+            position: absolute; width: 100%; height: 100%;
             background: linear-gradient(135deg, #1e2540 0%, #0a0d1a 100%);
-            border: 2px solid var(--accent);
-            border-radius: 12px;
+            border: 2px solid var(--accent); border-radius: 12px;
             box-shadow: 0 12px 30px rgba(0,0,0,0.8), 0 0 15px rgba(255,203,5,0.2);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            transition: transform 0.2s;
+            overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+            padding: 10px; transition: transform 0.2s;
         }
         .pack-container:hover .pack-body { transform: scale(1.03); }
 
-        .pack-top-crimp {
+        .pack-top-crimp, .pack-bottom-crimp {
             width: 100%; height: 16px;
             background: repeating-linear-gradient(90deg, #333, #333 3px, #111 3px, #111 6px);
-            border-bottom: 1px solid rgba(255,255,255,0.2);
-        }
-        .pack-bottom-crimp {
-            width: 100%; height: 16px;
-            background: repeating-linear-gradient(90deg, #333, #333 3px, #111 3px, #111 6px);
-            border-top: 1px solid rgba(255,255,255,0.2);
         }
 
-        .pack-art-img {
-            width: 85%; height: 180px; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
-        }
+        .pack-art-img { width: 85%; height: 180px; object-fit: contain; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); }
 
-        /* 팩 뜯는 애니메이션 효과 */
-        .pack-tearing {
-            animation: packShake 0.4s ease-in-out infinite;
-        }
-        .pack-top-tear {
-            animation: tearOff 0.6s forwards ease-in;
-        }
+        .pack-tearing { animation: packShake 0.4s ease-in-out infinite; }
+        .pack-top-tear { animation: tearOff 0.6s forwards ease-in; }
 
         @keyframes packShake {
             0% { transform: rotate(0deg); }
@@ -164,38 +134,17 @@
             100% { transform: translateY(-120px) rotate(-20deg); opacity: 0; }
         }
 
-        /* 카드 스택 */
-        .stack-container {
-            position: relative;
-            width: 180px;
-            height: 250px;
-            margin-top: 10px;
-        }
+        .stack-container { position: relative; width: 180px; height: 250px; margin-top: 10px; }
 
         .stacked-card {
-            position: absolute;
-            top: 0; left: 0;
-            width: 180px; height: 250px;
-            border-radius: 12px;
-            background-size: cover;
-            background-position: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
-            cursor: grab;
-            touch-action: none;
-            border: 2px solid rgba(255,255,255,0.2);
-            background-color: #1a2744;
-            transition: transform 0.15s;
+            position: absolute; top: 0; left: 0; width: 180px; height: 250px;
+            border-radius: 12px; background-size: cover; background-position: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6); cursor: grab; touch-action: none;
+            border: 2px solid rgba(255,255,255,0.2); background-color: #1a2744; transition: transform 0.15s;
         }
         .stacked-card:active { cursor: grabbing; }
 
-        .table-card { 
-            position: absolute; 
-            width: 110px; 
-            height: 154px; 
-            cursor: grab; 
-            border-radius: 8px; 
-            touch-action: none;
-        }
+        .table-card { position: absolute; width: 110px; height: 154px; cursor: grab; border-radius: 8px; touch-action: none; }
         .table-card:active { cursor: grabbing; }
         .table-card .card-ui { width: 100%; height: 100%; border-radius: 8px; background-size: cover; background-position: center; pointer-events: none; }
 
@@ -205,9 +154,7 @@
             display: none; gap: 4px; z-index: 99999; white-space: nowrap; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
         }
         .table-card:hover .card-menu { display: flex; }
-        .card-menu button {
-            background: #222; color: #fff; border: none; padding: 3px 6px; font-size: 0.75rem; border-radius: 4px; cursor: pointer;
-        }
+        .card-menu button { background: #222; color: #fff; border: none; padding: 3px 6px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; }
         .card-menu button:hover { background: var(--accent); color: #000; }
 
         .sleeve-effect { box-shadow: 0 0 12px rgba(255, 255, 255, 0.9) !important; border: 2px solid #fff !important; }
@@ -237,7 +184,7 @@
             <h2 style="color:var(--accent); margin-bottom:15px;">🎮 Pokémon TCG Simulator</h2>
             <input type="text" id="authId" placeholder="아이디 입력" value="Master">
             <input type="password" id="authPw" placeholder="비밀번호" value="1234">
-            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">✨ 일판/한판 지원 & 100% 무료 서버</p>
+            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">✨ 일판/한판 100% 개봉 지원 패치 완료</p>
             <button onclick="handleAuth()">게임 시작하기</button>
         </div>
     </div>
@@ -361,7 +308,7 @@
             currentLang = lang;
             document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`lang-${lang}`).classList.add('active');
-            setCardsCache = {}; // 언어 변경시 캐시 초기화
+            setCardsCache = {}; 
             fetchSetsFromAPI();
         }
 
@@ -374,14 +321,15 @@
                 if(!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 
                 const data = await res.json();
-                availableSets = data.filter(s => s.logo || s.symbol);
+                availableSets = data.filter(s => s.cardCount && (s.cardCount.total > 0 || s.cardCount.official > 0));
                 
                 const select = document.getElementById('seriesSelect');
                 select.innerHTML = '';
                 availableSets.forEach(s => {
+                    const count = s.cardCount.official || s.cardCount.total || 0;
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${s.cardCount.official || s.cardCount.total}장)`;
+                    opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${count}장)`;
                     select.appendChild(opt);
                 });
 
@@ -394,14 +342,18 @@
         }
 
         async function loadSetData() {
-            const setId = document.getElementById('seriesSelect').value;
+            const selectEl = document.getElementById('seriesSelect');
+            if(!selectEl.value) return;
+            
+            const setId = selectEl.value;
             const statusEl = document.getElementById('loadStatus');
             const buyBtn = document.getElementById('btnBuyPack');
             const buyBoxBtn = document.getElementById('btnBuyBox');
 
             currentSetInfo = availableSets.find(s => s.id === setId) || availableSets[0];
             
-            const logoUrl = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : '';
+            // 이미지 폴백 로직 (로고 없으면 기본 포켓몬 심볼 처리)
+            const logoUrl = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : 'https://assets.tcgdex.net/univ/symbol.png';
             document.getElementById('previewPackImg').src = logoUrl;
             document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
 
@@ -422,25 +374,28 @@
                 const data = await res.json();
                 const rawCards = data.cards || [];
 
-                const validCards = rawCards.filter(c => c.image).map(c => ({
-                    id: c.id,
-                    name: c.name,
-                    image: `${c.image}/high.png`,
-                    rarity: c.rarity || 'Common'
-                }));
+                if(rawCards.length === 0) throw new Error("카드 데이터가 비어 있습니다.");
 
-                if(validCards.length === 0) throw new Error("이미지가 제공되는 카드가 없습니다.");
+                // 한판/일판 카드 이미지 누락 대응 (Fallback 이미지 주소 자동 구성)
+                const validCards = rawCards.map(c => {
+                    let imgPath = c.image ? `${c.image}/high.png` : `https://assets.tcgdex.net/${currentLang}/${currentSetInfo.id}/${c.localId || c.id}/high.png`;
+                    return {
+                        id: c.id,
+                        name: c.name || 'Pokémon Card',
+                        image: imgPath,
+                        rarity: c.rarity || 'Common'
+                    };
+                });
 
-                // 실제 팩 가챠 밸런스 분류 (Common/Uncommon, Rare, Ultra Rare 이상)
                 const commonList = [];
                 const rareList = [];
                 const ultraList = [];
 
                 validCards.forEach(c => {
-                    const r = c.rarity.toLowerCase();
-                    if (r.includes('ultra') || r.includes('secret') || r.includes('special') || r.includes('hyper') || r.includes('illustration') || r.includes('rainbow')) {
+                    const r = (c.rarity || '').toLowerCase();
+                    if (r.includes('ultra') || r.includes('secret') || r.includes('special') || r.includes('hyper') || r.includes('illustration') || r.includes('rr') || r.includes('sr') || r.includes('sar')) {
                         ultraList.push(c);
-                    } else if (r.includes('rare') || r.includes('holo')) {
+                    } else if (r.includes('rare') || r.includes('holo') || r.includes('r')) {
                         rareList.push(c);
                     } else {
                         commonList.push(c);
@@ -458,7 +413,7 @@
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
             } catch (err) {
                 console.error("카드 로드 실패:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 카드 로딩 실패. 다른 세트를 선택해 주세요.</span>`;
+                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 해당 확장팩은 아직 서버에 데이터가 완전하지 않습니다. 다른 확장팩을 선택해 주세요.</span>`;
             }
         }
 
@@ -555,7 +510,7 @@
                 return;
             }
 
-            const logoImg = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : '';
+            const logoImg = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : 'https://assets.tcgdex.net/univ/symbol.png';
 
             packZone.innerHTML = `
                 <div class="pack-container" id="interactivePack" onclick="triggerTearPack()">
@@ -576,8 +531,7 @@
             const packBody = document.getElementById('packBody');
             const packTop = document.getElementById('packTopCrimp');
 
-            // 클릭 및 뜯는 연출 애니메이션 실행
-            packContainer.onclick = null; // 중복 클릭 방지
+            packContainer.onclick = null; 
             packBody.classList.add('pack-tearing');
             packTop.classList.add('pack-top-tear');
 
@@ -592,34 +546,22 @@
             }, 600);
         }
 
-        // 실제 확률 가챠 밸런스 로직
         function generatePackCards() {
             currentPackCards = [];
             
-            // 1~4번째 카드: 커먼/언커먼 중심 (85% 커먼, 15% 레어)
             for(let i = 0; i < 4; i++) {
                 const rand = Math.random();
-                let picked;
-                if(rand < 0.85) {
-                    picked = getRandomFrom(currentSetCards.common);
-                } else {
-                    picked = getRandomFrom(currentSetCards.rare);
-                }
+                let picked = (rand < 0.85) ? getRandomFrom(currentSetCards.common) : getRandomFrom(currentSetCards.rare);
                 currentPackCards.push(createCardInstance(picked));
             }
 
-            // 5번째 카드 (확정 히트 슬롯): 레어 이상 확정 (70% Rare, 30% Ultra Rare/SR/SAR)
             const hitRand = Math.random();
-            let hitCard;
-            if (hitRand < 0.70) {
-                hitCard = getRandomFrom(currentSetCards.rare);
-            } else {
-                hitCard = getRandomFrom(currentSetCards.ultra);
-            }
+            let hitCard = (hitRand < 0.70) ? getRandomFrom(currentSetCards.rare) : getRandomFrom(currentSetCards.ultra);
             currentPackCards.push(createCardInstance(hitCard));
         }
 
         function getRandomFrom(arr) {
+            if(!arr || arr.length === 0) return { name: 'Pokémon Card', image: 'https://assets.tcgdex.net/univ/symbol.png', rarity: 'Common' };
             return arr[Math.floor(Math.random() * arr.length)];
         }
 
@@ -661,8 +603,7 @@
             const startDrag = (e) => {
                 dragging = true;
                 const pt = e.touches ? e.touches[0] : e;
-                startX = pt.clientX;
-                startY = pt.clientY;
+                startX = pt.clientX; startY = pt.clientY;
 
                 window.addEventListener('mousemove', moveDrag);
                 window.addEventListener('touchmove', moveDrag, { passive: false });
@@ -673,9 +614,7 @@
             const moveDrag = (e) => {
                 if (!dragging) return;
                 const pt = e.touches ? e.touches[0] : e;
-                currentX = pt.clientX - startX;
-                currentY = pt.clientY - startY;
-
+                currentX = pt.clientX - startX; currentY = pt.clientY - startY;
                 el.style.transform = `translate(${initialIdx * 2 + currentX}px, ${initialIdx * 2 + currentY}px) rotate(${currentX * 0.08}deg)`;
             };
 
