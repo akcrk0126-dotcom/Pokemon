@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pokémon TCG Simulator Fixed</title>
+    <title>Pokémon TCG Simulator (100% Free & No API Key)</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -33,7 +33,7 @@
         }
         .auth-box {
             background: var(--panel); padding: 30px; border-radius: 15px;
-            border: 2px solid var(--accent); width: 360px; text-align: center;
+            border: 2px solid var(--accent); width: 340px; text-align: center;
         }
         .auth-box input {
             width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px;
@@ -79,7 +79,6 @@
         }
 
         .status-loading { font-size: 0.9rem; color: #4bcffa; margin-top: 8px; font-weight: bold; line-height: 1.4; }
-        .error-msg { color: #ff4757; }
 
         .desk-area {
             width: 100%; height: 480px; background: var(--desk); border: 2px dashed #38426b;
@@ -167,11 +166,10 @@
 
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-box">
-            <h2 style="color:var(--accent); margin-bottom:15px;">🔑 PokéTCG API Login</h2>
-            <input type="text" id="authId" placeholder="아이디" value="Master">
+            <h2 style="color:var(--accent); margin-bottom:15px;">🎮 Pokémon TCG Simulator</h2>
+            <input type="text" id="authId" placeholder="아이디 입력" value="Master">
             <input type="password" id="authPw" placeholder="비밀번호" value="1234">
-            <input type="text" id="apiKeyInput" placeholder="PokéTCG API Key 입력" style="font-size:0.85rem; border-color:var(--accent);">
-            <p style="color:#aaa; font-size:0.75rem; margin-top:4px;">* 키가 없어도 비워두시면 자동 우회 동작합니다.</p>
+            <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">✅ API Key가 필요없는 100% 무료 서버입니다.</p>
             <button onclick="handleAuth()">게임 시작하기</button>
         </div>
     </div>
@@ -197,8 +195,8 @@
 
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>⚡ Official All-Pack Live Shop</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px;">API 통신 문제 완벽 보완 버전</p>
+            <h2>⚡ Open-Source Free Booster Shop</h2>
+            <p style="color:#2ed573; font-size:0.85rem; margin-top:5px;">✨ TCGdex 오픈소스 API 연동 완료 (제한 없이 무제한 이용 가능)</p>
 
             <select id="seriesSelect" class="series-select" onchange="loadSetData()"></select>
             <div id="loadStatus" class="status-loading">대기 중...</div>
@@ -258,7 +256,6 @@
 
     <script>
         let currentUser = null;
-        let userApiKey = "";
         let gold = 100000;
         let packInventory = 0;
         let binder = [];
@@ -271,15 +268,6 @@
         let currentSetCards = { common: [], hit: [] };
         let currentSetInfo = null;
 
-        // 예비용 기본 카드 데이터 (API 완전 차단 시 자동 구동)
-        const fallbackCards = [
-            { id: "fb1", name: "Pikachu", image: "https://images.pokemontcg.io/base1/58_hires.png", rarity: "Common" },
-            { id: "fb2", name: "Charmander", image: "https://images.pokemontcg.io/base1/46_hires.png", rarity: "Common" },
-            { id: "fb3", name: "Squirtle", image: "https://images.pokemontcg.io/base1/63_hires.png", rarity: "Common" },
-            { id: "fb4", name: "Bulbasaur", image: "https://images.pokemontcg.io/base1/44_hires.png", rarity: "Common" },
-            { id: "fb5", name: "Charizard", image: "https://images.pokemontcg.io/base1/4_hires.png", rarity: "Rare Holo" }
-        ];
-
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
                 const count = Math.max(1, parseInt(e.target.value) || 1);
@@ -287,43 +275,32 @@
             });
         };
 
-        function getHeaders() {
-            const h = {};
-            if (userApiKey && userApiKey.trim().length > 5) {
-                h['X-Api-Key'] = userApiKey.trim();
-            }
-            return h;
-        }
-
+        // TCGdex 무료 오픈소스 API 활용
         async function fetchSetsFromAPI() {
             const statusEl = document.getElementById('loadStatus');
-            statusEl.textContent = '🚀 확장팩 목록 가져오는 중...';
+            statusEl.textContent = '🚀 무료 TCGdex API에서 확장팩 불러오는 중...';
             
             try {
-                const res = await fetch('https://api.pokemontcg.io/v2/sets?orderBy=-releaseDate', { headers: getHeaders() });
+                const res = await fetch('https://api.tcgdex.net/v2/en/sets');
                 if(!res.ok) throw new Error(`HTTP Error: ${res.status}`);
                 
                 const data = await res.json();
-                availableSets = data.data.filter(s => s.images && s.images.logo);
+                availableSets = data.filter(s => s.logo || s.symbol);
                 
                 const select = document.getElementById('seriesSelect');
                 select.innerHTML = '';
                 availableSets.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.id;
-                    opt.textContent = `[${s.series}] ${s.name} (${s.total}장)`;
+                    opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${s.cardCount.official || s.cardCount.total}장)`;
                     select.appendChild(opt);
                 });
 
-                statusEl.textContent = `✅ 총 ${availableSets.length}개 세트 로드 완료!`;
+                statusEl.textContent = `✅ 총 ${availableSets.length}개 세트 준비 완료! (API Key 없음)`;
                 loadSetData();
             } catch (err) {
-                console.warn("API 목록 로드 실패, Fallback 적용:", err);
-                statusEl.innerHTML = `<span style="color:#ff9f1a;">⚠️ API 연결 불안정 (기본 데이터 모드로 작동합니다)</span>`;
-                availableSets = [{ id: "base1", name: "Base Set (Fallback)", series: "Classic", images: { logo: "https://images.pokemontcg.io/base1/logo.png" }, total: 102 }];
-                const select = document.getElementById('seriesSelect');
-                select.innerHTML = '<option value="base1">Base Set (기본 모드)</option>';
-                loadSetData();
+                console.error("세트 로드 에러:", err);
+                statusEl.innerHTML = `<span style="color:#ff4757;">❌ 서버 네트워크 통신 오류가 발생했습니다.</span>`;
             }
         }
 
@@ -334,9 +311,9 @@
             const buyBoxBtn = document.getElementById('btnBuyBox');
 
             currentSetInfo = availableSets.find(s => s.id === setId) || availableSets[0];
-            if(currentSetInfo && currentSetInfo.images) {
-                document.getElementById('previewPackImg').src = currentSetInfo.images.logo;
-            }
+            
+            const logoUrl = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : '';
+            document.getElementById('previewPackImg').src = logoUrl;
 
             if (setCardsCache[setId]) {
                 currentSetCards = setCardsCache[setId];
@@ -345,25 +322,27 @@
                 return;
             }
 
-            statusEl.textContent = `⏳ [${currentSetInfo.name}] 카드 로딩 중...`;
+            statusEl.textContent = `⏳ [${currentSetInfo.name}] 카드 세트 불러오는 중...`;
             buyBtn.disabled = true; buyBoxBtn.disabled = true;
 
             try {
-                const res = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=60`, { headers: getHeaders() });
+                const res = await fetch(`https://api.tcgdex.net/v2/en/sets/${setId}`);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
                 const data = await res.json();
-                const validCards = data.data.filter(c => c.images && (c.images.large || c.images.small)).map(c => ({
+                const rawCards = data.cards || [];
+
+                const validCards = rawCards.filter(c => c.image).map(c => ({
                     id: c.id,
                     name: c.name,
-                    image: c.images.large || c.images.small,
+                    image: `${c.image}/high.png`,
                     rarity: c.rarity || 'Common'
                 }));
 
-                if(validCards.length === 0) throw new Error("유효한 카드가 없습니다.");
+                if(validCards.length === 0) throw new Error("이미지가 제공되는 카드가 없습니다.");
 
-                const commonList = validCards.filter(c => !c.rarity.toLowerCase().includes('rare'));
-                const hitList = validCards.filter(c => c.rarity.toLowerCase().includes('rare'));
+                const commonList = validCards.filter(c => !c.rarity.toLowerCase().includes('rare') && !c.rarity.toLowerCase().includes('ultra'));
+                const hitList = validCards.filter(c => c.rarity.toLowerCase().includes('rare') || c.rarity.toLowerCase().includes('ultra') || c.rarity.toLowerCase().includes('secret'));
 
                 setCardsCache[setId] = {
                     common: commonList.length ? commonList : validCards,
@@ -374,11 +353,8 @@
                 statusEl.textContent = `✅ [${currentSetInfo.name}] 카드 준비 완료!`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
             } catch (err) {
-                console.warn("카드 로드 에러, 기본 카드 매핑:", err);
-                statusEl.innerHTML = `<span style="color:#ff9f1a;">⚠️ API 로드 실패로 기본 카드 팩이 구성되었습니다.</span>`;
-                setCardsCache[setId] = { common: fallbackCards.slice(0, 4), hit: [fallbackCards[4]] };
-                currentSetCards = setCardsCache[setId];
-                buyBtn.disabled = false; buyBoxBtn.disabled = false;
+                console.error("카드 로드 실패:", err);
+                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 카드 세트 로딩 실패. 다른 세트를 선택해 주세요.</span>`;
             }
         }
 
@@ -386,12 +362,11 @@
             const id = document.getElementById('authId').value.trim();
             if(!id) return alert("아이디를 입력해주세요!");
             currentUser = id;
-            userApiKey = document.getElementById('apiKeyInput').value.trim();
 
             document.getElementById('displayUserId').textContent = id;
             document.getElementById('authOverlay').style.display = 'none';
 
-            const users = JSON.parse(localStorage.getItem('tcg_master_v3') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_free_v1') || '{}');
             if(!users[id]) users[id] = { gold: 100000, packInventory: 0, binder: [] };
             gold = users[id].gold || 100000;
             packInventory = users[id].packInventory || 0;
@@ -405,9 +380,9 @@
 
         function saveUserData() {
             if(!currentUser) return;
-            const users = JSON.parse(localStorage.getItem('tcg_master_v3') || '{}');
+            const users = JSON.parse(localStorage.getItem('tcg_free_v1') || '{}');
             users[currentUser] = { gold: gold, packInventory: packInventory, binder: binder };
-            localStorage.setItem('tcg_master_v3', JSON.stringify(users));
+            localStorage.setItem('tcg_free_v1', JSON.stringify(users));
         }
 
         function updateUI() {
@@ -476,10 +451,12 @@
                 return;
             }
 
+            const logoImg = currentSetInfo.logo ? `${currentSetInfo.logo}.png` : '';
+
             packZone.innerHTML = `
                 <div class="pack-wrapper" onclick="openPack()">
                     <div style="font-weight:bold; color:var(--accent); text-align:center; font-size:0.85rem;">${currentSetInfo ? currentSetInfo.name : 'Booster Pack'}</div>
-                    <img src="${currentSetInfo ? currentSetInfo.images.logo : ''}" class="pack-art">
+                    <img src="${logoImg}" class="pack-art">
                     <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 OPEN PACK</div>
                 </div>
             `;
@@ -493,11 +470,11 @@
             saveUserData();
             updateUI();
 
-            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 개봉 완료! 카드를 옆으로 치워보세요.</p>`;
+            packZone.innerHTML = `<p style="color:var(--accent); font-weight:bold;">✨ 개봉 완료! 카드를 옆으로 드래그해 보세요.</p>`;
 
             currentPackCards = [];
-            const pool = currentSetCards.common.length ? currentSetCards.common : fallbackCards;
-            const hitPool = currentSetCards.hit.length ? currentSetCards.hit : fallbackCards;
+            const pool = currentSetCards.common;
+            const hitPool = currentSetCards.hit;
 
             for(let i = 0; i < 4; i++) {
                 const picked = pool[Math.floor(Math.random() * pool.length)];
