@@ -300,10 +300,11 @@
 
     <script>
         let currentUser = null;
-        let gold = 1000000; // 💰 시작 소지금 1,000,000원
+        let gold = 1000000;
         let packInventory = 0;
         let binder = [];
         let tableCards = [];
+        let currentPackCards = [];
         let globalZIndex = 100;
 
         let availableSets = [];
@@ -314,7 +315,7 @@
         let currentBoxPrice = 50000;
         let currentPackPrice = 1700;
 
-        const USD_TO_KRW = 1000; // 1 USD = 1,000 KRW 환율 계산
+        const USD_TO_KRW = 1000;
 
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
@@ -367,15 +368,12 @@
             return 'C';
         }
 
-        // 📈 실제 카드 시장 가격(TCGplayer Market Price) 연동 함수
         function getLiveMarketPrice(card) {
             let baseKrwPrice = 100;
 
-            // API에서 실제 tcgplayer marketPrice 가격이 존재하면 이를 우선 사용
             if (card.rawMarketPriceUsd && card.rawMarketPriceUsd > 0) {
                 baseKrwPrice = card.rawMarketPriceUsd * USD_TO_KRW;
             } else {
-                // 없을 경우 실제 카테고리별 시세 가이드라인 적용
                 const r = String(card.rarity).toUpperCase();
                 switch(r) {
                     case 'UR': case 'HR': baseKrwPrice = 120000; break;
@@ -388,11 +386,10 @@
                 }
             }
 
-            // 개체별 변동폭 (-10% ~ +20%) + PSA 등급에 따른 프리미엄 배율 적용
             const trendMult = 1 + (card.marketTrend || 0);
             let finalPrice = baseKrwPrice * trendMult;
 
-            if (card.psa === 10) finalPrice *= 2.5; // PSA 10 프리미엄
+            if (card.psa === 10) finalPrice *= 2.5;
             else if (card.psa === 9) finalPrice *= 1.6;
             else if (card.psa === 8) finalPrice *= 1.2;
 
@@ -410,7 +407,6 @@
 
             currentSetInfo = availableSets.find(s => s.id === setId) || availableSets[0];
 
-            // 특수/프리미엄 세트(151, 하이클래스 등) 실거래 박스 시세 자동 조정
             const setNameUpper = currentSetInfo.name.toUpperCase();
             if (setNameUpper.includes("151") || setNameUpper.includes("CROWN") || setNameUpper.includes("SHINY") || setNameUpper.includes("DESTINIES")) {
                 currentBoxPrice = 95000;
@@ -452,7 +448,6 @@
                     let parsedRarity = parseCardRarity(c.rarity);
                     let imgPath = c.image ? `${c.image}/high.png` : `https://assets.tcgdex.net/en/${setId}/${cardId}/high.png`;
 
-                    // API pricing 데이터 파싱 (TCGplayer Market Price)
                     let marketUsd = 0;
                     if (c.pricing && c.pricing.tcgplayer) {
                         marketUsd = c.pricing.tcgplayer.marketPrice || c.pricing.tcgplayer.midPrice || 0;
@@ -653,7 +648,7 @@
         }
 
         function createCardInstance(card) {
-            const randomTrend = (Math.random() * 0.3 - 0.1).toFixed(2); // -10% ~ +20% 실시간 시장 변동
+            const randomTrend = (Math.random() * 0.3 - 0.1).toFixed(2);
             return {
                 instanceId: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
                 name: card.name,
