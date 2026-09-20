@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>포켓몬 TCG 시뮬레이터 - 100만원 실거래 시세 버전</title>
+    <title>포켓몬 TCG 시뮬레이터 - 완성판</title>
     <style>
         :root {
             --bg: #0b0d19;
@@ -202,7 +202,7 @@
     <div id="authOverlay" class="auth-overlay">
         <div class="auth-box">
             <h2 style="color:var(--accent); margin-bottom:10px;">🎮 Pokémon TCG Simulator</h2>
-            <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">실체 시세 & 100만원 예산 연동</p>
+            <p style="color:#aaa; font-size:0.8rem; margin-bottom:15px;">100만원 예산 연동 시뮬레이션</p>
             <input type="text" id="authId" placeholder="유저 ID" value="Master">
             <input type="password" id="authPw" placeholder="비밀번호" value="1234">
             <p style="color:#2ed573; font-size:0.8rem; margin-top:8px; font-weight:bold;">💰 시작 자본: 1,000,000원</p>
@@ -231,17 +231,17 @@
 
     <div id="viewShop" class="view-section active">
         <div class="shop-panel">
-            <h2>⚡ 공식 확장팩 상점 (실제 시세 연동)</h2>
-            <p style="color:#aaa; font-size:0.85rem; margin-top:5px; margin-bottom: 15px;">원하는 공식 확장팩 시리즈를 선택해 팩 또는 박스로 구입하세요!</p>
+            <h2>⚡ 포켓몬 TCG 부스터 상점</h2>
+            <p style="color:#aaa; font-size:0.85rem; margin-top:5px; margin-bottom: 15px;">공식 시리즈를 선택하여 부스터 팩을 구매하세요!</p>
 
             <select id="seriesSelect" class="series-select" onchange="loadSetData()"></select>
-            <div id="loadStatus" class="status-loading">시리즈 불러오는 중...</div>
+            <div id="loadStatus" class="status-loading">데이터 불러오는 중...</div>
 
             <div id="shopPackPreview" style="margin: 15px 0; min-height: 220px; display: flex; align-items: center; justify-content: center;">
                 <div class="pack-container" style="cursor:default;">
                     <div class="pack-body">
                         <div class="pack-top-crimp"></div>
-                        <img id="previewPackImg" src="https://assets.tcgdex.net/en/back.png" class="pack-art-img">
+                        <img id="previewPackImg" src="https://assets.tcgdex.net/en/back.png" class="pack-art-img" onerror="this.onerror=null; this.src='https://assets.tcgdex.net/en/back.png';">
                         <div id="previewPackTitle" style="font-size:0.8rem; font-weight:bold; color:var(--accent); text-align:center;">부스터 팩</div>
                         <div class="pack-bottom-crimp"></div>
                     </div>
@@ -312,7 +312,6 @@
         let currentSetCards = { common: [], rare: [], ultra: [] };
         let currentSetInfo = null;
         
-        // 정식 공식 포켓몬 카드 뒷면 이미지 URL
         const OFFICIAL_CARD_BACK = 'https://assets.tcgdex.net/en/back.png';
         let fixedPackArt = OFFICIAL_CARD_BACK;
 
@@ -320,6 +319,15 @@
         let currentPackPrice = 1700;
 
         const USD_TO_KRW = 1000;
+
+        // API 연동 예외 방지용 검증된 정식 시리즈 리스트
+        const FALLBACK_SETS = [
+            { id: 'sv01', name: 'Scarlet & Violet', cardCount: { total: 198 } },
+            { id: 'sv02', name: 'Paldea Evolved', cardCount: { total: 193 } },
+            { id: 'sv03', name: 'Obsidian Flames', cardCount: { total: 197 } },
+            { id: 'sv03.5', name: 'Pokémon 151', cardCount: { total: 165 } },
+            { id: 'swsh12', name: 'Silver Tempest', cardCount: { total: 195 } }
+        ];
 
         window.onload = function() {
             document.getElementById('buyPackCount').addEventListener('input', (e) => {
@@ -330,7 +338,7 @@
 
         async function fetchSetsFromAPI() {
             const statusEl = document.getElementById('loadStatus');
-            statusEl.textContent = `🚀 TCGdex 공식 카드 데이터 연동 중...`;
+            statusEl.textContent = `🚀 TCGdex 카드 데이터 불러오는 중...`;
             
             try {
                 const res = await fetch(`https://api.tcgdex.net/v2/en/sets`);
@@ -339,22 +347,30 @@
                 const data = await res.json();
                 availableSets = data.filter(s => s.cardCount && (s.cardCount.total > 0 || s.cardCount.official > 0));
                 
-                const select = document.getElementById('seriesSelect');
-                select.innerHTML = '';
-                availableSets.forEach(s => {
-                    const count = s.cardCount.official || s.cardCount.total || 0;
-                    const opt = document.createElement('option');
-                    opt.value = s.id;
-                    opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${count}장 포함)`;
-                    select.appendChild(opt);
-                });
+                if (availableSets.length === 0) availableSets = FALLBACK_SETS;
 
-                statusEl.textContent = `✅ 준비 완료! ${availableSets.length}개 정식 시리즈 불러옴.`;
+                populateSeriesSelect();
+                statusEl.textContent = `✅ 총 ${availableSets.length}개 시리즈 로드 성공!`;
                 loadSetData();
             } catch (err) {
-                console.error("Set loading error:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">❌ 네트워크 통신 오류가 발생했습니다.</span>`;
+                console.warn("API 불러오기 실패, 안전 모드로 전환:", err);
+                availableSets = FALLBACK_SETS;
+                populateSeriesSelect();
+                statusEl.textContent = `⚡ [안전 모드] 기본 공식 시리즈가 설정되었습니다.`;
+                loadSetData();
             }
+        }
+
+        function populateSeriesSelect() {
+            const select = document.getElementById('seriesSelect');
+            select.innerHTML = '';
+            availableSets.forEach(s => {
+                const count = (s.cardCount && (s.cardCount.official || s.cardCount.total)) || 0;
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `[${s.id.toUpperCase()}] ${s.name} (${count}장 포함)`;
+                select.appendChild(opt);
+            });
         }
 
         function parseCardRarity(rawRarity) {
@@ -425,19 +441,19 @@
             const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
             document.getElementById('totalCost').textContent = (count * currentPackPrice).toLocaleString();
 
-            // 부스터 팩 표지로 카드가 나오지 않도록 공식 뒷면으로 고정
             fixedPackArt = OFFICIAL_CARD_BACK;
-            document.getElementById('previewPackImg').src = fixedPackArt;
+            const prevImg = document.getElementById('previewPackImg');
+            prevImg.src = fixedPackArt;
             document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
 
             if (setCardsCache[setId]) {
                 currentSetCards = setCardsCache[setId].cards;
-                statusEl.textContent = `⚡ [준비완료] ${currentSetInfo.name}`;
+                statusEl.textContent = `⚡ [준비 완료] ${currentSetInfo.name}`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
                 return;
             }
 
-            statusEl.textContent = `⏳ [${currentSetInfo.name}] 카드 및 실거래 시세 정보 로딩 중...`;
+            statusEl.textContent = `⏳ [${currentSetInfo.name}] 카드 세트 불러오는 중...`;
             buyBtn.disabled = true; buyBoxBtn.disabled = true;
 
             try {
@@ -447,11 +463,13 @@
                 const data = await res.json();
                 const rawCards = data.cards || [];
 
-                if(rawCards.length === 0) throw new Error("카드 데이터가 없습니다.");
+                if(rawCards.length === 0) throw new Error("카드 데이터가 없음");
 
                 const validCards = rawCards.map(c => {
                     let cardId = c.localId || c.id;
                     let parsedRarity = parseCardRarity(c.rarity);
+                    
+                    // 고화질 CDN 이미지 링크 조합
                     let imgPath = c.image ? `${c.image}/high.png` : `https://assets.tcgdex.net/en/${setId}/${cardId}/high.png`;
 
                     let marketUsd = 0;
@@ -495,8 +513,25 @@
                 statusEl.textContent = `✅ [${currentSetInfo.name}] 준비 완료! (총 ${validCards.length}종 수록)`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
             } catch (err) {
-                console.error("Card loading failed:", err);
-                statusEl.innerHTML = `<span style="color:#ff4757;">⚠️ 데이터 불러오기 실패. 다른 시리즈를 선택하세요.</span>`;
+                console.error("데이터 통신 중 예외 발생:", err);
+                
+                // 데이터 불러오기 에러 시 기본 플레이어블 세트 생성
+                const fallbackCards = Array.from({length: 12}, (_, i) => ({
+                    id: `${setId}-${i+1}`,
+                    name: `포켓몬 카드 #${i+1}`,
+                    image: OFFICIAL_CARD_BACK,
+                    rarity: i > 10 ? 'SAR' : (i > 7 ? 'R' : 'C'),
+                    rawMarketPriceUsd: i > 10 ? 45 : 1
+                }));
+
+                currentSetCards = {
+                    common: fallbackCards.filter(c => c.rarity === 'C'),
+                    rare: fallbackCards.filter(c => c.rarity === 'R'),
+                    ultra: fallbackCards.filter(c => c.rarity === 'SAR')
+                };
+
+                statusEl.innerHTML = `<span style="color:#ffcb05;">⚡ 오프라인 기본 모드로 자동 설정되었습니다.</span>`;
+                buyBtn.disabled = false; buyBoxBtn.disabled = false;
             }
         }
 
@@ -596,7 +631,7 @@
                 <div class="pack-container" id="interactivePack" onclick="triggerTearPack()">
                     <div class="pack-body" id="packBody">
                         <div class="pack-top-crimp" id="packTopCrimp"></div>
-                        <img src="${fixedPackArt}" class="pack-art-img">
+                        <img src="${fixedPackArt}" class="pack-art-img" onerror="this.onerror=null; this.src='${OFFICIAL_CARD_BACK}';">
                         <div style="font-size:0.85rem; color:var(--accent); font-weight:bold;">👉 클릭하여 팩 개봉</div>
                         <div class="pack-bottom-crimp"></div>
                     </div>
@@ -671,7 +706,7 @@
             currentPackCards.forEach((card, idx) => {
                 const cardEl = document.createElement('div');
                 cardEl.className = 'stacked-card';
-                cardEl.style.backgroundImage = `url('${card.image}')`;
+                cardEl.style.backgroundImage = `url('${card.image}'), url('${OFFICIAL_CARD_BACK}')`;
                 cardEl.style.zIndex = 50 - idx;
                 cardEl.style.transform = `translate(${idx * 2}px, ${idx * 2}px)`;
 
@@ -805,7 +840,7 @@
 
                 const imgDiv = document.createElement('div');
                 imgDiv.className = 'card-ui';
-                imgDiv.style.backgroundImage = `url('${c.data.image}')`;
+                imgDiv.style.backgroundImage = `url('${c.data.image}'), url('${OFFICIAL_CARD_BACK}')`;
                 
                 const rBadge = document.createElement('div');
                 rBadge.className = `rarity-badge ${getRarityBadgeClass(c.data.rarity)}`;
@@ -974,7 +1009,7 @@
 
                 const imgDiv = document.createElement('div');
                 imgDiv.className = 'card-ui';
-                imgDiv.style.backgroundImage = `url('${card.image}')`;
+                imgDiv.style.backgroundImage = `url('${card.image}'), url('${OFFICIAL_CARD_BACK}')`;
                 imgDiv.style.width = '100%'; imgDiv.style.height = '100%';
                 imgDiv.style.borderRadius = '8px';
                 imgDiv.style.backgroundSize = 'cover';
