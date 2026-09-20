@@ -112,7 +112,7 @@
         }
 
         .pack-art-img {
-            width: 90%; height: 200px; object-fit: contain;
+            width: 85%; height: 200px; object-fit: contain;
             filter: drop-shadow(0 5px 12px rgba(0,0,0,0.7));
             margin: auto 0;
         }
@@ -241,7 +241,7 @@
                 <div class="pack-container" style="cursor:default;">
                     <div class="pack-body">
                         <div class="pack-top-crimp"></div>
-                        <img id="previewPackImg" src="" class="pack-art-img">
+                        <img id="previewPackImg" src="https://assets.tcgdex.net/en/back.png" class="pack-art-img">
                         <div id="previewPackTitle" style="font-size:0.8rem; font-weight:bold; color:var(--accent); text-align:center;">부스터 팩</div>
                         <div class="pack-bottom-crimp"></div>
                     </div>
@@ -311,7 +311,11 @@
         let setCardsCache = {}; 
         let currentSetCards = { common: [], rare: [], ultra: [] };
         let currentSetInfo = null;
-        let fixedPackArt = '';
+        
+        // 정식 공식 포켓몬 카드 뒷면 이미지 URL
+        const OFFICIAL_CARD_BACK = 'https://assets.tcgdex.net/en/back.png';
+        let fixedPackArt = OFFICIAL_CARD_BACK;
+
         let currentBoxPrice = 50000;
         let currentPackPrice = 1700;
 
@@ -421,11 +425,13 @@
             const count = Math.max(1, parseInt(document.getElementById('buyPackCount').value) || 1);
             document.getElementById('totalCost').textContent = (count * currentPackPrice).toLocaleString();
 
+            // 부스터 팩 표지로 카드가 나오지 않도록 공식 뒷면으로 고정
+            fixedPackArt = OFFICIAL_CARD_BACK;
+            document.getElementById('previewPackImg').src = fixedPackArt;
+            document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
+
             if (setCardsCache[setId]) {
                 currentSetCards = setCardsCache[setId].cards;
-                fixedPackArt = setCardsCache[setId].packArt;
-                document.getElementById('previewPackImg').src = fixedPackArt;
-                document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
                 statusEl.textContent = `⚡ [준비완료] ${currentSetInfo.name}`;
                 buyBtn.disabled = false; buyBoxBtn.disabled = false;
                 return;
@@ -477,20 +483,12 @@
                     }
                 });
 
-                if (ultraList.length > 0) fixedPackArt = ultraList[0].image;
-                else if (rareList.length > 0) fixedPackArt = rareList[0].image;
-                else fixedPackArt = validCards[0].image;
-
-                document.getElementById('previewPackImg').src = fixedPackArt;
-                document.getElementById('previewPackTitle').textContent = currentSetInfo.name;
-
                 setCardsCache[setId] = {
                     cards: {
                         common: commonList.length ? commonList : validCards,
                         rare: rareList.length ? rareList : validCards,
                         ultra: ultraList.length ? ultraList : (rareList.length ? rareList : validCards)
-                    },
-                    packArt: fixedPackArt
+                    }
                 };
                 currentSetCards = setCardsCache[setId].cards;
 
@@ -643,7 +641,7 @@
         }
 
         function getRandomFrom(arr) {
-            if(!arr || arr.length === 0) return { name: '포켓몬 카드', image: 'https://assets.tcgdex.net/univ/symbol.png', rarity: 'C', rawMarketPriceUsd: 0.1 };
+            if(!arr || arr.length === 0) return { name: '포켓몬 카드', image: OFFICIAL_CARD_BACK, rarity: 'C', rawMarketPriceUsd: 0.1 };
             return arr[Math.floor(Math.random() * arr.length)];
         }
 
